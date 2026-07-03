@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { SiteCopy } from "@/lib/site-data";
 import type {
   PiAuthResult,
   PiVerifiedUser,
@@ -12,6 +13,7 @@ import styles from "./pi-commerce-panel.module.css";
 type CommercePanelProps = {
   products: Product[];
   serverConfigured: boolean;
+  copy: SiteCopy["piPanel"];
   compact?: boolean;
 };
 
@@ -26,7 +28,11 @@ const networkLabel =
   process.env.NEXT_PUBLIC_PI_NETWORK_LABEL?.trim() || "Pi Testnet";
 const sandboxEnabled = process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
 
-async function postJson<T>(path: string, payload: Record<string, unknown>) {
+async function postJson<T>(
+  path: string,
+  payload: Record<string, unknown>,
+  fallbackError: string,
+) {
   const response = await fetch(path, {
     method: "POST",
     headers: {
@@ -39,7 +45,7 @@ async function postJson<T>(path: string, payload: Record<string, unknown>) {
 
   if (!response.ok) {
     const errorMessage =
-      typeof data.error === "string" ? data.error : "Request failed";
+      typeof data.error === "string" ? data.error : fallbackError;
     throw new Error(errorMessage);
   }
 
@@ -49,6 +55,7 @@ async function postJson<T>(path: string, payload: Record<string, unknown>) {
 export function PiCommercePanel({
   products,
   serverConfigured,
+  copy,
   compact = false,
 }: CommercePanelProps) {
   const [sdkReady, setSdkReady] = useState(false);
@@ -56,9 +63,7 @@ export function PiCommercePanel({
   const [purchaseBusy, setPurchaseBusy] = useState<string | null>(null);
   const [viewer, setViewer] = useState<PiVerifiedUser | null>(null);
   const [message, setMessage] = useState<MessageState>(null);
-  const [timeline, setTimeline] = useState<string[]>([
-    "Pi SDK panel loaded. Open this page in Pi Browser or Pi Sandbox to test native sign-in and checkout.",
-  ]);
+  const [timeline, setTimeline] = useState<string[]>([copy.initialTimeline]);
 
   const initializedRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -102,7 +107,7 @@ export function PiCommercePanel({
     if (!window.Pi) {
       setMessage({
         kind: "error",
-        text: "Pi SDK is not available yet. Open the app in Pi Browser or wait for the script to finish loading.",
+        text: copy.sdkNotReady,
       });
       return;
     }
@@ -114,42 +119,42 @@ export function PiCommercePanel({
       const authResult: PiAuthResult = await window.Pi.authenticate(
         [...scopes],
         async (payment) => {
-          appendTimeline(
-            `Incomplete payment found: ${payment.identifier}. Trying to reconcile it on the server.`,
-          );
+          appendTimeline(`[${payment.identifier}] ${copy.incompleteFound}`);
 
           try {
-            await postJson("/api/pi/payments/incomplete", { payment });
-            appendTimeline(
-              `Incomplete payment ${payment.identifier} was handed off to the server.`,
+            await postJson(
+              "/api/pi/payments/incomplete",
+              { payment },
+              copy.incompleteFailed,
             );
+            appendTimeline(`[${payment.identifier}] ${copy.incompleteSent}`);
           } catch (error) {
             appendTimeline(
-              error instanceof Error
-                ? error.message
-                : "Failed to reconcile an incomplete payment.",
+              error instanceof Error ? error.message : copy.incompleteFailed,
             );
           }
         },
       );
 
-      const verified = await postJson<{ user: PiVerifiedUser }>("/api/pi/auth", {
-        accessToken: authResult.accessToken,
-      });
+      const verified = await postJson<{ user: PiVerifiedUser }>(
+        "/api/pi/auth",
+        { accessToken: authResult.accessToken },
+        copy.authFailed,
+      );
+
+      const displayName = verified.user.username ?? authResult.user.uid;
+      const successText = `${copy.authSuccessPrefix} ${displayName}.`;
 
       setViewer(verified.user);
       setMessage({
         kind: "success",
-        text: `Connected as ${verified.user.username ?? authResult.user.uid}. Server-side verification with /me succeeded.`,
+        text: successText,
       });
-      appendTimeline("Pi account authenticated and verified through the Pi Platform API.");
+      appendTimeline(successText);
     } catch (error) {
       setMessage({
         kind: "error",
-        text:
-          error instanceof Error
-            ? error.message
-            : "Pi authentication failed.",
+        text: error instanceof Error ? error.message : copy.authFailed,
       });
     } finally {
       setAuthBusy(false);
@@ -160,7 +165,7 @@ export function PiCommercePanel({
     if (!window.Pi) {
       setMessage({
         kind: "error",
-        text: "Pi SDK is not available in this browser session.",
+        text: copy.sdkUnavailable,
       });
       return;
     }
@@ -168,7 +173,7 @@ export function PiCommercePanel({
     if (!viewer) {
       setMessage({
         kind: "error",
-        text: "Authenticate with your Pi account before starting a Test-Pi payment.",
+        text: copy.authRequired,
       });
       return;
     }
@@ -176,7 +181,7 @@ export function PiCommercePanel({
     if (!serverConfigured) {
       setMessage({
         kind: "error",
-        text: "PI_API_KEY is not configured on the server yet, so payment approval cannot continue.",
+        text: copy.missingServerKey,
       });
       return;
     }
@@ -198,59 +203,57 @@ export function PiCommercePanel({
       {
         onReadyForServerApproval: async (paymentId) => {
           try {
-            appendTimeline(`Payment ${paymentId} is ready for server approval.`);
-            await postJson("/api/pi/payments/approve", {
-              paymentId,
-              productId: product.id,
-            });
-            appendTimeline(`Payment ${paymentId} was approved by the backend.`);
+            appendTimeline(`[${paymentId}] ${copy.approvalReady}`);
+            await postJson(
+              "/api/pi/payments/approve",
+              {
+                paymentId,
+                productId: product.id,
+              },
+              copy.approvalFailed,
+            );
+            appendTimeline(`[${paymentId}] ${copy.approvalDone}`);
           } catch (error) {
             setPurchaseBusy(null);
             setMessage({
               kind: "error",
-              text:
-                error instanceof Error
-                  ? error.message
-                  : "Server-side approval failed.",
+              text: error instanceof Error ? error.message : copy.approvalFailed,
             });
             appendTimeline(
-              error instanceof Error
-                ? error.message
-                : "Server-side approval failed.",
+              error instanceof Error ? error.message : copy.approvalFailed,
             );
           }
         },
         onReadyForServerCompletion: async (paymentId, txid) => {
           try {
             appendTimeline(
-              `Blockchain transaction received for ${paymentId}. Completing with txid ${txid}.`,
+              `[${paymentId}] ${copy.completionReady} Txid: ${txid}.`,
             );
 
-            await postJson("/api/pi/payments/complete", {
-              paymentId,
-              txid,
-              productId: product.id,
-            });
+            await postJson(
+              "/api/pi/payments/complete",
+              {
+                paymentId,
+                txid,
+                productId: product.id,
+              },
+              copy.completionFailed,
+            );
 
             setMessage({
               kind: "success",
-              text: `${product.name} reached the server-completion phase successfully. This is the core Pi payment flow you will later connect to real fulfillment.`,
+              text: `${product.name} ${copy.completionSuccessSuffix}`,
             });
-            appendTimeline(`Payment ${paymentId} was completed on the backend.`);
+            appendTimeline(`[${paymentId}] ${copy.completionDone}`);
             setPurchaseBusy(null);
           } catch (error) {
             setPurchaseBusy(null);
             setMessage({
               kind: "error",
-              text:
-                error instanceof Error
-                  ? error.message
-                  : "Server-side completion failed.",
+              text: error instanceof Error ? error.message : copy.completionFailed,
             });
             appendTimeline(
-              error instanceof Error
-                ? error.message
-                : "Server-side completion failed.",
+              error instanceof Error ? error.message : copy.completionFailed,
             );
           }
         },
@@ -258,20 +261,20 @@ export function PiCommercePanel({
           setPurchaseBusy(null);
           setMessage({
             kind: "error",
-            text: `Payment ${paymentId} was cancelled before completion.`,
+            text: `[${paymentId}] ${copy.cancelled}`,
           });
-          appendTimeline(`Payment ${paymentId} was cancelled by the user or the SDK.`);
+          appendTimeline(`[${paymentId}] ${copy.cancelledTimeline}`);
         },
         onError: (error, payment) => {
           setPurchaseBusy(null);
           setMessage({
             kind: "error",
-            text: error.message,
+            text: `${copy.paymentError}: ${error.message}`,
           });
           appendTimeline(
             payment
-              ? `Payment error on ${payment.identifier}: ${error.message}`
-              : `Payment error: ${error.message}`,
+              ? `[${payment.identifier}] ${copy.paymentError}: ${error.message}`
+              : `${copy.paymentError}: ${error.message}`,
           );
         },
       },
@@ -282,21 +285,17 @@ export function PiCommercePanel({
     <section className={panelClassName}>
       <div className={styles.top}>
         <div>
-          <h3>Pi Commerce Lab</h3>
-          <p>
-            This panel is wired for Pi sign-in, user verification through
-            `/me`, and Test-Pi payment approval/completion callbacks. It is the
-            commerce bridge for Mushroom.Pi.
-          </p>
+          <h3>{copy.title}</h3>
+          <p>{copy.description}</p>
         </div>
 
         <div className={styles.statusPills}>
           <span className={styles.pill}>{networkLabel}</span>
           <span className={styles.pill}>
-            {sandboxEnabled ? "Sandbox enabled" : "Browser runtime"}
+            {sandboxEnabled ? copy.sandboxEnabled : copy.browserRuntime}
           </span>
           <span className={`${styles.pill} ${styles.pillMuted}`}>
-            {serverConfigured ? "Server key configured" : "Server key pending"}
+            {serverConfigured ? copy.serverConfigured : copy.serverPending}
           </span>
         </div>
       </div>
@@ -308,24 +307,21 @@ export function PiCommercePanel({
           onClick={handleAuthenticate}
           disabled={!sdkReady || authBusy}
         >
-          {authBusy ? "Connecting..." : "Sign in with Pi"}
+          {authBusy ? copy.connectBusy : copy.connectReady}
         </button>
       </div>
 
-      <div className={styles.hint}>
-        Pi login and payment dialogs are expected to work inside Pi Browser or
-        Pi Sandbox. On a regular browser, the SDK may load but the native flow
-        can still be unavailable.
-      </div>
+      <div className={styles.hint}>{copy.hint}</div>
 
       {viewer ? (
         <div className={styles.userCard}>
-          <span className={styles.userLabel}>Verified Pioneer</span>
+          <span className={styles.userLabel}>{copy.verifiedViewerLabel}</span>
           <span className={styles.userName}>
             {viewer.username ?? viewer.uid}
           </span>
           <span>
-            Granted scopes: {viewer.credentials?.scopes.join(", ") ?? "unknown"}
+            {copy.grantedScopesLabel}:{" "}
+            {viewer.credentials?.scopes.join(", ") ?? copy.unknownScopes}
           </span>
         </div>
       ) : null}
@@ -362,7 +358,7 @@ export function PiCommercePanel({
 
             <div className={styles.productBottom}>
               <div className={styles.price}>
-                <span className={styles.priceLabel}>Test-Pi amount</span>
+                <span className={styles.priceLabel}>{copy.testAmountLabel}</span>
                 <span className={styles.priceValue}>{product.pricePi} Pi</span>
               </div>
 
@@ -372,9 +368,7 @@ export function PiCommercePanel({
                 disabled={purchaseBusy !== null && purchaseBusy !== product.id}
                 onClick={() => handlePurchase(product)}
               >
-                {purchaseBusy === product.id
-                  ? "Processing..."
-                  : "Pay with Pi Testnet"}
+                {purchaseBusy === product.id ? copy.processing : copy.payAction}
               </button>
             </div>
           </article>
@@ -382,7 +376,7 @@ export function PiCommercePanel({
       </div>
 
       <div className={styles.log}>
-        <h4>Recent flow events</h4>
+        <h4>{copy.recentFlowTitle}</h4>
         <ul className={styles.logList}>
           {timeline.map((entry, index) => (
             <li key={`${index}-${entry}`}>{entry}</li>

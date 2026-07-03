@@ -1,48 +1,50 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { piSetupSteps } from "@/lib/site-data";
+import { getRequestLocale } from "@/lib/request-locale";
+import { getSiteCopy } from "@/lib/site-data";
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "Pi Lab | Mushroom.Pi",
-  description:
-    "Setup notes for Pi Browser, Pi Sandbox, and Test-Pi payment flow inside Mushroom.Pi.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
+  const siteCopy = getSiteCopy(locale);
 
-export default function PiLabPage() {
+  return {
+    title: siteCopy.metadata.piLabTitle,
+    description: siteCopy.metadata.piLabDescription,
+  };
+}
+
+export default async function PiLabPage() {
+  const locale = await getRequestLocale();
+  const siteCopy = getSiteCopy(locale);
   const serverConfigured = Boolean(process.env.PI_API_KEY);
 
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <p className={styles.eyebrow}>Pi lab</p>
-        <h1>This is the operating surface for Pi Browser, Pi Sandbox, and Test-Pi checkout.</h1>
-        <p className={styles.lead}>
-          The site now includes a frontend auth flow, server-side verification
-          against `/me`, and payment approval/completion endpoints. The missing
-          piece for live testing is the real Server API Key from the Pi
-          Developer Portal.
-        </p>
+        <p className={styles.eyebrow}>{siteCopy.piLab.heroEyebrow}</p>
+        <h1>{siteCopy.piLab.heroTitle}</h1>
+        <p className={styles.lead}>{siteCopy.piLab.heroLead}</p>
       </section>
 
       <section className={styles.gridSection}>
         <div className={styles.card}>
-          <h2>Current repo status</h2>
+          <h2>{siteCopy.piLab.repoStatusTitle}</h2>
           <p>
             Server API Key:{" "}
-            <strong>{serverConfigured ? "configured" : "not configured yet"}</strong>
+            <strong>
+              {serverConfigured
+                ? siteCopy.piLab.serverKeyConfigured
+                : siteCopy.piLab.serverKeyPending}
+            </strong>
           </p>
-          <p>
-            Sandbox flag comes from `NEXT_PUBLIC_PI_SANDBOX`, while the real app
-            network should be chosen in the Pi Developer Portal when you create
-            the Mushroom.Pi project.
-          </p>
+          <p>{siteCopy.piLab.repoStatusBody}</p>
         </div>
 
         <div className={styles.card}>
-          <h2>Setup checklist</h2>
+          <h2>{siteCopy.piLab.setupTitle}</h2>
           <ol className={styles.stepList}>
-            {piSetupSteps.map((step) => (
+            {siteCopy.piSetupSteps.map((step) => (
               <li key={step}>{step}</li>
             ))}
           </ol>
@@ -50,25 +52,21 @@ export default function PiLabPage() {
       </section>
 
       <section className={styles.card}>
-        <h2>Environment variables</h2>
+        <h2>{siteCopy.piLab.envTitle}</h2>
         <pre className={styles.codeBlock}>{`PI_API_KEY=your_pi_server_api_key
 NEXT_PUBLIC_PI_SANDBOX=false
 NEXT_PUBLIC_PI_NETWORK_LABEL=Pi Testnet`}</pre>
-        <p>
-          If you want local desktop sandbox testing, set
-          `NEXT_PUBLIC_PI_SANDBOX=true` in your local environment and run the
-          app through the Pi Sandbox flow.
-        </p>
+        <p>{siteCopy.piLab.envBody}</p>
       </section>
 
       <section className={styles.card}>
-        <h2>Where to continue next</h2>
+        <h2>{siteCopy.piLab.nextTitle}</h2>
         <div className={styles.linkRow}>
           <Link href="/shop" className={styles.cta}>
-            Test storefront flow
+            {siteCopy.piLab.nextPrimary}
           </Link>
           <Link href="/blog" className={styles.secondary}>
-            Review editorial layer
+            {siteCopy.piLab.nextSecondary}
           </Link>
         </div>
       </section>

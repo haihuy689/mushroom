@@ -3,6 +3,8 @@ import Script from "next/script";
 import { Cormorant_Garamond, Space_Grotesk } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { getRequestLocale } from "@/lib/request-locale";
+import { getSiteCopy } from "@/lib/site-data";
 import "./globals.css";
 
 const bodyFont = Space_Grotesk({
@@ -18,20 +20,26 @@ const displayFont = Cormorant_Garamond({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Mushroom.Pi",
-  description:
-    "Mushroom.Pi is a Pi-powered mushroom storefront and editorial site, currently being shaped around Pi Testnet commerce.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
+  const siteCopy = getSiteCopy(locale);
 
-export default function RootLayout({
+  return {
+    title: siteCopy.metadata.rootTitle,
+    description: siteCopy.metadata.rootDescription,
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getRequestLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${bodyFont.variable} ${displayFont.variable}`}
     >
       <body>

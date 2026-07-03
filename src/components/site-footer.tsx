@@ -1,32 +1,26 @@
 import Link from "next/link";
-import { navigationLinks } from "@/lib/site-data";
+import { getRequestLocale } from "@/lib/request-locale";
+import { getNavigationLinks, getSiteCopy } from "@/lib/site-data";
 import { BrandMark } from "./brand-mark";
 import styles from "./site-chrome.module.css";
 
-const footerMeta = [
-  "Pi Testnet rollout",
-  "Commerce-first architecture",
-  "Editorial mushroom content",
-];
+export async function SiteFooter() {
+  const locale = await getRequestLocale();
+  const siteCopy = getSiteCopy(locale);
+  const navigationLinks = getNavigationLinks(locale);
 
-export function SiteFooter() {
   return (
     <footer className={styles.footerWrap}>
       <div className={styles.footerInner}>
         <div className={styles.footerCard}>
           <div className={styles.footerTop}>
             <div>
-              <BrandMark />
-              <p className={styles.footerCopy}>
-                Mushroom.Pi is being shaped as a Pi-native mushroom storefront
-                with testnet checkout, account sign-in, and a blog that gives
-                the brand editorial depth around products, routines, and
-                mushroom education.
-              </p>
+              <BrandMark tagline={siteCopy.brandTagline} />
+              <p className={styles.footerCopy}>{siteCopy.footerCopy}</p>
             </div>
 
             <div className={styles.footerMeta}>
-              {footerMeta.map((item) => (
+              {siteCopy.footerMeta.map((item) => (
                 <span key={item} className={styles.metaPill}>
                   {item}
                 </span>
@@ -46,7 +40,7 @@ export function SiteFooter() {
               rel="noreferrer"
               className={styles.footerLink}
             >
-              GitHub
+              {siteCopy.footerGithub}
             </a>
             <a
               href="https://mushroom-theta-five.vercel.app"
@@ -54,7 +48,7 @@ export function SiteFooter() {
               rel="noreferrer"
               className={styles.footerLink}
             >
-              Live Site
+              {siteCopy.footerLiveSite}
             </a>
           </div>
         </div>

@@ -67,6 +67,14 @@
   font-size: 0.84rem;
 }
 
+.headerAside {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .nav {
   display: flex;
   align-items: center;
@@ -100,6 +108,101 @@
   background: linear-gradient(135deg, #7c4824, #2f4f30);
   color: #fff8ef;
   box-shadow: 0 12px 28px rgba(69, 39, 20, 0.18);
+}
+
+.languageMenu {
+  position: relative;
+}
+
+.languageTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(72, 43, 22, 0.12);
+  background: rgba(255, 251, 242, 0.8);
+  color: #473021;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.languageTrigger::marker,
+.languageTrigger::-webkit-details-marker {
+  display: none;
+  content: "";
+}
+
+.languageMenu[open] .languageTrigger {
+  background: rgba(255, 244, 219, 0.95);
+}
+
+.languageFlag {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.languageCode {
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.languagePopover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  display: grid;
+  gap: 6px;
+  min-width: 220px;
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(72, 43, 22, 0.12);
+  background: rgba(255, 249, 239, 0.98);
+  box-shadow: 0 24px 44px rgba(65, 40, 19, 0.18);
+}
+
+.languageOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #3c2618;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.languageOption:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.languageText {
+  display: grid;
+  gap: 2px;
+}
+
+.languageText strong {
+  font-size: 0.95rem;
+}
+
+.languageText span {
+  color: rgba(67, 41, 24, 0.7);
+  font-size: 0.82rem;
 }
 
 .footerWrap {
@@ -160,7 +263,9 @@
 
 @media (hover: hover) and (pointer: fine) {
   .navLink:hover,
-  .headerAction:hover {
+  .headerAction:hover,
+  .languageTrigger:hover,
+  .languageOption:hover {
     transform: translateY(-2px);
   }
 
@@ -170,6 +275,10 @@
 
   .headerAction:hover {
     box-shadow: 0 16px 34px rgba(69, 39, 20, 0.24);
+  }
+
+  .languageOption:hover {
+    background: rgba(255, 244, 219, 0.92);
   }
 }
 
@@ -189,6 +298,7 @@
     flex-direction: column;
   }
 
+  .headerAside,
   .nav {
     width: 100%;
     justify-content: flex-start;
@@ -196,6 +306,11 @@
 
   .headerAction {
     width: 100%;
+  }
+
+  .languagePopover {
+    left: 0;
+    right: auto;
   }
 
   .footerWrap {

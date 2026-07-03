@@ -1,44 +1,42 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { PiCommercePanel } from "@/components/pi-commerce-panel";
-import { products } from "@/lib/site-data";
+import { getRequestLocale } from "@/lib/request-locale";
+import { getProducts, getSiteCopy } from "@/lib/site-data";
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "Shop | Mushroom.Pi",
-  description:
-    "Browse the Mushroom.Pi storefront and test the Pi-native checkout flow.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
+  const siteCopy = getSiteCopy(locale);
 
-export default function ShopPage() {
+  return {
+    title: siteCopy.metadata.shopTitle,
+    description: siteCopy.metadata.shopDescription,
+  };
+}
+
+export default async function ShopPage() {
+  const locale = await getRequestLocale();
+  const siteCopy = getSiteCopy(locale);
+  const products = getProducts(locale);
   const serverConfigured = Boolean(process.env.PI_API_KEY);
 
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
         <div>
-          <p className={styles.eyebrow}>Storefront</p>
-          <h1>Mushroom.Pi is being designed to sell first and explain second.</h1>
-          <p className={styles.lead}>
-            This page is the clearest expression of the target business model:
-            curated mushroom products, Pi-native onboarding, and a checkout path
-            that can mature from Test-Pi to a full production flow later.
-          </p>
+          <p className={styles.eyebrow}>{siteCopy.shop.heroEyebrow}</p>
+          <h1>{siteCopy.shop.heroTitle}</h1>
+          <p className={styles.lead}>{siteCopy.shop.heroLead}</p>
         </div>
 
         <div className={styles.infoGrid}>
-          <article className={styles.infoCard}>
-            <strong>Test-Pi now</strong>
-            <p>Use Pi Testnet as the operating lane while the product logic and UX are refined.</p>
-          </article>
-          <article className={styles.infoCard}>
-            <strong>Catalog mix</strong>
-            <p>Functional wellness, culinary products, and bundle logic all fit naturally into this structure.</p>
-          </article>
-          <article className={styles.infoCard}>
-            <strong>Pi identity</strong>
-            <p>Login and payment are being treated as native business primitives, not bolt-on widgets.</p>
-          </article>
+          {siteCopy.shop.infoCards.map((card) => (
+            <article key={card.title} className={styles.infoCard}>
+              <strong>{card.title}</strong>
+              <p>{card.description}</p>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -63,8 +61,10 @@ export default function ShopPage() {
         </div>
 
         <PiCommercePanel
+          key={locale}
           products={products}
           serverConfigured={serverConfigured}
+          copy={siteCopy.piPanel}
         />
       </section>
     </div>

@@ -1,6 +1,10 @@
 import styles from "./site-chrome.module.css";
 
-export function BrandMark() {
+type BrandMarkProps = {
+  tagline: string;
+};
+
+export function BrandMark({ tagline }: BrandMarkProps) {
   return (
     <span className={styles.brandMark}>
       <span className={styles.brandIcon} aria-hidden="true">
@@ -26,7 +30,7 @@ export function BrandMark() {
       </span>
       <span className={styles.brandCopy}>
         <span className={styles.brandName}>Mushroom.Pi</span>
-        <span className={styles.brandTag}>Pi-powered mushroom store and blog</span>
+        <span className={styles.brandTag}>{tagline}</span>
       </span>
     </span>
   );
