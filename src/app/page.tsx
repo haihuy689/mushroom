@@ -40,6 +40,17 @@ const timeline = [
   },
 ];
 
+const projectLinks = [
+  {
+    label: "GitHub Repo",
+    href: "https://github.com/haihuy689/mushroom",
+  },
+  {
+    label: "Live on Vercel",
+    href: "https://mushroom-theta-five.vercel.app",
+  },
+];
+
 export default function Home() {
   return (
     <main className={styles.page}>
@@ -147,6 +158,22 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <footer className={styles.footer}>
+        <p>Freshly published and ready for the next feature.</p>
+        <div className={styles.footerLinks}>
+          {projectLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </footer>
     </main>
   );
 }
