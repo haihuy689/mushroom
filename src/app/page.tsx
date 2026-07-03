@@ -1,179 +1,147 @@
+import type { CSSProperties } from "react";
+import Link from "next/link";
+import { PiCommercePanel } from "@/components/pi-commerce-panel";
+import {
+  blogPosts,
+  brandPillars,
+  products,
+  storeStats,
+} from "@/lib/site-data";
 import styles from "./page.module.css";
 
-const featureCards = [
-  {
-    title: "Forest Mood",
-    description:
-      "A warm, cinematic landing page with layered gradients, soft glow fields, and a mushroom-inspired art direction.",
-  },
-  {
-    title: "Ship-Ready Stack",
-    description:
-      "Built with Next.js App Router and structured for fast edits, easy hosting, and a smooth Vercel deploy flow.",
-  },
-  {
-    title: "Small But Intentional",
-    description:
-      "Clear typography, responsive layout, and a few meaningful animations instead of filler effects or template noise.",
-  },
-];
-
-const snapshots = [
-  "Next.js 16 App Router",
-  "TypeScript foundation",
-  "Responsive single-page layout",
-  "GitHub + Vercel friendly",
-];
-
-const timeline = [
-  {
-    phase: "Seed",
-    detail: "Start with a fresh repo and a clean Vercel-ready foundation.",
-  },
-  {
-    phase: "Sprout",
-    detail: "Shape the visual identity with custom typography, color, and motion.",
-  },
-  {
-    phase: "Bloom",
-    detail: "Publish to GitHub, connect Vercel, and keep iterating from a stable base.",
-  },
-];
-
-const projectLinks = [
-  {
-    label: "GitHub Repo",
-    href: "https://github.com/haihuy689/mushroom",
-  },
-  {
-    label: "Live on Vercel",
-    href: "https://mushroom-theta-five.vercel.app",
-  },
-];
+const featuredProducts = products.slice(0, 3);
+const featuredStories = blogPosts.slice(0, 3);
 
 export default function Home() {
+  const serverConfigured = Boolean(process.env.PI_API_KEY);
+
   return (
-    <main className={styles.page}>
-      <div className={styles.ambient} aria-hidden="true">
-        <span className={styles.orbOne} />
-        <span className={styles.orbTwo} />
-        <span className={styles.orbThree} />
-      </div>
-
+    <div className={styles.page}>
       <section className={styles.hero}>
-        <div className={styles.badge}>Forest Lab • July 2026</div>
+        <div className={styles.heroCopy}>
+          <p className={styles.eyebrow}>Pi-native mushroom commerce</p>
+          <h1>Mushroom.Pi is being built as a real store, not just a landing page.</h1>
+          <p className={styles.lead}>
+            The brand direction is now clear: a storefront-first mushroom site
+            connected to Pi sign-in, Test-Pi payments, and an editorial layer
+            that teaches, earns trust, and supports long-term growth.
+          </p>
 
-        <div className={styles.heroGrid}>
-          <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>Mushroom</p>
-            <h1>Grow a fresh web project and ship it fast.</h1>
-            <p className={styles.lead}>
-              Mushroom is a clean starter site with a playful woodland mood,
-              ready to live on GitHub and deploy through Vercel without the old
-              project baggage.
-            </p>
-
-            <div className={styles.actions}>
-              <a className={styles.primaryAction} href="#highlights">
-                Explore the canopy
-              </a>
-              <a className={styles.secondaryAction} href="#roadmap">
-                See the stack
-              </a>
-            </div>
+          <div className={styles.actions}>
+            <Link href="/shop" className={styles.primaryAction}>
+              Enter the store
+            </Link>
+            <Link href="/blog" className={styles.secondaryAction}>
+              Read the journal
+            </Link>
           </div>
+        </div>
 
-          <aside className={styles.signalCard}>
-            <div className={styles.signalHeader}>
-              <span className={styles.signalLabel}>Now Fruiting</span>
-              <span className={styles.signalValue}>Ready</span>
-            </div>
-
-            <div className={styles.signalMeter} aria-hidden="true">
-              <span />
-            </div>
-
-            <ul className={styles.snapshotList}>
-              {snapshots.map((item) => (
-                <li key={item}>{item}</li>
+        <div className={styles.heroRail}>
+          <div className={styles.heroCard}>
+            <span className={styles.cardLabel}>Current direction</span>
+            <ul className={styles.statList}>
+              {storeStats.map((stat) => (
+                <li key={stat.label}>
+                  <strong>{stat.value}</strong>
+                  <span>{stat.label}</span>
+                </li>
               ))}
             </ul>
-          </aside>
+          </div>
+
+          <div className={styles.domainCard}>
+            <span className={styles.cardLabel}>Future domain fit</span>
+            <h2>Mushroom.Pi</h2>
+            <p>
+              The site identity, content voice, and commerce flow are being
+              shaped to eventually live naturally under your Pi domain.
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className={styles.section} id="highlights">
+      <section className={styles.section}>
         <div className={styles.sectionHeading}>
-          <p className={styles.sectionLabel}>Highlights</p>
-          <h2>Small surface area, strong first impression.</h2>
+          <p className={styles.sectionLabel}>Storefront preview</p>
+          <h2>Product architecture now drives the homepage.</h2>
         </div>
 
-        <div className={styles.cardGrid}>
-          {featureCards.map((card) => (
-            <article className={styles.featureCard} key={card.title}>
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.storySection}>
-        <div className={styles.storyIntro}>
-          <p className={styles.sectionLabel}>Why This Shape</p>
-          <h2>
-            A fresh repo should feel like a launch pad, not a cleanup job.
-          </h2>
-        </div>
-
-        <div className={styles.storyPanel}>
-          <p>
-            This starter leans into clarity: one route, one visual direction,
-            one deploy path. That gives us a clean base to add features, pages,
-            API routes, or products later without redoing the fundamentals.
-          </p>
-          <p>
-            The current version is intentionally lean, so the first GitHub push
-            and Vercel release already look like a real project instead of a
-            default scaffold.
-          </p>
-        </div>
-      </section>
-
-      <section className={styles.section} id="roadmap">
-        <div className={styles.sectionHeading}>
-          <p className={styles.sectionLabel}>Roadmap</p>
-          <h2>From fresh folder to public URL.</h2>
-        </div>
-
-        <div className={styles.timeline}>
-          {timeline.map((item) => (
-            <article className={styles.timelineItem} key={item.phase}>
-              <span className={styles.timelineDot} aria-hidden="true" />
-              <div>
-                <h3>{item.phase}</h3>
-                <p>{item.detail}</p>
+        <div className={styles.productGrid}>
+          {featuredProducts.map((product) => (
+            <article
+              key={product.id}
+              className={styles.productCard}
+              style={{ "--card-accent": product.accent } as CSSProperties}
+            >
+              <span className={styles.productBadge}>{product.badge}</span>
+              <h3>{product.name}</h3>
+              <p>{product.tagline}</p>
+              <div className={styles.productMeta}>
+                <span>{product.category}</span>
+                <span>{product.format}</span>
+                <span>{product.pricePi} Pi</span>
               </div>
             </article>
           ))}
         </div>
       </section>
 
-      <footer className={styles.footer}>
-        <p>Freshly published and ready for the next feature.</p>
-        <div className={styles.footerLinks}>
-          {projectLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {link.label}
-            </a>
-          ))}
+      <section className={styles.commerceSection}>
+        <div className={styles.commerceIntro}>
+          <p className={styles.sectionLabel}>Pi commerce panel</p>
+          <h2>Sign in, verify the Pi user, and test the payment lifecycle.</h2>
+          <p>
+            This is the functional heart of the next phase. The panel below is
+            scaffolded around the official Pi flow: authenticate on the client,
+            verify through the Platform API, then approve and complete payments
+            from server routes.
+          </p>
         </div>
-      </footer>
-    </main>
+
+        <PiCommercePanel
+          products={products.slice(0, 2)}
+          serverConfigured={serverConfigured}
+          compact
+        />
+      </section>
+
+      <section className={styles.storySection}>
+        <div className={styles.storyColumn}>
+          <div className={styles.sectionHeading}>
+            <p className={styles.sectionLabel}>Brand pillars</p>
+            <h2>The business model is store-first, with content doing strategic support.</h2>
+          </div>
+
+          <div className={styles.pillarList}>
+            {brandPillars.map((pillar) => (
+              <article key={pillar.title} className={styles.pillarCard}>
+                <h3>{pillar.title}</h3>
+                <p>{pillar.description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.storyColumn}>
+          <div className={styles.sectionHeading}>
+            <p className={styles.sectionLabel}>From the journal</p>
+            <h2>Content keeps the shop from feeling generic.</h2>
+          </div>
+
+          <div className={styles.blogList}>
+            {featuredStories.map((post) => (
+              <Link key={post.slug} href={`/blog/${post.slug}`} className={styles.blogCard}>
+                <span className={styles.blogMeta}>
+                  {post.category} · {post.readTime}
+                </span>
+                <h3>{post.title}</h3>
+                <p>{post.excerpt}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

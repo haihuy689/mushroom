@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Cormorant_Garamond, Space_Grotesk } from "next/font/google";
+import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
 const bodyFont = Space_Grotesk({
@@ -16,9 +19,9 @@ const displayFont = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Mushroom",
+  title: "Mushroom.Pi",
   description:
-    "A fresh Next.js web project with a warm mushroom-inspired landing page, ready for GitHub and Vercel.",
+    "Mushroom.Pi is a Pi-powered mushroom storefront and editorial site, currently being shaped around Pi Testnet commerce.",
 };
 
 export default function RootLayout({
@@ -31,7 +34,17 @@ export default function RootLayout({
       lang="en"
       className={`${bodyFont.variable} ${displayFont.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <Script
+          src="https://sdk.minepi.com/pi-sdk.js"
+          strategy="beforeInteractive"
+        />
+        <div className="site-shell">
+          <SiteHeader />
+          <main className="site-main">{children}</main>
+          <SiteFooter />
+        </div>
+      </body>
     </html>
   );
 }

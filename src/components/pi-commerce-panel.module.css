@@ -1,0 +1,277 @@
+.panel {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 28px;
+  border: 1px solid rgba(69, 41, 21, 0.12);
+  background:
+    linear-gradient(180deg, rgba(48, 61, 33, 0.96), rgba(29, 34, 20, 0.98)),
+    radial-gradient(circle at top right, rgba(255, 230, 176, 0.2), transparent 36%);
+  color: #fff7eb;
+  box-shadow: 0 28px 64px rgba(43, 31, 22, 0.22);
+}
+
+.compact {
+  padding: 18px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.top h3 {
+  font-size: 1.4rem;
+}
+
+.top p {
+  margin-top: 6px;
+  max-width: 46ch;
+  color: rgba(255, 243, 221, 0.78);
+  line-height: 1.6;
+}
+
+.statusPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 244, 224, 0.16);
+  background: rgba(255, 249, 236, 0.08);
+  font-size: 0.88rem;
+}
+
+.pillMuted {
+  color: rgba(255, 243, 221, 0.72);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.connectButton,
+.buyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
+}
+
+.connectButton {
+  background: linear-gradient(135deg, #ffcf58, #ce7c34);
+  color: #23140d;
+  box-shadow: 0 12px 28px rgba(214, 132, 54, 0.22);
+}
+
+.buyButton {
+  background: rgba(255, 247, 231, 0.94);
+  color: #24160f;
+}
+
+.connectButton:disabled,
+.buyButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.hint {
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 247, 230, 0.14);
+  background: rgba(255, 249, 238, 0.08);
+  color: rgba(255, 241, 215, 0.82);
+  line-height: 1.6;
+}
+
+.userCard {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 248, 236, 0.08);
+  border: 1px solid rgba(255, 241, 216, 0.14);
+}
+
+.userLabel {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 241, 216, 0.64);
+}
+
+.userName {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.catalog {
+  display: grid;
+  gap: 12px;
+}
+
+.productCard {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 241, 216, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 248, 232, 0.1), rgba(255, 248, 232, 0.05)),
+    var(--product-accent);
+  background-blend-mode: soft-light, normal;
+}
+
+.productTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.productName {
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.productTagline {
+  margin-top: 4px;
+  color: rgba(255, 243, 221, 0.78);
+  line-height: 1.55;
+}
+
+.badge {
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255, 247, 232, 0.14);
+  border: 1px solid rgba(255, 247, 232, 0.18);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.productMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: rgba(255, 243, 221, 0.7);
+  font-size: 0.9rem;
+}
+
+.productBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.price {
+  display: grid;
+  gap: 4px;
+}
+
+.priceLabel {
+  color: rgba(255, 241, 216, 0.66);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.priceValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.message {
+  padding: 14px 16px;
+  border-radius: 18px;
+  line-height: 1.6;
+}
+
+.success {
+  background: rgba(135, 194, 125, 0.18);
+  border: 1px solid rgba(135, 194, 125, 0.32);
+  color: #eef7ea;
+}
+
+.error {
+  background: rgba(214, 103, 82, 0.18);
+  border: 1px solid rgba(214, 103, 82, 0.36);
+  color: #ffe9e4;
+}
+
+.log {
+  display: grid;
+  gap: 10px;
+}
+
+.log h4 {
+  font-size: 0.96rem;
+}
+
+.logList {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.logList li {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 248, 236, 0.08);
+  border: 1px solid rgba(255, 247, 232, 0.12);
+  color: rgba(255, 243, 221, 0.82);
+  line-height: 1.5;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .connectButton:hover,
+  .buyButton:hover {
+    transform: translateY(-2px);
+  }
+
+  .connectButton:hover {
+    box-shadow: 0 16px 34px rgba(214, 132, 54, 0.28);
+  }
+}
+
+@media (max-width: 640px) {
+  .panel,
+  .compact {
+    padding: 16px;
+    border-radius: 22px;
+  }
+
+  .productCard {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .productBottom {
+    align-items: stretch;
+  }
+
+  .buyButton,
+  .connectButton {
+    width: 100%;
+  }
+}

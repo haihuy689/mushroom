@@ -1,0 +1,107 @@
+.page {
+  width: min(1120px, calc(100% - 24px));
+  margin: 0 auto;
+  padding: 28px 0 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.72fr);
+  gap: 24px;
+}
+
+.article,
+.asideCard,
+.recommendations {
+  padding: 28px;
+  border-radius: 30px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
+  box-shadow: 0 28px 80px rgba(71, 44, 22, 0.12);
+  backdrop-filter: blur(16px);
+}
+
+.articleHead {
+  display: grid;
+  gap: 14px;
+}
+
+.meta,
+.asideLabel {
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #86502e;
+}
+
+.article h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 6vw, 4.8rem);
+  line-height: 0.95;
+}
+
+.excerpt,
+.body p,
+.asideCard p {
+  color: var(--text-soft);
+  line-height: 1.8;
+  font-size: 1.06rem;
+}
+
+.body {
+  margin-top: 20px;
+  display: grid;
+  gap: 18px;
+}
+
+.aside {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.asideCard,
+.recommendations {
+  display: grid;
+  gap: 14px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7f4725, #355936);
+  color: #fff8ef;
+  font-weight: 700;
+}
+
+.productCard {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 251, 243, 0.88);
+  border: 1px solid rgba(83, 50, 27, 0.08);
+}
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    width: min(100% - 16px, 1120px);
+    padding: 18px 0 42px;
+  }
+
+  .article,
+  .asideCard,
+  .recommendations {
+    padding: 18px;
+    border-radius: 22px;
+  }
+}
