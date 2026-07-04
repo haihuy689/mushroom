@@ -1,4 +1,4 @@
-import { MushroomPiLogoMark } from "./brand-icons";
+import { MushroomLogoMark } from "./brand-icons";
 import styles from "./site-chrome.module.css";
 
 type BrandMarkProps = {
@@ -9,7 +9,7 @@ export function BrandMark({ tagline }: BrandMarkProps) {
   return (
     <span className={styles.brandMark}>
       <span className={styles.brandIcon} aria-hidden="true">
-        <MushroomPiLogoMark className={styles.brandIconSvg} />
+        <MushroomLogoMark className={styles.brandIconSvg} />
       </span>
       <span className={styles.brandCopy}>
         <span className={styles.brandName}>mushroom.pi</span>

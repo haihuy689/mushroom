@@ -23,33 +23,17 @@ export function PiNetworkIcon({ className }: BrandIconProps) {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      <circle cx="32" cy="32" r="29" fill="currentColor" opacity="0.14" />
-      <circle cx="32" cy="32" r="23" stroke="currentColor" strokeWidth="4" />
+      <circle cx="25" cy="15" r="5.2" fill="currentColor" />
+      <circle cx="39" cy="15" r="5.2" fill="currentColor" />
       <path
-        d="M21 23.4H43"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="5.2"
+        d="M15 26C15 23.3 17.1 21.2 19.8 21.2H46.2C48.9 21.2 51 23.3 51 26C51 28.7 48.9 30.8 46.2 30.8H43.8V49.2C43.8 52.1 41.5 54.4 38.6 54.4C35.7 54.4 33.4 52.1 33.4 49.2V30.8H30.6V49.2C30.6 52.1 28.3 54.4 25.4 54.4C22.5 54.4 20.2 52.1 20.2 49.2V30.8H19.8C17.1 30.8 15 28.7 15 26Z"
+        fill="currentColor"
       />
-      <path
-        d="M27 23.5V43.5"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="5.2"
-      />
-      <path
-        d="M37 23.5V43.5"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="5.2"
-      />
-      <circle cx="27" cy="16.8" r="3.3" fill="currentColor" />
-      <circle cx="37" cy="16.8" r="3.3" fill="currentColor" />
     </svg>
   );
 }
 
-export function MushroomPiLogoMark({ className }: BrandIconProps) {
+export function MushroomLogoMark({ className }: BrandIconProps) {
   return (
     <svg
       className={className}
@@ -58,57 +42,61 @@ export function MushroomPiLogoMark({ className }: BrandIconProps) {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      <rect width="96" height="96" rx="26" fill="url(#logoBg)" />
       <path
-        d="M17.5 43C20.5 25.6 32.7 16 48.1 16C63.4 16 75.5 25.6 78.5 43H17.5Z"
-        fill="#FFF1C7"
+        d="M20 43.5C22.7 25 33.5 14.5 48 14.5C62.5 14.5 73.3 25 76 43.5H20Z"
+        fill="#8B4B22"
       />
       <path
-        d="M17.5 43C20.5 25.6 32.7 16 48.1 16C63.4 16 75.5 25.6 78.5 43H17.5Z"
+        d="M20 43.5C22.7 25 33.5 14.5 48 14.5C62.5 14.5 73.3 25 76 43.5H20Z"
         fill="url(#capShade)"
       />
       <path
-        d="M38.5 43H57.5V69.4C57.5 75.4 53.2 80 48 80C42.8 80 38.5 75.4 38.5 69.4V43Z"
-        fill="#F8E7BE"
+        d="M20 43.5C22.7 25 33.5 14.5 48 14.5C62.5 14.5 73.3 25 76 43.5H20Z"
+        stroke="#5C2D17"
+        strokeLinejoin="round"
+        strokeWidth="3.2"
       />
       <path
-        d="M38.5 43H57.5V69.4C57.5 75.4 53.2 80 48 80C42.8 80 38.5 75.4 38.5 69.4V43Z"
+        d="M34.5 43.5H61.5V70.5C61.5 78 55.8 83.5 48 83.5C40.2 83.5 34.5 78 34.5 70.5V43.5Z"
+        fill="#F2D196"
+      />
+      <path
+        d="M34.5 43.5H61.5V70.5C61.5 78 55.8 83.5 48 83.5C40.2 83.5 34.5 78 34.5 70.5V43.5Z"
         fill="url(#stemShade)"
       />
       <path
-        d="M30.5 50H65.5"
+        d="M34.5 43.5H61.5V70.5C61.5 78 55.8 83.5 48 83.5C40.2 83.5 34.5 78 34.5 70.5V43.5Z"
+        stroke="#7B4B22"
+        strokeLinejoin="round"
+        strokeWidth="4"
+      />
+      <path
+        d="M18.5 43.5H77.5"
         stroke="#7B4B22"
         strokeLinecap="round"
-        strokeWidth="4"
-        opacity="0.32"
+        strokeWidth="5"
       />
-      <circle cx="33" cy="30" r="4" fill="#8B4B22" opacity="0.9" />
-      <circle cx="48" cy="25.5" r="4.5" fill="#8B4B22" opacity="0.9" />
-      <circle cx="62.5" cy="31" r="3.8" fill="#8B4B22" opacity="0.9" />
-      <g transform="translate(56 54)">
-        <circle cx="14" cy="14" r="14" fill="#6D198E" />
-        <path
-          d="M6.7 10.2H21.3M10.7 10.3V22.8M17.3 10.3V22.8"
-          stroke="#FFE58D"
-          strokeLinecap="round"
-          strokeWidth="2.5"
-        />
-        <circle cx="10.7" cy="5.8" r="1.8" fill="#FFE58D" />
-        <circle cx="17.3" cy="5.8" r="1.8" fill="#FFE58D" />
-      </g>
+      <path
+        d="M37.5 45H58.5"
+        stroke="#7B4B22"
+        strokeLinecap="round"
+        strokeWidth="3.5"
+        opacity="0.24"
+      />
+      <circle cx="33" cy="31" r="4.2" fill="#FFF1C7" />
+      <circle cx="48" cy="25.5" r="4.8" fill="#FFF1C7" />
+      <circle cx="62.5" cy="31.5" r="4" fill="#FFF1C7" />
+      <circle cx="40.2" cy="36.5" r="2.6" fill="#FFF1C7" opacity="0.86" />
+      <circle cx="56.6" cy="37" r="2.4" fill="#FFF1C7" opacity="0.86" />
       <defs>
-        <linearGradient id="logoBg" x1="10" y1="8" x2="88" y2="92">
-          <stop stopColor="#F6BD54" />
-          <stop offset="0.58" stopColor="#9A5529" />
-          <stop offset="1" stopColor="#385D34" />
-        </linearGradient>
         <linearGradient id="capShade" x1="24" y1="18" x2="74" y2="48">
-          <stop stopColor="#FFF8DD" stopOpacity="0.98" />
-          <stop offset="1" stopColor="#D59A46" stopOpacity="0.56" />
+          <stop stopColor="#B66D2F" />
+          <stop offset="0.72" stopColor="#7E421D" />
+          <stop offset="1" stopColor="#5C2D17" />
         </linearGradient>
         <linearGradient id="stemShade" x1="43" y1="43" x2="58" y2="78">
-          <stop stopColor="#FFF9E8" />
-          <stop offset="1" stopColor="#D7B26C" />
+          <stop stopColor="#FFF2D2" />
+          <stop offset="1" stopColor="#C98E48" />
         </linearGradient>
       </defs>
     </svg>
