@@ -3,15 +3,16 @@ import Link from "next/link";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { PiCommercePanel } from "@/components/pi-commerce-panel";
 import { getRequestLocale } from "@/lib/request-locale";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import { getStorefrontCopy } from "@/lib/storefront-copy";
-import { getBlogPosts, getProducts, getSiteCopy } from "@/lib/site-data";
+import { getBlogPosts, getSiteCopy } from "@/lib/site-data";
 import styles from "./page.module.css";
 
 export default async function Home() {
   const locale = await getRequestLocale();
   const siteCopy = getSiteCopy(locale);
   const storefrontCopy = getStorefrontCopy(locale);
-  const products = getProducts(locale);
+  const products = await getStorefrontProducts(locale);
   const blogPosts = getBlogPosts(locale);
   const featuredProducts = products.slice(0, 3);
   const featuredStories = blogPosts.slice(0, 3);
@@ -87,8 +88,11 @@ export default async function Home() {
                   addedLabel={storefrontCopy.addedToCart}
                   cancelLabel={storefrontCopy.quantityPickerCancel}
                   confirmLabel={storefrontCopy.quantityPickerConfirm}
+                  disabled={(product.inventoryCount ?? 0) <= 0}
+                  disabledLabel={storefrontCopy.outOfStock}
                   fullWidth
                   lead={storefrontCopy.quantityPickerLead}
+                  maxQuantity={product.inventoryCount ?? 0}
                   pricePi={product.pricePi}
                   productId={product.id}
                   productName={product.name}

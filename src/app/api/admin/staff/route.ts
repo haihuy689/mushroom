@@ -34,19 +34,20 @@ export async function POST(request: Request) {
     return forbiddenResponse();
   }
 
-  const body = (await request.json()) as { username?: string };
+  const body = (await request.json()) as { identity?: string; username?: string };
+  const identity = body.identity?.trim() || body.username?.trim();
 
-  if (!body.username?.trim()) {
+  if (!identity) {
     return NextResponse.json(
       {
-        error: "Staff username is required.",
+        error: "Pi user id or username is required.",
       },
       { status: 400 },
     );
   }
 
   return NextResponse.json({
-    items: await addStorefrontStaffMember(user, body.username),
+    items: await addStorefrontStaffMember(user, identity),
   });
 }
 
@@ -57,18 +58,19 @@ export async function DELETE(request: Request) {
     return forbiddenResponse();
   }
 
-  const body = (await request.json()) as { username?: string };
+  const body = (await request.json()) as { identity?: string; username?: string };
+  const identity = body.identity?.trim() || body.username?.trim();
 
-  if (!body.username?.trim()) {
+  if (!identity) {
     return NextResponse.json(
       {
-        error: "Staff username is required.",
+        error: "Pi user id or username is required.",
       },
       { status: 400 },
     );
   }
 
   return NextResponse.json({
-    items: await removeStorefrontStaffMember(body.username),
+    items: await removeStorefrontStaffMember(identity),
   });
 }

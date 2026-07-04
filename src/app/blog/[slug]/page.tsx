@@ -3,10 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { defaultLocale } from "@/lib/i18n";
 import { getRequestLocale } from "@/lib/request-locale";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import {
   getBlogPostBySlug,
   getBlogPosts,
-  getProducts,
   getSiteCopy,
 } from "@/lib/site-data";
 import styles from "./page.module.css";
@@ -45,7 +45,7 @@ export default async function BlogPostPage(props: PageProps<"/blog/[slug]">) {
     notFound();
   }
 
-  const recommendedProducts = getProducts(locale).slice(0, 2);
+  const recommendedProducts = (await getStorefrontProducts(locale)).slice(0, 2);
 
   return (
     <div className={styles.page}>

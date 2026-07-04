@@ -9,6 +9,7 @@ import {
   type StorefrontAddress,
 } from "@/components/storefront-provider";
 import type { Product } from "@/lib/pi-types";
+import { formatProductWeight } from "@/lib/storefront-product";
 import type { SiteCopy } from "@/lib/site-data";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
 import styles from "./page.module.css";
@@ -112,6 +113,11 @@ export function CartPageClient({
     cartLines.reduce((sum, line) => sum + line.lineTotalPi, 0).toFixed(4),
   );
   const totalItems = cartLines.reduce((sum, line) => sum + line.item.quantity, 0);
+  const hasInventoryIssue = cartLines.some(({ item, product }) => {
+    const availableInventory = product.inventoryCount ?? 0;
+
+    return availableInventory <= 0 || item.quantity > availableInventory;
+  });
   const defaultAddress = addresses.find((address) => address.isDefault) ?? addresses[0] ?? null;
   const selectedAddress =
     addresses.find((address) => address.id === selectedAddressId) ?? defaultAddress;
@@ -217,69 +223,89 @@ export function CartPageClient({
               </div>
 
               <div className={styles.lineList}>
-                {cartLines.map(({ item, lineTotalPi, product }) => (
-                  <article key={item.productId} className={styles.lineCard}>
-                    <ProductThumbnail
-                      accent={product.accent}
-                      compact
-                      name={product.name}
-                      productId={product.id}
-                    />
+                {cartLines.map(({ item, lineTotalPi, product }) => {
+                  const availableInventory = product.inventoryCount ?? 0;
+                  const productWeight = formatProductWeight(product);
+                  const stockText =
+                    availableInventory > 0
+                      ? `${copy.inventoryLabel}: ${availableInventory}`
+                      : copy.outOfStock;
 
-                    <div className={styles.lineContent}>
-                      <div className={styles.lineHeader}>
-                        <div className={styles.lineTitle}>
-                          <h3>{product.name}</h3>
-                          <p>{product.tagline}</p>
+                  return (
+                    <article key={item.productId} className={styles.lineCard}>
+                      <ProductThumbnail
+                        accent={product.accent}
+                        compact
+                        name={product.name}
+                        productId={product.id}
+                      />
+
+                      <div className={styles.lineContent}>
+                        <div className={styles.lineHeader}>
+                          <div className={styles.lineTitle}>
+                            <h3>{product.name}</h3>
+                            <p>{product.tagline}</p>
+                          </div>
+
+                          <button
+                            type="button"
+                            className={styles.removeButton}
+                            onClick={() => removeFromCart(item.productId)}
+                          >
+                            {copy.remove}
+                          </button>
                         </div>
 
-                        <button
-                          type="button"
-                          className={styles.removeButton}
-                          onClick={() => removeFromCart(item.productId)}
-                        >
-                          {copy.remove}
-                        </button>
-                      </div>
+                        <div className={styles.lineMeta}>
+                          <span>{product.category}</span>
+                          <span>{product.packaging || product.format}</span>
+                          {productWeight ? <span>{productWeight}</span> : null}
+                          <span>{product.pricePi} Pi</span>
+                          <span
+                            className={styles.stockMeta}
+                            data-stocked={availableInventory > 0}
+                          >
+                            {stockText}
+                          </span>
+                        </div>
 
-                      <div className={styles.lineMeta}>
-                        <span>{product.category}</span>
-                        <span>{product.format}</span>
-                        <span>{product.pricePi} Pi</span>
-                      </div>
+                        <div className={styles.lineFooter}>
+                          <div className={styles.stepperWrap}>
+                            <span>{copy.quantity}</span>
+                            <div className={styles.quantityStepper}>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateCartQuantity(item.productId, item.quantity - 1)
+                                }
+                              >
+                                -
+                              </button>
+                              <strong>{item.quantity}</strong>
+                              <button
+                                type="button"
+                                disabled={item.quantity >= availableInventory}
+                                onClick={() =>
+                                  updateCartQuantity(
+                                    item.productId,
+                                    Math.min(availableInventory, item.quantity + 1),
+                                  )
+                                }
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
 
-                      <div className={styles.lineFooter}>
-                        <div className={styles.stepperWrap}>
-                          <span>{copy.quantity}</span>
-                          <div className={styles.quantityStepper}>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateCartQuantity(item.productId, item.quantity - 1)
-                              }
-                            >
-                              -
-                            </button>
-                            <strong>{item.quantity}</strong>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateCartQuantity(item.productId, item.quantity + 1)
-                              }
-                            >
-                              +
-                            </button>
+                          <div className={styles.priceBlock}>
+                            <span>{copy.lineTotal}</span>
+                            <strong>{lineTotalPi} Pi</strong>
                           </div>
                         </div>
-
-                        <div className={styles.priceBlock}>
-                          <span>{copy.lineTotal}</span>
-                          <strong>{lineTotalPi} Pi</strong>
-                        </div>
                       </div>
-                    </div>
-                  </article>
-                ))}
+                    </article>
+                  );
+                })}
               </div>
             </article>
           </div>
@@ -457,6 +483,7 @@ export function CartPageClient({
 
             <CartCheckoutCard
               copy={copy}
+              hasInventoryIssue={hasInventoryIssue}
               lines={cartLines.map((line) => ({
                 lineTotalPi: line.lineTotalPi,
                 product: line.product,

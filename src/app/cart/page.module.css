@@ -236,6 +236,16 @@
   font-size: 0.9rem;
 }
 
+.stockMeta[data-stocked="true"] {
+  color: #2f5f45;
+  font-weight: 700;
+}
+
+.stockMeta[data-stocked="false"] {
+  color: #9a4738;
+  font-weight: 700;
+}
+
 .lineFooter {
   flex-wrap: wrap;
   align-items: end;
@@ -269,6 +279,11 @@
   background: #fffaf0;
   color: #412818;
   cursor: pointer;
+}
+
+.quantityStepper button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .addressCard {

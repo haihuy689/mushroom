@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useStorefront } from "@/components/storefront-provider";
 import { isStorefrontOwner, type StorefrontStaffMember } from "@/lib/admin-access";
 import type { AdminCenterCopy } from "@/lib/admin-center-copy";
@@ -8,6 +8,12 @@ import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { ORDER_STATUSES, type OrderStatus } from "@/lib/order-status";
 import { getOrderStatusCounts, resolveOrderStatus } from "@/lib/order-tracking";
+import {
+  createEmptyStorefrontProductInput,
+  normalizeStorefrontProductInput,
+  type StorefrontProductInput,
+  type StorefrontProductRecord,
+} from "@/lib/storefront-product";
 import type { StorefrontOrder } from "@/lib/storefront-state";
 import styles from "./page.module.css";
 
@@ -61,6 +67,16 @@ function getAdminUiText(locale: SiteLocale) {
   };
 }
 
+function updateProductValue(
+  products: StorefrontProductRecord[],
+  productId: string,
+  patch: Partial<StorefrontProductRecord>,
+) {
+  return products.map((product) =>
+    product.id === productId ? { ...product, ...patch } : product,
+  );
+}
+
 export function AdminPageClient({
   copy,
   locale,
@@ -68,14 +84,21 @@ export function AdminPageClient({
 }: AdminPageClientProps) {
   const { adminAccess, authBusy, hydrated, signInWithPi, viewer } = useStorefront();
   const [orders, setOrders] = useState<StorefrontOrder[]>([]);
+  const [products, setProducts] = useState<StorefrontProductRecord[]>([]);
   const [staff, setStaff] = useState<StorefrontStaffMember[]>([]);
-  const [staffUsername, setStaffUsername] = useState("");
+  const [staffIdentity, setStaffIdentity] = useState("");
+  const [productDraft, setProductDraft] = useState<StorefrontProductInput>(
+    createEmptyStorefrontProductInput(),
+  );
   const [busyOrderId, setBusyOrderId] = useState<string | null>(null);
+  const [creatingProduct, setCreatingProduct] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
-  const [savingStaff, setSavingStaff] = useState(false);
-  const [refreshingOrders, setRefreshingOrders] = useState(false);
-  const [loadingData, setLoadingData] = useState(false);
   const [ownerSyncAttempted, setOwnerSyncAttempted] = useState(false);
+  const [refreshingOrders, setRefreshingOrders] = useState(false);
+  const [refreshingProducts, setRefreshingProducts] = useState(false);
+  const [savingProductId, setSavingProductId] = useState<string | null>(null);
+  const [savingStaff, setSavingStaff] = useState(false);
+  const [loadingData, setLoadingData] = useState(false);
 
   const localOwner = hydrated && isStorefrontOwner(viewer);
   const canAccessAdmin = adminAccess.canAccessAdmin;
@@ -128,11 +151,14 @@ export function AdminPageClient({
       setLoadingData(true);
 
       try {
-        const [ordersResponse, staffResponse] = await Promise.all([
+        const [ordersResponse, staffResponse, productsResponse] = await Promise.all([
           readJson<{ items: StorefrontOrder[] }>("/api/admin/orders"),
           canManageStaff
             ? readJson<{ items: StorefrontStaffMember[] }>("/api/admin/staff")
             : Promise.resolve({ items: [] as StorefrontStaffMember[] }),
+          canManageStaff
+            ? readJson<{ items: StorefrontProductRecord[] }>("/api/admin/products")
+            : Promise.resolve({ items: [] as StorefrontProductRecord[] }),
         ]);
 
         if (cancelled) {
@@ -141,6 +167,7 @@ export function AdminPageClient({
 
         setOrders(ordersResponse.items);
         setStaff(staffResponse.items);
+        setProducts(productsResponse.items);
       } catch (error) {
         if (!cancelled) {
           setMessage({
@@ -177,10 +204,29 @@ export function AdminPageClient({
     }
   };
 
+  const handleRefreshProducts = async () => {
+    setRefreshingProducts(true);
+    setMessage(null);
+
+    try {
+      const data = await readJson<{ items: StorefrontProductRecord[] }>(
+        "/api/admin/products",
+      );
+      setProducts(data.items);
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setRefreshingProducts(false);
+    }
+  };
+
   const handleAddStaff = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!staffUsername.trim()) {
+    if (!staffIdentity.trim()) {
       return;
     }
 
@@ -193,13 +239,13 @@ export function AdminPageClient({
         {
           method: "POST",
           body: JSON.stringify({
-            username: staffUsername,
+            identity: staffIdentity,
           }),
         },
       );
 
       setStaff(data.items);
-      setStaffUsername("");
+      setStaffIdentity("");
       setMessage({
         kind: "success",
         text: copy.saveSuccess,
@@ -214,7 +260,7 @@ export function AdminPageClient({
     }
   };
 
-  const handleRemoveStaff = async (username: string) => {
+  const handleRemoveStaff = async (identity: string) => {
     setSavingStaff(true);
     setMessage(null);
 
@@ -224,7 +270,7 @@ export function AdminPageClient({
         {
           method: "DELETE",
           body: JSON.stringify({
-            username,
+            identity,
           }),
         },
       );
@@ -241,6 +287,92 @@ export function AdminPageClient({
       });
     } finally {
       setSavingStaff(false);
+    }
+  };
+
+  const handleDraftChange = (
+    field: keyof StorefrontProductInput,
+    value: boolean | number | string | null,
+  ) => {
+    setProductDraft((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const handleProductChange = (
+    productId: string,
+    field: keyof StorefrontProductRecord,
+    value: boolean | number | string | null,
+  ) => {
+    setProducts((current) =>
+      updateProductValue(current, productId, {
+        [field]: value,
+      } as Partial<StorefrontProductRecord>),
+    );
+  };
+
+  const handleCreateProduct = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setCreatingProduct(true);
+    setMessage(null);
+
+    try {
+      const data = await readJson<{
+        item: StorefrontProductRecord;
+        items: StorefrontProductRecord[];
+      }>("/api/admin/products", {
+        method: "POST",
+        body: JSON.stringify(
+          normalizeStorefrontProductInput({
+            ...productDraft,
+            sourceProductId: null,
+          }),
+        ),
+      });
+
+      setProducts(data.items);
+      setProductDraft(createEmptyStorefrontProductInput());
+      setMessage({
+        kind: "success",
+        text: copy.saveSuccess,
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setCreatingProduct(false);
+    }
+  };
+
+  const handleSaveProduct = async (product: StorefrontProductRecord) => {
+    setSavingProductId(product.id);
+    setMessage(null);
+
+    try {
+      const data = await readJson<{
+        item: StorefrontProductRecord;
+        items: StorefrontProductRecord[];
+      }>("/api/admin/products", {
+        method: "POST",
+        body: JSON.stringify(normalizeStorefrontProductInput(product)),
+      });
+
+      setProducts(data.items);
+      setMessage({
+        kind: "success",
+        text: copy.saveSuccess,
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setSavingProductId(null);
     }
   };
 
@@ -274,6 +406,22 @@ export function AdminPageClient({
     }
   };
 
+  const productFieldValue = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const target = event.target;
+
+    if (target instanceof HTMLInputElement && target.type === "checkbox") {
+      return target.checked;
+    }
+
+    if (target instanceof HTMLInputElement && target.type === "number") {
+      return target.value === "" ? "" : Number(target.value);
+    }
+
+    return target.value;
+  };
+
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
@@ -290,16 +438,16 @@ export function AdminPageClient({
             <span>{orderCopy.orders}</span>
           </article>
           <article className={styles.statCard}>
+            <strong>{products.length}</strong>
+            <span>{copy.catalogManagerTitle}</span>
+          </article>
+          <article className={styles.statCard}>
+            <strong>{staff.length}</strong>
+            <span>{copy.staffManagerTitle}</span>
+          </article>
+          <article className={styles.statCard}>
             <strong>{orderCounts.processing}</strong>
             <span>{orderCopy.processing}</span>
-          </article>
-          <article className={styles.statCard}>
-            <strong>{orderCounts.shipping}</strong>
-            <span>{orderCopy.shipping}</span>
-          </article>
-          <article className={styles.statCard}>
-            <strong>{orderCounts.delivered}</strong>
-            <span>{orderCopy.delivered}</span>
           </article>
         </div>
       </section>
@@ -347,63 +495,500 @@ export function AdminPageClient({
       {canAccessAdmin && !loadingData ? (
         <section className={styles.layout}>
           {canManageStaff ? (
-            <article className={styles.card}>
-              <div className={styles.cardHeading}>
-                <div>
-                  <p className={styles.cardLabel}>{copy.addStaff}</p>
-                  <h2>{copy.staffManagerTitle}</h2>
+            <>
+              <article className={styles.card}>
+                <div className={styles.cardHeading}>
+                  <div>
+                    <p className={styles.cardLabel}>{copy.addStaff}</p>
+                    <h2>{copy.staffManagerTitle}</h2>
+                  </div>
                 </div>
-              </div>
 
-              <p className={styles.cardLead}>{copy.staffManagerLead}</p>
+                <p className={styles.cardLead}>{copy.staffManagerLead}</p>
 
-              <form className={styles.staffForm} onSubmit={handleAddStaff}>
-                <label className={styles.field}>
-                  <span>{copy.staffUsernameLabel}</span>
-                  <input
-                    value={staffUsername}
-                    onChange={(event) => setStaffUsername(event.target.value)}
-                    placeholder="exampleuser123"
-                    required
-                  />
-                </label>
+                <form className={styles.staffForm} onSubmit={handleAddStaff}>
+                  <label className={styles.field}>
+                    <span>{copy.staffIdentityLabel}</span>
+                    <input
+                      value={staffIdentity}
+                      onChange={(event) => setStaffIdentity(event.target.value)}
+                      placeholder="pi-user-id-or-username"
+                      required
+                    />
+                  </label>
 
-                <button
-                  type="submit"
-                  className={styles.primaryButton}
-                  disabled={savingStaff}
-                >
-                  {savingStaff ? copy.addStaff : copy.addStaffButton}
-                </button>
-              </form>
+                  <button
+                    type="submit"
+                    className={styles.primaryButton}
+                    disabled={savingStaff}
+                  >
+                    {savingStaff ? copy.addStaff : copy.addStaffButton}
+                  </button>
+                </form>
 
-              {staff.length === 0 ? (
-                <p className={styles.emptyState}>{copy.emptyStaff}</p>
-              ) : (
-                <div className={styles.staffList}>
-                  {staff.map((member) => (
-                    <article key={member.usernameKey} className={styles.staffCard}>
-                      <div>
-                        <strong>{member.username}</strong>
-                        <span>
-                          {copy.staffAddedBy}: {member.addedBy}
-                        </span>
-                        <span>{formatter.format(new Date(member.addedAt))}</span>
-                      </div>
+                {staff.length === 0 ? (
+                  <p className={styles.emptyState}>{copy.emptyStaff}</p>
+                ) : (
+                  <div className={styles.staffList}>
+                    {staff.map((member) => (
+                      <article key={member.identityKey} className={styles.staffCard}>
+                        <div>
+                          <strong>{member.identity}</strong>
+                          <span>
+                            {copy.staffAddedBy}: {member.addedBy}
+                          </span>
+                          <span>{formatter.format(new Date(member.addedAt))}</span>
+                        </div>
 
-                      <button
-                        type="button"
-                        className={styles.secondaryButton}
-                        disabled={savingStaff}
-                        onClick={() => handleRemoveStaff(member.username)}
-                      >
-                        {copy.removeStaff}
-                      </button>
-                    </article>
-                  ))}
+                        <button
+                          type="button"
+                          className={styles.secondaryButton}
+                          disabled={savingStaff}
+                          onClick={() => handleRemoveStaff(member.identity)}
+                        >
+                          {copy.removeStaff}
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </article>
+
+              <article className={styles.card}>
+                <div className={styles.cardHeading}>
+                  <div>
+                    <p className={styles.cardLabel}>{copy.addProduct}</p>
+                    <h2>{copy.customProductTitle}</h2>
+                  </div>
                 </div>
-              )}
-            </article>
+
+                <p className={styles.cardLead}>{copy.customProductLead}</p>
+
+                <form className={styles.productForm} onSubmit={handleCreateProduct}>
+                  <div className={styles.productGrid}>
+                    <label className={styles.field}>
+                      <span>{copy.productNameLabel}</span>
+                      <input
+                        value={productDraft.name}
+                        onChange={(event) =>
+                          handleDraftChange("name", productFieldValue(event))
+                        }
+                        required
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.productSlugLabel}</span>
+                      <input
+                        value={productDraft.slug}
+                        onChange={(event) =>
+                          handleDraftChange("slug", productFieldValue(event))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.priceLabel}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.0001"
+                        value={productDraft.pricePi}
+                        onChange={(event) =>
+                          handleDraftChange("pricePi", productFieldValue(event))
+                        }
+                        required
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.inventoryLabel}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={productDraft.inventoryCount}
+                        onChange={(event) =>
+                          handleDraftChange("inventoryCount", productFieldValue(event))
+                        }
+                        required
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.packagingLabel}</span>
+                      <input
+                        value={productDraft.packaging}
+                        onChange={(event) =>
+                          handleDraftChange("packaging", productFieldValue(event))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.productFormatLabel}</span>
+                      <input
+                        value={productDraft.format}
+                        onChange={(event) =>
+                          handleDraftChange("format", productFieldValue(event))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.weightValueLabel}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={productDraft.weightValue ?? ""}
+                        onChange={(event) =>
+                          handleDraftChange("weightValue", productFieldValue(event))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.weightUnitLabel}</span>
+                      <input
+                        value={productDraft.weightUnit ?? ""}
+                        onChange={(event) =>
+                          handleDraftChange("weightUnit", productFieldValue(event))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.productCategoryLabel}</span>
+                      <input
+                        value={productDraft.category}
+                        onChange={(event) =>
+                          handleDraftChange("category", productFieldValue(event))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.productBadgeLabel}</span>
+                      <input
+                        value={productDraft.badge}
+                        onChange={(event) =>
+                          handleDraftChange("badge", productFieldValue(event))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.productAccentLabel}</span>
+                      <input
+                        value={productDraft.accent}
+                        onChange={(event) =>
+                          handleDraftChange("accent", productFieldValue(event))
+                        }
+                      />
+                    </label>
+                    <label className={`${styles.field} ${styles.toggleField}`}>
+                      <span>{copy.productActiveLabel}</span>
+                      <input
+                        type="checkbox"
+                        checked={productDraft.isActive}
+                        onChange={(event) =>
+                          handleDraftChange("isActive", productFieldValue(event))
+                        }
+                      />
+                    </label>
+                    <label className={`${styles.field} ${styles.fullField}`}>
+                      <span>{copy.productTaglineLabel}</span>
+                      <input
+                        value={productDraft.tagline}
+                        onChange={(event) =>
+                          handleDraftChange("tagline", productFieldValue(event))
+                        }
+                      />
+                    </label>
+                    <label className={`${styles.field} ${styles.fullField}`}>
+                      <span>{copy.productDescriptionLabel}</span>
+                      <textarea
+                        rows={4}
+                        value={productDraft.description}
+                        onChange={(event) =>
+                          handleDraftChange("description", productFieldValue(event))
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={styles.primaryButton}
+                    disabled={creatingProduct}
+                  >
+                    {creatingProduct ? copy.addProduct : copy.addProductButton}
+                  </button>
+                </form>
+              </article>
+
+              <article className={styles.card}>
+                <div className={styles.cardHeading}>
+                  <div>
+                    <p className={styles.cardLabel}>{copy.catalogManagerTitle}</p>
+                    <h2>{copy.catalogManagerTitle}</h2>
+                  </div>
+
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    disabled={refreshingProducts}
+                    onClick={() => {
+                      void handleRefreshProducts();
+                    }}
+                  >
+                    {refreshingProducts ? copy.productsRefresh : copy.productsRefresh}
+                  </button>
+                </div>
+
+                <p className={styles.cardLead}>{copy.catalogManagerLead}</p>
+
+                {products.length === 0 ? (
+                  <p className={styles.emptyState}>{copy.emptyProducts}</p>
+                ) : (
+                  <div className={styles.productList}>
+                    {products.map((product) => {
+                      const isCustomProduct = !product.sourceProductId;
+
+                      return (
+                        <article key={product.id} className={styles.productCard}>
+                          <div className={styles.productHeader}>
+                            <div>
+                              <p className={styles.productCode}>{product.id}</p>
+                              <h3>{product.name}</h3>
+                              <span className={styles.productSubtle}>
+                                {isCustomProduct
+                                  ? product.slug
+                                  : copy.productSourceLabel}
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              className={styles.primaryButton}
+                              disabled={savingProductId === product.id}
+                              onClick={() => {
+                                void handleSaveProduct(product);
+                              }}
+                            >
+                              {savingProductId === product.id
+                                ? copy.addProductButton
+                                : copy.addProductButton}
+                            </button>
+                          </div>
+
+                          <div className={styles.productGrid}>
+                            {isCustomProduct ? (
+                              <>
+                                <label className={styles.field}>
+                                  <span>{copy.productNameLabel}</span>
+                                  <input
+                                    value={product.name}
+                                    onChange={(event) =>
+                                      handleProductChange(
+                                        product.id,
+                                        "name",
+                                        productFieldValue(event),
+                                      )
+                                    }
+                                  />
+                                </label>
+                                <label className={styles.field}>
+                                  <span>{copy.productSlugLabel}</span>
+                                  <input
+                                    value={product.slug}
+                                    onChange={(event) =>
+                                      handleProductChange(
+                                        product.id,
+                                        "slug",
+                                        productFieldValue(event),
+                                      )
+                                    }
+                                  />
+                                </label>
+                                <label className={styles.field}>
+                                  <span>{copy.productCategoryLabel}</span>
+                                  <input
+                                    value={product.category}
+                                    onChange={(event) =>
+                                      handleProductChange(
+                                        product.id,
+                                        "category",
+                                        productFieldValue(event),
+                                      )
+                                    }
+                                  />
+                                </label>
+                                <label className={styles.field}>
+                                  <span>{copy.productFormatLabel}</span>
+                                  <input
+                                    value={product.format}
+                                    onChange={(event) =>
+                                      handleProductChange(
+                                        product.id,
+                                        "format",
+                                        productFieldValue(event),
+                                      )
+                                    }
+                                  />
+                                </label>
+                              </>
+                            ) : null}
+
+                            <label className={styles.field}>
+                              <span>{copy.priceLabel}</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.0001"
+                                value={product.pricePi}
+                                onChange={(event) =>
+                                  handleProductChange(
+                                    product.id,
+                                    "pricePi",
+                                    productFieldValue(event),
+                                  )
+                                }
+                              />
+                            </label>
+                            <label className={styles.field}>
+                              <span>{copy.inventoryLabel}</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={product.inventoryCount}
+                                onChange={(event) =>
+                                  handleProductChange(
+                                    product.id,
+                                    "inventoryCount",
+                                    productFieldValue(event),
+                                  )
+                                }
+                              />
+                            </label>
+                            <label className={styles.field}>
+                              <span>{copy.packagingLabel}</span>
+                              <input
+                                value={product.packaging}
+                                onChange={(event) =>
+                                  handleProductChange(
+                                    product.id,
+                                    "packaging",
+                                    productFieldValue(event),
+                                  )
+                                }
+                              />
+                            </label>
+                            <label className={styles.field}>
+                              <span>{copy.weightValueLabel}</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={product.weightValue ?? ""}
+                                onChange={(event) =>
+                                  handleProductChange(
+                                    product.id,
+                                    "weightValue",
+                                    productFieldValue(event) === ""
+                                      ? null
+                                      : productFieldValue(event),
+                                  )
+                                }
+                              />
+                            </label>
+                            <label className={styles.field}>
+                              <span>{copy.weightUnitLabel}</span>
+                              <input
+                                value={product.weightUnit ?? ""}
+                                onChange={(event) =>
+                                  handleProductChange(
+                                    product.id,
+                                    "weightUnit",
+                                    productFieldValue(event) === ""
+                                      ? null
+                                      : productFieldValue(event),
+                                  )
+                                }
+                              />
+                            </label>
+                            <label className={styles.field}>
+                              <span>{copy.productBadgeLabel}</span>
+                              <input
+                                value={product.badge}
+                                onChange={(event) =>
+                                  handleProductChange(
+                                    product.id,
+                                    "badge",
+                                    productFieldValue(event),
+                                  )
+                                }
+                              />
+                            </label>
+                            <label className={styles.field}>
+                              <span>{copy.productAccentLabel}</span>
+                              <input
+                                value={product.accent}
+                                onChange={(event) =>
+                                  handleProductChange(
+                                    product.id,
+                                    "accent",
+                                    productFieldValue(event),
+                                  )
+                                }
+                              />
+                            </label>
+                            <label className={`${styles.field} ${styles.toggleField}`}>
+                              <span>{copy.productActiveLabel}</span>
+                              <input
+                                type="checkbox"
+                                checked={product.isActive}
+                                onChange={(event) =>
+                                  handleProductChange(
+                                    product.id,
+                                    "isActive",
+                                    productFieldValue(event),
+                                  )
+                                }
+                              />
+                            </label>
+
+                            {isCustomProduct ? (
+                              <>
+                                <label className={`${styles.field} ${styles.fullField}`}>
+                                  <span>{copy.productTaglineLabel}</span>
+                                  <input
+                                    value={product.tagline}
+                                    onChange={(event) =>
+                                      handleProductChange(
+                                        product.id,
+                                        "tagline",
+                                        productFieldValue(event),
+                                      )
+                                    }
+                                  />
+                                </label>
+                                <label className={`${styles.field} ${styles.fullField}`}>
+                                  <span>{copy.productDescriptionLabel}</span>
+                                  <textarea
+                                    rows={4}
+                                    value={product.description}
+                                    onChange={(event) =>
+                                      handleProductChange(
+                                        product.id,
+                                        "description",
+                                        productFieldValue(event),
+                                      )
+                                    }
+                                  />
+                                </label>
+                              </>
+                            ) : null}
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </article>
+            </>
           ) : null}
 
           <article className={styles.card}>

@@ -68,6 +68,11 @@ export interface Product {
   pricePi: number;
   badge: string;
   accent: string;
+  inventoryCount?: number;
+  isActive?: boolean;
+  packaging?: string;
+  weightValue?: number;
+  weightUnit?: string;
 }
 
 export interface BlogPost {

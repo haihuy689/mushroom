@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { getProducts, getSiteCopy } from "@/lib/site-data";
 import { getRequestLocale } from "@/lib/request-locale";
+import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import { getStorefrontCopy } from "@/lib/storefront-copy";
+import { getSiteCopy } from "@/lib/site-data";
 import { CartPageClient } from "./page-client";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CartPage() {
   const locale = await getRequestLocale();
-  const products = getProducts(locale);
+  const products = await getStorefrontProducts(locale);
   const siteCopy = getSiteCopy(locale);
   const copy = getStorefrontCopy(locale);
   const serverConfigured = Boolean(process.env.PI_API_KEY);

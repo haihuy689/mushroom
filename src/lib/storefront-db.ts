@@ -2,13 +2,21 @@ import "server-only";
 
 import {
   buildStorefrontAdminAccess,
+  getUserAdminIdentityKeys,
   isStorefrontOwner,
   normalizeUsernameKey,
   type StorefrontAdminAccess,
   type StorefrontStaffMember,
 } from "@/lib/admin-access";
+import { defaultLocale } from "@/lib/i18n";
 import { isOrderStatus, type OrderStatus } from "@/lib/order-status";
 import type { PiVerifiedUser } from "@/lib/pi-types";
+import {
+  normalizeStorefrontProductInput,
+  type StorefrontProductInput,
+  type StorefrontProductRecord,
+} from "@/lib/storefront-product";
+import { getProducts } from "@/lib/site-data";
 import { getSql, isDatabaseConfigured } from "@/lib/db";
 import {
   emptyStorefrontState,
@@ -76,12 +84,34 @@ type OrderItemRow = {
 type StaffRow = {
   added_by: string;
   created_at: string;
-  display_username: string;
-  username_key: string;
+  display_identity: string;
+  identity_key: string;
+};
+
+type ProductRow = {
+  accent: string;
+  badge: string;
+  category: string;
+  created_at: string;
+  description: string;
+  format: string;
+  id: string;
+  inventory_count: number;
+  is_active: boolean;
+  name: string;
+  packaging: string;
+  price_pi: string | number;
+  slug: string;
+  source_product_id: string | null;
+  tagline: string;
+  updated_at: string;
+  weight_unit: string | null;
+  weight_value: string | number | null;
 };
 
 declare global {
   var __mushroomStorefrontSchemaPromise: Promise<void> | undefined;
+  var __mushroomStorefrontProductSeedPromise: Promise<void> | undefined;
 }
 
 async function ensureStorefrontSchema() {
@@ -194,6 +224,32 @@ async function ensureStorefrontSchema() {
             is_active boolean not null default true
           )
         `;
+        await transaction`
+          create table if not exists storefront_products (
+            id text primary key,
+            source_product_id text unique,
+            slug text not null,
+            name text not null,
+            tagline text not null default '',
+            description text not null default '',
+            category text not null default '',
+            format text not null default '',
+            price_pi numeric(18, 4) not null,
+            badge text not null default '',
+            accent text not null default '#c38a33',
+            packaging text not null default '',
+            weight_value numeric(10, 2),
+            weight_unit text,
+            inventory_count integer not null default 0,
+            is_active boolean not null default true,
+            created_at timestamptz not null default now(),
+            updated_at timestamptz not null default now()
+          )
+        `;
+        await transaction`
+          create index if not exists storefront_products_active_updated_idx
+          on storefront_products (is_active, updated_at desc)
+        `;
       });
     })();
   }
@@ -203,6 +259,124 @@ async function ensureStorefrontSchema() {
     return true;
   } catch (error) {
     globalThis.__mushroomStorefrontSchemaPromise = undefined;
+    throw error;
+  }
+}
+
+function mapProductRow(row: ProductRow): StorefrontProductRecord {
+  return {
+    accent: row.accent,
+    badge: row.badge,
+    category: row.category,
+    createdAt: row.created_at,
+    description: row.description,
+    format: row.format,
+    id: row.id,
+    inventoryCount: row.inventory_count,
+    isActive: row.is_active,
+    name: row.name,
+    packaging: row.packaging,
+    pricePi: Number(row.price_pi),
+    slug: row.slug,
+    sourceProductId: row.source_product_id,
+    tagline: row.tagline,
+    updatedAt: row.updated_at,
+    weightUnit: row.weight_unit,
+    weightValue:
+      row.weight_value === null ? null : Number(row.weight_value),
+  };
+}
+
+async function ensureDefaultStorefrontProductsSeeded() {
+  if (!(await ensureStorefrontSchema())) {
+    return false;
+  }
+
+  if (!globalThis.__mushroomStorefrontProductSeedPromise) {
+    const sql = getSql();
+
+    if (!sql) {
+      return false;
+    }
+
+    const seedProducts = getProducts(defaultLocale).map((product) =>
+      normalizeStorefrontProductInput({
+        accent: product.accent,
+        badge: product.badge,
+        category: product.category,
+        description: product.description,
+        format: product.format,
+        id: product.id,
+        inventoryCount:
+          typeof product.inventoryCount === "number" ? product.inventoryCount : 24,
+        isActive: product.isActive !== false,
+        name: product.name,
+        packaging: product.packaging ?? product.format,
+        pricePi: product.pricePi,
+        slug: product.slug,
+        sourceProductId: product.id,
+        tagline: product.tagline,
+        weightUnit: product.weightUnit ?? "g",
+        weightValue: product.weightValue ?? null,
+      }),
+    );
+
+    globalThis.__mushroomStorefrontProductSeedPromise = (async () => {
+      await sql.begin(async (transaction) => {
+        for (const product of seedProducts) {
+          await transaction`
+            insert into storefront_products (
+              id,
+              source_product_id,
+              slug,
+              name,
+              tagline,
+              description,
+              category,
+              format,
+              price_pi,
+              badge,
+              accent,
+              packaging,
+              weight_value,
+              weight_unit,
+              inventory_count,
+              is_active,
+              created_at,
+              updated_at
+            )
+            values (
+              ${product.id},
+              ${product.sourceProductId},
+              ${product.slug},
+              ${product.name},
+              ${product.tagline},
+              ${product.description},
+              ${product.category},
+              ${product.format},
+              ${product.pricePi},
+              ${product.badge},
+              ${product.accent},
+              ${product.packaging},
+              ${product.weightValue},
+              ${product.weightUnit},
+              ${product.inventoryCount},
+              ${product.isActive},
+              now(),
+              now()
+            )
+            on conflict (id) do nothing
+          `;
+        }
+      });
+    })();
+  }
+
+  try {
+    await globalThis.__mushroomStorefrontProductSeedPromise;
+    return true;
+  } catch (error) {
+    globalThis.__mushroomStorefrontProductSeedPromise = undefined;
     throw error;
   }
 }
@@ -649,18 +823,18 @@ async function readAllStorefrontOrders() {
   return mapOrderRows(orderRows, orderItemRows, 80);
 }
 
-async function isStorefrontStaff(username: string | undefined | null) {
-  const usernameKey = normalizeUsernameKey(username);
+async function isStorefrontStaff(user: PiVerifiedUser | null) {
+  const identityKeys = getUserAdminIdentityKeys(user);
   const sql = getSql();
 
-  if (!sql || !usernameKey) {
+  if (!sql || identityKeys.length === 0) {
     return false;
   }
 
   const rows = await sql<{ username_key: string }[]>`
     select username_key
     from storefront_staff_members
-    where username_key = ${usernameKey}
+    where username_key in ${sql(identityKeys)}
       and is_active = true
     limit 1
   `;
@@ -687,7 +861,7 @@ export async function getStorefrontAdminAccess(
     return buildStorefrontAdminAccess(user, false);
   }
 
-  return buildStorefrontAdminAccess(user, await isStorefrontStaff(user.username));
+  return buildStorefrontAdminAccess(user, await isStorefrontStaff(user));
 }
 
 export async function listStorefrontStaffMembers() {
@@ -702,7 +876,11 @@ export async function listStorefrontStaffMembers() {
   }
 
   const rows = await sql<StaffRow[]>`
-    select username_key, display_username, added_by, created_at::text
+    select
+      username_key as identity_key,
+      display_username as display_identity,
+      added_by,
+      created_at::text
     from storefront_staff_members
     where is_active = true
     order by created_at desc
@@ -711,24 +889,24 @@ export async function listStorefrontStaffMembers() {
   return rows.map((row) => ({
     addedAt: row.created_at,
     addedBy: row.added_by,
-    username: row.display_username,
-    usernameKey: row.username_key,
+    identity: row.display_identity,
+    identityKey: row.identity_key,
   }));
 }
 
 export async function addStorefrontStaffMember(
   owner: PiVerifiedUser,
-  username: string,
+  identity: string,
 ) {
   if (!(await ensureStorefrontSchema())) {
     throw new Error("Database is not configured.");
   }
 
-  const usernameKey = normalizeUsernameKey(username);
-  const displayUsername = username.trim();
+  const identityKey = normalizeUsernameKey(identity);
+  const displayIdentity = identity.trim();
 
-  if (!usernameKey || !displayUsername) {
-    throw new Error("Staff username is required.");
+  if (!identityKey || !displayIdentity) {
+    throw new Error("Staff identity is required.");
   }
 
   const sql = getSql();
@@ -747,8 +925,8 @@ export async function addStorefrontStaffMember(
       is_active
     )
     values (
-      ${usernameKey},
-      ${displayUsername},
+      ${identityKey},
+      ${displayIdentity},
       ${owner.username ?? owner.uid},
       now(),
       now(),
@@ -783,6 +961,144 @@ export async function removeStorefrontStaffMember(username: string) {
   `;
 
   return listStorefrontStaffMembers();
+}
+
+export async function listStorefrontProductRecords() {
+  if (!(await ensureDefaultStorefrontProductsSeeded())) {
+    return [] as StorefrontProductRecord[];
+  }
+
+  const sql = getSql();
+
+  if (!sql) {
+    return [] as StorefrontProductRecord[];
+  }
+
+  const rows = await sql<ProductRow[]>`
+    select
+      id,
+      source_product_id,
+      slug,
+      name,
+      tagline,
+      description,
+      category,
+      format,
+      price_pi,
+      badge,
+      accent,
+      packaging,
+      weight_value,
+      weight_unit,
+      inventory_count,
+      is_active,
+      created_at::text,
+      updated_at::text
+    from storefront_products
+    order by source_product_id nulls last, updated_at desc, name asc
+  `;
+
+  return rows.map(mapProductRow);
+}
+
+export async function listStorefrontActiveProductRecords() {
+  return (await listStorefrontProductRecords()).filter((product) => product.isActive);
+}
+
+export async function saveStorefrontProduct(input: Partial<StorefrontProductInput>) {
+  if (!(await ensureDefaultStorefrontProductsSeeded())) {
+    throw new Error("Database is not configured.");
+  }
+
+  const sql = getSql();
+
+  if (!sql) {
+    throw new Error("Database is not configured.");
+  }
+
+  const product = normalizeStorefrontProductInput(input);
+
+  const rows = await sql<ProductRow[]>`
+    insert into storefront_products (
+      id,
+      source_product_id,
+      slug,
+      name,
+      tagline,
+      description,
+      category,
+      format,
+      price_pi,
+      badge,
+      accent,
+      packaging,
+      weight_value,
+      weight_unit,
+      inventory_count,
+      is_active,
+      created_at,
+      updated_at
+    )
+    values (
+      ${product.id},
+      ${product.sourceProductId},
+      ${product.slug},
+      ${product.name},
+      ${product.tagline},
+      ${product.description},
+      ${product.category},
+      ${product.format},
+      ${product.pricePi},
+      ${product.badge},
+      ${product.accent},
+      ${product.packaging},
+      ${product.weightValue},
+      ${product.weightUnit},
+      ${product.inventoryCount},
+      ${product.isActive},
+      now(),
+      now()
+    )
+    on conflict (id) do update
+    set
+      source_product_id = excluded.source_product_id,
+      slug = excluded.slug,
+      name = excluded.name,
+      tagline = excluded.tagline,
+      description = excluded.description,
+      category = excluded.category,
+      format = excluded.format,
+      price_pi = excluded.price_pi,
+      badge = excluded.badge,
+      accent = excluded.accent,
+      packaging = excluded.packaging,
+      weight_value = excluded.weight_value,
+      weight_unit = excluded.weight_unit,
+      inventory_count = excluded.inventory_count,
+      is_active = excluded.is_active,
+      updated_at = now()
+    returning
+      id,
+      source_product_id,
+      slug,
+      name,
+      tagline,
+      description,
+      category,
+      format,
+      price_pi,
+      badge,
+      accent,
+      packaging,
+      weight_value,
+      weight_unit,
+      inventory_count,
+      is_active,
+      created_at::text,
+      updated_at::text
+  `;
+
+  return mapProductRow(rows[0]);
 }
 
 export async function listStorefrontOrdersForAdmin() {

@@ -9,8 +9,11 @@ type AddToCartButtonProps = {
   addedLabel: string;
   cancelLabel: string;
   confirmLabel: string;
+  disabled?: boolean;
+  disabledLabel?: string;
   fullWidth?: boolean;
   lead: string;
+  maxQuantity?: number;
   pricePi: number;
   productId: string;
   productName: string;
@@ -23,8 +26,11 @@ export function AddToCartButton({
   addedLabel,
   cancelLabel,
   confirmLabel,
+  disabled = false,
+  disabledLabel,
   fullWidth = false,
   lead,
+  maxQuantity = 99,
   pricePi,
   productId,
   productName,
@@ -73,6 +79,7 @@ export function AddToCartButton({
   }, [isOpen]);
 
   const totalPi = Number((pricePi * quantity).toFixed(4));
+  const normalizedMaxQuantity = Math.max(1, Math.min(99, maxQuantity));
 
   return (
     <>
@@ -81,12 +88,17 @@ export function AddToCartButton({
         className={styles.addButton}
         data-added={recentlyAdded}
         data-full={fullWidth}
+        disabled={disabled}
         onClick={() => {
+          if (disabled) {
+            return;
+          }
+
           setQuantity(1);
           setIsOpen(true);
         }}
       >
-        {recentlyAdded ? addedLabel : addLabel}
+        {disabled ? disabledLabel ?? addLabel : recentlyAdded ? addedLabel : addLabel}
       </button>
 
       {isOpen ? (
@@ -124,7 +136,11 @@ export function AddToCartButton({
                 <strong>{quantity}</strong>
                 <button
                   type="button"
-                  onClick={() => setQuantity((current) => Math.min(99, current + 1))}
+                  onClick={() =>
+                    setQuantity((current) =>
+                      Math.min(normalizedMaxQuantity, current + 1),
+                    )
+                  }
                 >
                   +
                 </button>

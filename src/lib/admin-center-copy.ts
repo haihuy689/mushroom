@@ -1,15 +1,23 @@
 import type { SiteLocale } from "@/lib/i18n";
 
 export type AdminCenterCopy = {
+  addProduct: string;
+  addProductButton: string;
   addStaff: string;
   addStaffButton: string;
   adminLead: string;
   adminPageDescription: string;
   adminPageTitle: string;
   adminTitle: string;
+  catalogManagerLead: string;
+  catalogManagerTitle: string;
   customerLabel: string;
+  customProductLead: string;
+  customProductTitle: string;
   emptyOrders: string;
+  emptyProducts: string;
   emptyStaff: string;
+  inventoryLabel: string;
   latestSync: string;
   noAccessBody: string;
   noAccessTitle: string;
@@ -18,88 +26,157 @@ export type AdminCenterCopy = {
   orderItems: string;
   orderManagerTitle: string;
   ownerPanel: string;
+  packagingLabel: string;
+  priceLabel: string;
+  productAccentLabel: string;
+  productActiveLabel: string;
+  productBadgeLabel: string;
+  productCategoryLabel: string;
+  productDescriptionLabel: string;
+  productFormatLabel: string;
+  productNameLabel: string;
+  productSlugLabel: string;
+  productSourceLabel: string;
+  productTaglineLabel: string;
+  productsRefresh: string;
   refreshOrders: string;
   removeStaff: string;
   saveError: string;
   saveSuccess: string;
   staffAddedBy: string;
+  staffIdentityLabel: string;
   staffManagerLead: string;
   staffManagerTitle: string;
   staffPanel: string;
   staffUsernameLabel: string;
   statusLabel: string;
   updateStatus: string;
+  weightUnitLabel: string;
+  weightValueLabel: string;
 };
 
 const en: AdminCenterCopy = {
+  addProduct: "Add product",
+  addProductButton: "Save product",
   addStaff: "Add staff",
   addStaffButton: "Save staff access",
   adminLead:
-    "Manage Mushroom.Pi staff access and move customer orders through your real delivery flow.",
+    "Manage Mushroom.Pi staff access, keep your product catalog accurate, and move customer orders through your real delivery flow.",
   adminPageDescription:
-    "Owner and staff operations for Mushroom.Pi orders and employee access.",
+    "Owner and staff operations for Mushroom.Pi orders, catalog, and employee access.",
   adminPageTitle: "Admin | Mushroom.Pi",
   adminTitle: "Admin center",
+  catalogManagerLead:
+    "Update price, stock, packaging, weight, and active status for the products already live in your storefront.",
+  catalogManagerTitle: "Product catalog",
   customerLabel: "Customer",
+  customProductLead:
+    "Create a brand new product that should appear directly in the shop alongside your existing catalog.",
+  customProductTitle: "New product",
   emptyOrders: "No orders yet.",
+  emptyProducts: "No products available yet.",
   emptyStaff: "No staff accounts added yet.",
+  inventoryLabel: "Inventory",
   latestSync: "Latest sync",
   noAccessBody:
     "This page is reserved for the Mushroom.Pi owner and approved staff accounts.",
   noAccessTitle: "Admin access required",
-  notes: "Staff can update order statuses, while the owner can also manage staff usernames.",
+  notes:
+    "Staff can update order statuses, while the owner can also manage staff identities and the storefront catalog.",
   orderAddress: "Delivery address",
   orderItems: "Items",
   orderManagerTitle: "Order manager",
   ownerPanel: "Owner panel",
+  packagingLabel: "Packaging",
+  priceLabel: "Price (Pi)",
+  productAccentLabel: "Accent color",
+  productActiveLabel: "Live in storefront",
+  productBadgeLabel: "Badge",
+  productCategoryLabel: "Category",
+  productDescriptionLabel: "Description",
+  productFormatLabel: "Format",
+  productNameLabel: "Product name",
+  productSlugLabel: "Slug",
+  productSourceLabel: "System catalog item",
+  productTaglineLabel: "Short tagline",
+  productsRefresh: "Refresh products",
   refreshOrders: "Refresh orders",
   removeStaff: "Remove",
   saveError: "Unable to save changes right now.",
   saveSuccess: "Saved.",
   staffAddedBy: "Added by",
+  staffIdentityLabel: "Pi user id or username",
   staffManagerLead:
-    "Add the exact Pi username of each teammate. When they sign in with that username, they will receive staff access automatically.",
+    "Add the exact Pi user id or username for each teammate. When they sign in with that identity, they will receive staff access automatically.",
   staffManagerTitle: "Staff access",
   staffPanel: "Staff panel",
-  staffUsernameLabel: "Pi username",
+  staffUsernameLabel: "Pi user id or username",
   statusLabel: "Status",
   updateStatus: "Update status",
+  weightUnitLabel: "Weight unit",
+  weightValueLabel: "Weight value",
 };
 
 const vi: AdminCenterCopy = {
-  addStaff: "Thêm nhân viên",
-  addStaffButton: "Lưu quyền nhân viên",
+  addProduct: "Them san pham",
+  addProductButton: "Luu san pham",
+  addStaff: "Them nhan vien",
+  addStaffButton: "Luu quyen nhan vien",
   adminLead:
-    "Quản lý quyền nhân viên của Mushroom.Pi và cập nhật đơn hàng theo luồng giao thực tế của bạn.",
+    "Quan ly quyen nhan vien cua Mushroom.Pi, cap nhat san pham va dieu phoi don hang theo luong van hanh thuc te.",
   adminPageDescription:
-    "Khu quản trị cho chủ shop và nhân viên của Mushroom.Pi.",
-  adminPageTitle: "Quản trị | Mushroom.Pi",
-  adminTitle: "Trung tâm quản trị",
-  customerLabel: "Khách hàng",
-  emptyOrders: "Chưa có đơn hàng nào.",
-  emptyStaff: "Chưa thêm tài khoản nhân viên nào.",
-  latestSync: "Lần đồng bộ gần nhất",
+    "Khu quan tri cho chu shop va nhan vien cua Mushroom.Pi.",
+  adminPageTitle: "Quan tri | Mushroom.Pi",
+  adminTitle: "Trung tam quan tri",
+  catalogManagerLead:
+    "Cap nhat gia, ton kho, bao bi, khoi luong va trang thai dang ban cho catalog hien tai.",
+  catalogManagerTitle: "Quan ly san pham",
+  customerLabel: "Khach hang",
+  customProductLead:
+    "Tao san pham moi de hien truc tiep trong shop cung voi catalog hien co.",
+  customProductTitle: "San pham moi",
+  emptyOrders: "Chua co don hang nao.",
+  emptyProducts: "Chua co san pham nao.",
+  emptyStaff: "Chua them tai khoan nhan vien nao.",
+  inventoryLabel: "Ton kho",
+  latestSync: "Lan dong bo gan nhat",
   noAccessBody:
-    "Trang này chỉ dành cho chủ Mushroom.Pi và các tài khoản nhân viên đã được cấp quyền.",
-  noAccessTitle: "Cần quyền quản trị",
+    "Trang nay chi danh cho chu Mushroom.Pi va cac tai khoan nhan vien da duoc cap quyen.",
+  noAccessTitle: "Can quyen quan tri",
   notes:
-    "Nhân viên có thể cập nhật trạng thái đơn. Chủ shop có thêm quyền quản lý danh sách nhân viên.",
-  orderAddress: "Địa chỉ nhận hàng",
-  orderItems: "Sản phẩm",
-  orderManagerTitle: "Quản lý đơn hàng",
-  ownerPanel: "Bảng chủ shop",
-  refreshOrders: "Tải lại đơn",
-  removeStaff: "Xóa",
-  saveError: "Hiện chưa lưu được thay đổi.",
-  saveSuccess: "Đã lưu.",
-  staffAddedBy: "Thêm bởi",
+    "Nhan vien co the cap nhat trang thai don. Chu shop co them quyen quan ly nhan vien va catalog san pham.",
+  orderAddress: "Dia chi nhan hang",
+  orderItems: "San pham",
+  orderManagerTitle: "Quan ly don hang",
+  ownerPanel: "Bang chu shop",
+  packagingLabel: "Bao bi",
+  priceLabel: "Gia (Pi)",
+  productAccentLabel: "Mau nhan",
+  productActiveLabel: "Dang ban tren shop",
+  productBadgeLabel: "Nhan",
+  productCategoryLabel: "Danh muc",
+  productDescriptionLabel: "Mo ta",
+  productFormatLabel: "Quy cach",
+  productNameLabel: "Ten san pham",
+  productSlugLabel: "Slug",
+  productSourceLabel: "San pham he thong",
+  productTaglineLabel: "Mo ta ngan",
+  productsRefresh: "Tai lai san pham",
+  refreshOrders: "Tai lai don",
+  removeStaff: "Xoa",
+  saveError: "Hien chua luu duoc thay doi.",
+  saveSuccess: "Da luu.",
+  staffAddedBy: "Them boi",
+  staffIdentityLabel: "Pi user id hoac username",
   staffManagerLead:
-    "Nhập đúng Pi username của từng nhân viên. Khi họ đăng nhập bằng đúng tên đó, hệ thống sẽ tự cấp quyền nhân viên.",
-  staffManagerTitle: "Quản lý nhân viên",
-  staffPanel: "Bảng nhân viên",
-  staffUsernameLabel: "Pi username",
-  statusLabel: "Trạng thái",
-  updateStatus: "Cập nhật trạng thái",
+    "Nhap dung Pi user id hoac username cua tung nhan vien. Khi ho dang nhap bang dung dinh danh do, he thong se tu cap quyen nhan vien.",
+  staffManagerTitle: "Quan ly nhan vien",
+  staffPanel: "Bang nhan vien",
+  staffUsernameLabel: "Pi user id hoac username",
+  statusLabel: "Trang thai",
+  updateStatus: "Cap nhat trang thai",
+  weightUnitLabel: "Don vi khoi luong",
+  weightValueLabel: "Khoi luong",
 };
 
 export function getAdminCenterCopy(locale: SiteLocale) {

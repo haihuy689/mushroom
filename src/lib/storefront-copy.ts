@@ -18,6 +18,11 @@ export type StorefrontCopy = {
   adminPanel: string;
   staffPanel: string;
   loading: string;
+  inStock: string;
+  inventoryLabel: string;
+  inventoryIssue: string;
+  outOfStock: string;
+  packagingLabel: string;
   shopTitle: string;
   shopLead: string;
   cartPageTitle: string;
@@ -33,6 +38,7 @@ export type StorefrontCopy = {
   remove: string;
   clearCart: string;
   total: string;
+  weightLabel: string;
   linesLabel: string;
   itemsLabel: string;
   quantityPickerTitle: string;
@@ -102,6 +108,11 @@ const en: StorefrontCopy = {
   adminPanel: "Admin",
   staffPanel: "Staff",
   loading: "Loading...",
+  inStock: "In stock",
+  inventoryLabel: "Stock",
+  inventoryIssue: "Adjust sold-out items or quantities before placing the order.",
+  outOfStock: "Out of stock",
+  packagingLabel: "Packaging",
   shopTitle: "Shop",
   shopLead: "Tap a product, choose quantity, then add it to your cart.",
   cartPageTitle: "Cart | Mushroom.Pi",
@@ -118,6 +129,7 @@ const en: StorefrontCopy = {
   remove: "Remove",
   clearCart: "Clear cart",
   total: "Total",
+  weightLabel: "Weight",
   linesLabel: "lines",
   itemsLabel: "items",
   quantityPickerTitle: "Choose quantity",
@@ -190,6 +202,11 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     adminPanel: "Qu\u1ea3n tr\u1ecb",
     staffPanel: "Nh\u00e2n vi\u00ean",
     loading: "\u0110ang t\u1ea3i...",
+    inStock: "Con hang",
+    inventoryLabel: "Ton kho",
+    inventoryIssue: "Hay dieu chinh san pham het hang hoac vuot ton kho truoc khi dat hang.",
+    outOfStock: "Het hang",
+    packagingLabel: "Bao bi",
     shopTitle: "C\u1eeda h\u00e0ng",
     shopLead:
       "Ch\u1ecdn s\u1ea3n ph\u1ea9m, t\u0103ng gi\u1ea3m s\u1ed1 l\u01b0\u1ee3ng r\u1ed3i th\u00eam v\u00e0o gi\u1ecf.",
@@ -209,6 +226,7 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     remove: "X\u00f3a",
     clearCart: "X\u00f3a gi\u1ecf h\u00e0ng",
     total: "T\u1ed5ng c\u1ed9ng",
+    weightLabel: "Khoi luong",
     linesLabel: "d\u00f2ng",
     itemsLabel: "m\u00f3n",
     quantityPickerTitle: "Ch\u1ecdn s\u1ed1 l\u01b0\u1ee3ng",

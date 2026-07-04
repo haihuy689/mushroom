@@ -15,12 +15,20 @@ export type StorefrontAdminAccess = {
 export type StorefrontStaffMember = {
   addedAt: string;
   addedBy: string;
-  username: string;
-  usernameKey: string;
+  identity: string;
+  identityKey: string;
 };
 
 export function normalizeUsernameKey(value: string | undefined | null) {
   return value?.trim().toLowerCase() ?? "";
+}
+
+export function getUserAdminIdentityKeys(user: PiVerifiedUser | null) {
+  const identities = [user?.username, user?.uid]
+    .map((value) => normalizeUsernameKey(value))
+    .filter(Boolean);
+
+  return Array.from(new Set(identities));
 }
 
 export function isStorefrontOwner(user: PiVerifiedUser | null) {

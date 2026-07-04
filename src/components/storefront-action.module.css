@@ -31,6 +31,12 @@
   background: linear-gradient(135deg, #2f5f45, #5d7c3f);
 }
 
+.addButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  box-shadow: none;
+}
+
 .modalBackdrop {
   position: fixed;
   inset: 0;

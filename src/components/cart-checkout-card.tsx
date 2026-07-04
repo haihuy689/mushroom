@@ -16,6 +16,7 @@ type CheckoutLine = {
 
 type CartCheckoutCardProps = {
   copy: StorefrontCopy;
+  hasInventoryIssue?: boolean;
   lines: CheckoutLine[];
   selectedAddress: StorefrontAddress | null;
   serverConfigured: boolean;
@@ -59,6 +60,7 @@ async function postJson<T>(
 
 export function CartCheckoutCard({
   copy,
+  hasInventoryIssue = false,
   lines,
   selectedAddress,
   serverConfigured,
@@ -204,6 +206,14 @@ export function CartCheckoutCard({
       setMessage({
         kind: "error",
         text: copy.addressRequired,
+      });
+      return;
+    }
+
+    if (hasInventoryIssue) {
+      setMessage({
+        kind: "error",
+        text: copy.inventoryIssue,
       });
       return;
     }
@@ -369,6 +379,10 @@ export function CartCheckoutCard({
         <div className={styles.notice}>{copy.addressRequired}</div>
       )}
 
+      {hasInventoryIssue ? (
+        <div className={styles.notice}>{copy.inventoryIssue}</div>
+      ) : null}
+
       {message ? (
         <div
           className={styles.message}
@@ -398,6 +412,7 @@ export function CartCheckoutCard({
           disabled={
             !sdkReady ||
             paymentBusy ||
+            hasInventoryIssue ||
             !viewer ||
             !selectedAddress ||
             !serverConfigured ||

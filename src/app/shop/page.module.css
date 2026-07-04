@@ -80,6 +80,10 @@
   border: 1px solid rgba(83, 50, 27, 0.08);
 }
 
+.item[data-sold-out="true"] {
+  background: rgba(255, 251, 243, 0.74);
+}
+
 .content {
   min-width: 0;
   display: grid;
@@ -145,6 +149,16 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.stockMeta[data-stocked="true"] {
+  color: #2f5f45;
+  font-weight: 700;
+}
+
+.stockMeta[data-stocked="false"] {
+  color: #9a4738;
+  font-weight: 700;
 }
 
 .actions {
