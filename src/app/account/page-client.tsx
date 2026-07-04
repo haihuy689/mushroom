@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import type { SiteLocale } from "@/lib/i18n";
-import { isStorefrontOwner } from "@/lib/admin-access";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { getOrderStatusCounts, resolveOrderStatus } from "@/lib/order-tracking";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
@@ -22,10 +21,9 @@ export function AccountPageClient({
 }: AccountPageClientProps) {
   const { addresses, adminAccess, cartCount, hydrated, orders, viewer } =
     useStorefront();
-  const localOwner = hydrated && isStorefrontOwner(viewer);
-  const showAdminShortcut = adminAccess.canAccessAdmin || localOwner;
+  const showAdminShortcut = hydrated && Boolean(viewer) && adminAccess.canAccessAdmin;
   const adminShortcutLabel =
-    adminAccess.role === "owner" || localOwner ? copy.adminPanel : copy.staffPanel;
+    adminAccess.role === "owner" ? copy.adminPanel : copy.staffPanel;
   const statusCounts = hydrated ? getOrderStatusCounts(orders) : null;
 
   const formatter = new Intl.DateTimeFormat(locale, {

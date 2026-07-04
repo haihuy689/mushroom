@@ -35,9 +35,11 @@ import {
 
 type StorefrontContextValue = {
   adminAccess: StorefrontAdminAccess;
+  adminAccessReady: boolean;
   authError: string | null;
   authBusy: boolean;
   hydrated: boolean;
+  sessionChecked: boolean;
   sdkReady: boolean;
   viewer: PiVerifiedUser | null;
   cartItems: StorefrontCartItem[];
@@ -63,7 +65,7 @@ const ADDRESS_STORAGE_KEY = "mushroom.pi.addresses";
 const OWNER_STORAGE_KEY = "mushroom.pi.ownerUid";
 const AUTO_AUTH_SKIP_SESSION_KEY = "mushroom.pi.skipAutoAuth";
 const PI_SCOPES = ["username", "payments"] as const;
-const autoAuthenticateEnabled = process.env.NEXT_PUBLIC_PI_AUTO_AUTH === "true";
+const autoAuthenticateEnabled = process.env.NEXT_PUBLIC_PI_AUTO_AUTH !== "false";
 const sandboxEnabled = process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
 
 const StorefrontContext = createContext<StorefrontContextValue | null>(null);
@@ -268,6 +270,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const [sessionChecked, setSessionChecked] = useState(false);
   const [sdkReady, setSdkReady] = useState(false);
   const [syncedViewerUid, setSyncedViewerUid] = useState<string | null>(null);
+  const [adminAccessReady, setAdminAccessReady] = useState(false);
 
   const viewerRef = useRef<PiVerifiedUser | null>(viewerState);
   const stateSnapshotRef = useRef({
@@ -465,10 +468,12 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
 
         if (!cancelled) {
           setAdminAccess(data);
+          setAdminAccessReady(true);
         }
       } catch {
         if (!cancelled) {
           setAdminAccess(guestAdminAccess());
+          setAdminAccessReady(true);
         }
       }
     })();
@@ -480,13 +485,20 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
 
   const applyViewerChange = useCallback(
     (nextViewer: PiVerifiedUser | null) => {
+      const previousViewerUid = viewerRef.current?.uid ?? null;
+
       setViewerState(nextViewer);
       setDatabaseConfigured(false);
       setSyncedViewerUid(null);
+      setAdminAccessReady(!nextViewer);
 
       if (!nextViewer) {
         setAdminAccess(guestAdminAccess());
         return;
+      }
+
+      if (previousViewerUid !== nextViewer.uid) {
+        setAdminAccess(guestAdminAccess());
       }
 
       if (ownerUid && ownerUid !== nextViewer.uid) {
@@ -581,20 +593,25 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
         if (data.user) {
           clearAutoAuthSkip();
           autoAuthStartedRef.current = true;
-          setViewerState(data.user);
-          if (ownerUid !== data.user.uid) {
-            setOwnerUid(data.user.uid);
-          }
+          applyViewerChange(data.user);
           return;
         }
 
         if (viewerRef.current) {
-          setViewerState(null);
-          setAdminAccess(guestAdminAccess());
+          applyViewerChange(null);
+          return;
         }
+
+        setAdminAccess(guestAdminAccess());
+        setAdminAccessReady(true);
       } catch {
         if (!cancelled) {
           setSessionChecked(true);
+
+          if (!viewerRef.current) {
+            setAdminAccess(guestAdminAccess());
+            setAdminAccessReady(true);
+          }
         }
       }
     })();
@@ -602,7 +619,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [hydrated, ownerUid, sessionChecked]);
+  }, [applyViewerChange, hydrated, sessionChecked]);
 
   useEffect(() => {
     if (
@@ -836,9 +853,11 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     <StorefrontContext.Provider
       value={{
         adminAccess,
+        adminAccessReady,
         authError,
         authBusy,
         hydrated,
+        sessionChecked,
         sdkReady,
         viewer,
         cartItems,

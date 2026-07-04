@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useStorefront } from "@/components/storefront-provider";
-import { isStorefrontOwner, type StorefrontStaffMember } from "@/lib/admin-access";
+import type { StorefrontStaffMember } from "@/lib/admin-access";
 import type { AdminCenterCopy } from "@/lib/admin-center-copy";
 import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
@@ -54,16 +54,12 @@ function getAdminUiText(locale: SiteLocale) {
     return {
       checkingAccess: "Dang dong bo quyen quan tri...",
       loadingData: "Dang tai du lieu quan tri...",
-      retrySignIn: "Dang nhap lai voi Pi",
-      signIn: "Dang nhap voi Pi",
     };
   }
 
   return {
     checkingAccess: "Syncing admin access...",
     loadingData: "Loading admin data...",
-    retrySignIn: "Sign in with Pi again",
-    signIn: "Sign in with Pi",
   };
 }
 
@@ -82,7 +78,14 @@ export function AdminPageClient({
   locale,
   orderCopy,
 }: AdminPageClientProps) {
-  const { adminAccess, authBusy, hydrated, signInWithPi, viewer } = useStorefront();
+  const {
+    adminAccess,
+    adminAccessReady,
+    authBusy,
+    hydrated,
+    sessionChecked,
+    viewer,
+  } = useStorefront();
   const [orders, setOrders] = useState<StorefrontOrder[]>([]);
   const [products, setProducts] = useState<StorefrontProductRecord[]>([]);
   const [staff, setStaff] = useState<StorefrontStaffMember[]>([]);
@@ -93,14 +96,12 @@ export function AdminPageClient({
   const [busyOrderId, setBusyOrderId] = useState<string | null>(null);
   const [creatingProduct, setCreatingProduct] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
-  const [ownerSyncAttempted, setOwnerSyncAttempted] = useState(false);
   const [refreshingOrders, setRefreshingOrders] = useState(false);
   const [refreshingProducts, setRefreshingProducts] = useState(false);
   const [savingProductId, setSavingProductId] = useState<string | null>(null);
   const [savingStaff, setSavingStaff] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
 
-  const localOwner = hydrated && isStorefrontOwner(viewer);
   const canAccessAdmin = adminAccess.canAccessAdmin;
   const canManageStaff = adminAccess.canManageStaff;
   const orderCounts = getOrderStatusCounts(orders);
@@ -129,24 +130,14 @@ export function AdminPageClient({
     shipping: orderCopy.shipping,
   };
 
-  const panelLabel =
-    adminAccess.role === "owner" || localOwner ? copy.ownerPanel : copy.staffPanel;
-  const ownerNeedsSync = hydrated && localOwner && !canAccessAdmin;
-  const syncingOwnerAccess = ownerNeedsSync && !ownerSyncAttempted;
-  const ownerNeedsRetry = ownerNeedsSync && ownerSyncAttempted && !authBusy;
+  const panelLabel = adminAccess.role === "owner" ? copy.ownerPanel : copy.staffPanel;
+  const resolvingAccess =
+    !hydrated ||
+    !sessionChecked ||
+    authBusy ||
+    (Boolean(viewer) && !adminAccessReady);
   const showLoadingState =
-    !hydrated || authBusy || syncingOwnerAccess || (canAccessAdmin && loadingData);
-
-  useEffect(() => {
-    if (!ownerNeedsSync || authBusy || ownerSyncAttempted) {
-      return;
-    }
-
-    void (async () => {
-      setOwnerSyncAttempted(true);
-      await signInWithPi();
-    })();
-  }, [authBusy, ownerNeedsSync, ownerSyncAttempted, signInWithPi]);
+    resolvingAccess || (canAccessAdmin && loadingData);
 
   useEffect(() => {
     if (!canAccessAdmin) {
@@ -432,50 +423,6 @@ export function AdminPageClient({
 
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
-        <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>{panelLabel}</p>
-          <h1>{copy.adminTitle}</h1>
-          <p className={styles.lead}>{copy.adminLead}</p>
-          <p className={styles.notes}>{copy.notes}</p>
-        </div>
-
-        <div className={styles.statsGrid}>
-          <article className={styles.statCard}>
-            <strong>{orders.length}</strong>
-            <span>{orderCopy.orders}</span>
-          </article>
-          <article className={styles.statCard}>
-            <strong>{orderCounts.processing}</strong>
-            <span>{orderCopy.processing}</span>
-          </article>
-          {canManageStaff ? (
-            <>
-              <article className={styles.statCard}>
-                <strong>{products.length}</strong>
-                <span>{copy.catalogManagerTitle}</span>
-              </article>
-              <article className={styles.statCard}>
-                <strong>{productCounts.visible}</strong>
-                <span>{copy.liveProductsLabel}</span>
-              </article>
-              <article className={styles.statCard}>
-                <strong>{productCounts.hidden}</strong>
-                <span>{copy.hiddenProductsLabel}</span>
-              </article>
-              <article className={styles.statCard}>
-                <strong>{productCounts.outOfStock}</strong>
-                <span>{copy.outOfStockProductsLabel}</span>
-              </article>
-              <article className={styles.statCard}>
-                <strong>{staff.length}</strong>
-                <span>{copy.staffManagerTitle}</span>
-              </article>
-            </>
-          ) : null}
-        </div>
-      </section>
-
       {message ? (
         <div className={styles.message} data-kind={message.kind}>
           {message.text}
@@ -487,7 +434,7 @@ export function AdminPageClient({
           <article className={`${styles.card} ${styles.accessCard}`}>
             <h2>{copy.adminTitle}</h2>
             <p>
-              {!hydrated || syncingOwnerAccess || authBusy
+              {resolvingAccess
                 ? uiText.checkingAccess
                 : uiText.loadingData}
             </p>
@@ -495,29 +442,62 @@ export function AdminPageClient({
         </section>
       ) : null}
 
-      {hydrated && !canAccessAdmin && !syncingOwnerAccess && !authBusy ? (
+      {!showLoadingState && !canAccessAdmin ? (
         <section className={styles.layout}>
           <article className={`${styles.card} ${styles.accessCard}`}>
             <h2>{copy.noAccessTitle}</h2>
             <p>{copy.noAccessBody}</p>
-            <div className={styles.accessActions}>
-              <button
-                type="button"
-                className={styles.primaryButton}
-                onClick={() => {
-                  setOwnerSyncAttempted(true);
-                  void signInWithPi();
-                }}
-              >
-                {ownerNeedsRetry ? uiText.retrySignIn : uiText.signIn}
-              </button>
-            </div>
           </article>
         </section>
       ) : null}
 
       {canAccessAdmin && !loadingData ? (
-        <section className={styles.layout}>
+        <>
+          <section className={styles.hero}>
+            <div className={styles.heroCopy}>
+              <p className={styles.eyebrow}>{panelLabel}</p>
+              <h1>{copy.adminTitle}</h1>
+              <p className={styles.lead}>{copy.adminLead}</p>
+              <p className={styles.notes}>{copy.notes}</p>
+            </div>
+
+            <div className={styles.statsGrid}>
+              <article className={styles.statCard}>
+                <strong>{orders.length}</strong>
+                <span>{orderCopy.orders}</span>
+              </article>
+              <article className={styles.statCard}>
+                <strong>{orderCounts.processing}</strong>
+                <span>{orderCopy.processing}</span>
+              </article>
+              {canManageStaff ? (
+                <>
+                  <article className={styles.statCard}>
+                    <strong>{products.length}</strong>
+                    <span>{copy.catalogManagerTitle}</span>
+                  </article>
+                  <article className={styles.statCard}>
+                    <strong>{productCounts.visible}</strong>
+                    <span>{copy.liveProductsLabel}</span>
+                  </article>
+                  <article className={styles.statCard}>
+                    <strong>{productCounts.hidden}</strong>
+                    <span>{copy.hiddenProductsLabel}</span>
+                  </article>
+                  <article className={styles.statCard}>
+                    <strong>{productCounts.outOfStock}</strong>
+                    <span>{copy.outOfStockProductsLabel}</span>
+                  </article>
+                  <article className={styles.statCard}>
+                    <strong>{staff.length}</strong>
+                    <span>{copy.staffManagerTitle}</span>
+                  </article>
+                </>
+              ) : null}
+            </div>
+          </section>
+
+          <section className={styles.layout}>
           {canManageStaff ? (
             <>
               <article className={styles.card}>
@@ -1170,7 +1150,8 @@ export function AdminPageClient({
               </div>
             )}
           </article>
-        </section>
+          </section>
+        </>
       ) : null}
     </div>
   );

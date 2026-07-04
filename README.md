@@ -36,7 +36,7 @@ Environment variables:
 - `NEXT_PUBLIC_PI_NETWORK_LABEL`
   UI label only, useful for showing `Pi Testnet` while the app is still in test mode.
 - `NEXT_PUBLIC_PI_AUTO_AUTH`
-  Set to `true` if you want the Pi auth prompt to fire automatically once the Pi SDK is ready.
+  Defaults to auto sign-in behavior. Set to `false` only if you want to disable the Pi auth prompt after the Pi SDK is ready.
 - `STOREFRONT_SESSION_SECRET`
   Recommended. Used to sign the secure storefront session cookie after Pi authentication. In development, the app falls back to a local dev secret. In production, set this explicitly unless you want to reuse `PI_API_KEY` as the signing secret.
 - `DATABASE_URL`

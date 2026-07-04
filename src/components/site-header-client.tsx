@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
-import { isStorefrontOwner } from "@/lib/admin-access";
 import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { getOrderStatusCounts } from "@/lib/order-tracking";
@@ -119,10 +118,9 @@ function AccountMenu({
   const { signInWithPi, signOut } = useStorefront();
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
   const isSignedIn = hydrated && Boolean(viewer);
-  const localOwner = hydrated && isStorefrontOwner(viewer);
-  const showAdminShortcut = adminAccess.canAccessAdmin || localOwner;
+  const showAdminShortcut = isSignedIn && adminAccess.canAccessAdmin;
   const adminShortcutLabel =
-    adminAccess.role === "owner" || localOwner ? copy.adminPanel : copy.staffPanel;
+    adminAccess.role === "owner" ? copy.adminPanel : copy.staffPanel;
   const orderCounts = hydrated
     ? getOrderStatusCounts(orders)
     : {
