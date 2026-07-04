@@ -333,8 +333,8 @@ export default async function Home() {
 
       <section className={styles.stepsSection}>
         <div className={styles.sectionHeading}>
-          <div>
-            <p className={styles.sectionLabel}>Pi</p>
+          <div className={styles.stepsHeadingTitle}>
+            <PiNetworkIcon className={styles.stepsHeadingIcon} />
             <h2>{homeCopy.stepsTitle}</h2>
           </div>
         </div>
