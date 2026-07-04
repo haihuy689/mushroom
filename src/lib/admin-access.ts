@@ -1,6 +1,22 @@
 import type { PiVerifiedUser } from "@/lib/pi-types";
 
-export const STOREFRONT_OWNER_USERNAME = "haihuygamei23";
+const DEFAULT_OWNER_IDENTITIES = ["haihuygame123", "haihuygamei23"] as const;
+
+function getConfiguredOwnerIdentities() {
+  const configured = process.env.STOREFRONT_OWNER_IDENTITIES
+    ?.split(",")
+    .map((value) => normalizeUsernameKey(value))
+    .filter(Boolean);
+
+  if (configured && configured.length > 0) {
+    return Array.from(new Set(configured));
+  }
+
+  return DEFAULT_OWNER_IDENTITIES.map((value) => normalizeUsernameKey(value));
+}
+
+const STOREFRONT_OWNER_IDENTITIES = getConfiguredOwnerIdentities();
+export const STOREFRONT_OWNER_USERNAME = STOREFRONT_OWNER_IDENTITIES[0] ?? "haihuygame123";
 
 export type StorefrontAdminRole = "guest" | "staff" | "owner";
 
@@ -32,11 +48,10 @@ export function getUserAdminIdentityKeys(user: PiVerifiedUser | null) {
 }
 
 export function isStorefrontOwner(user: PiVerifiedUser | null) {
-  const ownerKey = normalizeUsernameKey(STOREFRONT_OWNER_USERNAME);
+  const identityKeys = getUserAdminIdentityKeys(user);
 
-  return (
-    normalizeUsernameKey(user?.username) === ownerKey ||
-    normalizeUsernameKey(user?.uid) === ownerKey
+  return identityKeys.some((identityKey) =>
+    STOREFRONT_OWNER_IDENTITIES.includes(identityKey),
   );
 }
 

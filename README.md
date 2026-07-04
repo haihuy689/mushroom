@@ -39,6 +39,8 @@ Environment variables:
   Defaults to auto sign-in behavior. Set to `false` only if you want to disable the Pi auth prompt after the Pi SDK is ready.
 - `STOREFRONT_SESSION_SECRET`
   Recommended. Used to sign the secure storefront session cookie after Pi authentication. In development, the app falls back to a local dev secret. In production, set this explicitly unless you want to reuse `PI_API_KEY` as the signing secret.
+- `STOREFRONT_OWNER_IDENTITIES`
+  Optional comma-separated list of Pi usernames or ids that should be treated as the store owner. Example: `haihuygame123`.
 - `DATABASE_URL`
   Recommended connection string for a Postgres database. For Supabase on Vercel, use the `Transaction pooler` / `Supavisor` connection string (serverless-safe, usually port `6543`). If this is missing, the storefront falls back to browser `localStorage`.
 - `POSTGRES_URL`
