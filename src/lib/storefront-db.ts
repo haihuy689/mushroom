@@ -88,6 +88,10 @@ type StaffRow = {
   identity_key: string;
 };
 
+type StorefrontUserRow = {
+  username: string | null;
+};
+
 type ProductRow = {
   accent: string;
   badge: string;
@@ -405,11 +409,41 @@ async function upsertStorefrontUser(user: PiVerifiedUser) {
     )
     on conflict (pi_uid) do update
     set
-      username = excluded.username,
+      username = coalesce(excluded.username, storefront_users.username),
       wallet_address = excluded.wallet_address,
       scopes = excluded.scopes,
       updated_at = now()
   `;
+}
+
+async function hydrateStorefrontUserIdentity(user: PiVerifiedUser) {
+  if (user.username || !(await ensureStorefrontSchema())) {
+    return user;
+  }
+
+  const sql = getSql();
+
+  if (!sql) {
+    return user;
+  }
+
+  const rows = await sql<StorefrontUserRow[]>`
+    select username
+    from storefront_users
+    where pi_uid = ${user.uid}
+    limit 1
+  `;
+
+  const storedUsername = rows[0]?.username?.trim();
+
+  if (!storedUsername) {
+    return user;
+  }
+
+  return {
+    ...user,
+    username: storedUsername,
+  } satisfies PiVerifiedUser;
 }
 
 async function readStorefrontState(piUid: string) {
@@ -849,19 +883,20 @@ export async function getStorefrontAdminAccess(
     return buildStorefrontAdminAccess(null, false);
   }
 
-  if (isStorefrontOwner(user)) {
-    return buildStorefrontAdminAccess(user, false);
-  }
+  const resolvedUser = await hydrateStorefrontUserIdentity(user);
 
-  if (!user?.username) {
-    return buildStorefrontAdminAccess(user, false);
+  if (isStorefrontOwner(resolvedUser)) {
+    return buildStorefrontAdminAccess(resolvedUser, false);
   }
 
   if (!(await ensureStorefrontSchema())) {
-    return buildStorefrontAdminAccess(user, false);
+    return buildStorefrontAdminAccess(resolvedUser, false);
   }
 
-  return buildStorefrontAdminAccess(user, await isStorefrontStaff(user));
+  return buildStorefrontAdminAccess(
+    resolvedUser,
+    await isStorefrontStaff(resolvedUser),
+  );
 }
 
 export async function listStorefrontStaffMembers() {
