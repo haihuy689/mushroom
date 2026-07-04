@@ -6,6 +6,7 @@ import { useStorefront, type StorefrontAddress } from "@/components/storefront-p
 import type { Product } from "@/lib/pi-types";
 import type { PiCheckoutCopy } from "@/lib/public-site-copy";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
+import { PiNetworkIcon } from "./brand-icons";
 import styles from "./cart-checkout-card.module.css";
 
 type CheckoutLine = {
@@ -337,6 +338,7 @@ export function CartCheckoutCard({
           }
           onClick={handleCheckout}
         >
+          <PiNetworkIcon className={styles.buttonIcon} />
           {paymentBusy ? copy.placingOrder : copy.placeOrder}
         </button>
       </div>

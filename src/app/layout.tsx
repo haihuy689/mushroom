@@ -28,6 +28,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: siteCopy.metadata.rootTitle,
     description: siteCopy.metadata.rootDescription,
+    icons: {
+      icon: "/favicon.svg",
+      shortcut: "/favicon.svg",
+      apple: "/favicon.svg",
+    },
   };
 }
 

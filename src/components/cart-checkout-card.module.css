@@ -129,11 +129,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   min-height: 48px;
   width: 100%;
   border-radius: 999px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.buttonIcon {
+  width: 28px;
+  height: 28px;
+  color: #ffe58d;
+  flex: 0 0 auto;
 }
 
 .primaryButton {

@@ -1,6 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { AddToCartButton } from "@/components/add-to-cart-button";
+import {
+  BenefitIcon,
+  PiNetworkIcon,
+  type BenefitIconName,
+} from "@/components/brand-icons";
 import { ProductThumbnail } from "@/components/product-thumbnail";
 import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
@@ -205,25 +210,16 @@ function renderPiTitle(title: string) {
   );
 }
 
-function FeatureIcon({ index, tone }: { index: number; tone: "green" | "pi" }) {
-  const icons = [
-    "M4 12.5C8.2 12.2 11.2 9.2 12 4C13 9.9 10.2 15.4 5 17.8M5 17.8C6.8 14.8 9.2 12.8 12.3 11.8",
-    "M3.5 14.5H15.5V7H3.5V14.5ZM15.5 10H19L21 12.5V14.5H15.5V10ZM6 17.5C7 17.5 7.8 16.7 7.8 15.7C7.8 14.7 7 13.9 6 13.9C5 13.9 4.2 14.7 4.2 15.7C4.2 16.7 5 17.5 6 17.5ZM17.8 17.5C18.8 17.5 19.6 16.7 19.6 15.7C19.6 14.7 18.8 13.9 17.8 13.9C16.8 13.9 16 14.7 16 15.7C16 16.7 16.8 17.5 17.8 17.5Z",
-    "M12 4V20M8.2 7.2H15.8M8.2 10.8H15.8M9.4 4H14.6",
-    "M12 3.5L19 6.5V11.7C19 15.8 16.2 19 12 20.5C7.8 19 5 15.8 5 11.7V6.5L12 3.5ZM9.2 12L11.2 14L15.3 9.8",
-  ];
-
+function FeatureIcon({
+  name,
+  tone,
+}: {
+  name: BenefitIconName;
+  tone: "green" | "pi";
+}) {
   return (
     <span className={styles.featureIcon} data-tone={tone} aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path
-          d={icons[index % icons.length]}
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <BenefitIcon className={styles.featureIconSvg} name={name} />
     </span>
   );
 }
@@ -235,6 +231,9 @@ export default async function Home() {
   const products = await getStorefrontProducts(locale);
   const featuredProducts = products.slice(0, 4);
   const homeCopy = getHomeThemeCopy(locale, siteCopy);
+  const benefitIcons: BenefitIconName[] = ["leaf", "truck", "pi", "shield"];
+  const stepIcons: BenefitIconName[] = ["basket", "pi", "checklist"];
+  const reasonIcons: BenefitIconName[] = ["leaf", "gear", "community"];
 
   return (
     <div className={styles.page}>
@@ -246,7 +245,9 @@ export default async function Home() {
 
           <div className={styles.actions}>
             <Link href="/shop" className={styles.primaryAction}>
-              <span className={styles.piCoin}>Pi</span>
+              <span className={styles.piCoin}>
+                <PiNetworkIcon className={styles.piCoinSvg} />
+              </span>
               {homeCopy.primaryAction}
             </Link>
             <Link href="/shop" className={styles.secondaryAction}>
@@ -270,7 +271,7 @@ export default async function Home() {
       <section className={styles.benefitStrip} aria-label={siteCopy.home.overviewLabel}>
         {homeCopy.benefits.map((benefit, index) => (
           <article key={benefit.label} className={styles.benefitItem}>
-            <FeatureIcon index={index} tone={benefit.tone} />
+            <FeatureIcon name={benefitIcons[index] ?? "leaf"} tone={benefit.tone} />
             <strong>{benefit.label}</strong>
           </article>
         ))}
@@ -336,7 +337,10 @@ export default async function Home() {
         <div className={styles.stepGrid}>
           {homeCopy.steps.map((step, index) => (
             <article key={step.title} className={styles.stepCard}>
-              <FeatureIcon index={index + 1} tone={index === 1 ? "pi" : "green"} />
+              <FeatureIcon
+                name={stepIcons[index] ?? "basket"}
+                tone={index === 1 ? "pi" : "green"}
+              />
               <span className={styles.stepNumber}>{index + 1}</span>
               <h3>{step.title}</h3>
               <p>{step.description}</p>
@@ -356,7 +360,7 @@ export default async function Home() {
         <div className={styles.reasonGrid}>
           {siteCopy.brandPillars.map((pillar, index) => (
             <article key={pillar.title} className={styles.reasonCard}>
-              <FeatureIcon index={index} tone="green" />
+              <FeatureIcon name={reasonIcons[index] ?? "leaf"} tone="green" />
               <h3>{pillar.title}</h3>
               <p>{pillar.description}</p>
             </article>
@@ -366,7 +370,7 @@ export default async function Home() {
 
       <section className={styles.browserBanner}>
         <span className={styles.piAppIcon} aria-hidden="true">
-          Pi
+          <PiNetworkIcon className={styles.piAppIconSvg} />
         </span>
         <div>
           <h2>{homeCopy.bannerTitle}</h2>

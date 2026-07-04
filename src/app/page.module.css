@@ -143,6 +143,11 @@
   border: 2px solid rgba(255, 229, 141, 0.64);
 }
 
+.piCoinSvg {
+  width: 28px;
+  height: 28px;
+}
+
 .heroImageWrap {
   position: relative;
   z-index: 1;
@@ -190,14 +195,16 @@
   height: 46px;
   flex: 0 0 auto;
   border-radius: 999px;
+  background: rgba(237, 244, 226, 0.9);
   color: #5f7f35;
 }
 
 .featureIcon[data-tone="pi"] {
+  background: rgba(109, 25, 142, 0.1);
   color: #6d198e;
 }
 
-.featureIcon svg {
+.featureIconSvg {
   width: 34px;
   height: 34px;
 }
@@ -408,6 +415,11 @@
   box-shadow: 0 16px 28px rgba(0, 0, 0, 0.18);
 }
 
+.piAppIconSvg {
+  width: 68px;
+  height: 68px;
+}
+
 .browserBanner h2 {
   margin: 0 0 6px;
   font-size: clamp(1.5rem, 3vw, 2.2rem);
@@ -511,7 +523,7 @@
     height: 38px;
   }
 
-  .featureIcon svg {
+  .featureIconSvg {
     width: 28px;
     height: 28px;
   }
@@ -559,22 +571,16 @@
     height: 72px;
     border-radius: 20px;
   }
+
+  .piAppIconSvg {
+    width: 54px;
+    height: 54px;
+  }
 }
 
 @media (max-width: 420px) {
-  .actions,
-  .benefitStrip {
+  .actions {
     grid-template-columns: 1fr;
-  }
-
-  .benefitItem {
-    justify-content: flex-start;
-    border-right: 0;
-    border-bottom: 1px solid rgba(69, 75, 43, 0.12);
-  }
-
-  .benefitItem:last-child {
-    border-bottom: 0;
   }
 
   .productCard {
