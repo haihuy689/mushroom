@@ -6,7 +6,7 @@ import {
 } from "@/lib/storefront-db";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 
-const ADMIN_DASHBOARD_TIMEOUT_MS = 8000;
+const ADMIN_DASHBOARD_TIMEOUT_MS = 5000;
 
 function withDashboardTimeout<T>(promise: Promise<T>) {
   return new Promise<T>((resolve, reject) => {
