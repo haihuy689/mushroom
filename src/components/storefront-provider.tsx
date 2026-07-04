@@ -331,7 +331,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [ownerUid, viewerUid]);
+  }, [ownerUid, viewer, viewerUid]);
 
   useEffect(() => {
     if (!viewerUid) {
@@ -360,7 +360,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [viewerUid]);
+  }, [viewer, viewerUid]);
 
   const enqueueRemoteMutation = useEffectEvent(
     (payload: Record<string, unknown>) => {
