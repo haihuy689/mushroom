@@ -13,6 +13,8 @@ export type StorefrontCopy = {
   languageAria: string;
   guestLabel: string;
   signedInLabel: string;
+  adminPanel: string;
+  staffPanel: string;
   loading: string;
   shopTitle: string;
   shopLead: string;
@@ -93,6 +95,8 @@ const en: StorefrontCopy = {
   languageAria: "Change language",
   guestLabel: "Guest",
   signedInLabel: "Signed in",
+  adminPanel: "Admin",
+  staffPanel: "Staff",
   loading: "Loading...",
   shopTitle: "Shop",
   shopLead: "Tap a product, choose quantity, then add it to your cart.",
@@ -119,7 +123,7 @@ const en: StorefrontCopy = {
   cartSummaryTitle: "Order summary",
   checkoutTitle: "Pi checkout",
   checkoutLead: "Sign in with Pi, confirm your address, and pay the full cart in one testnet order.",
-  checkoutHint: "Successful testnet payments are saved to the account area as local orders.",
+  checkoutHint: "Successful testnet payments are saved to your account order history.",
   shippingAddressTitle: "Delivery address",
   shippingAddressLead: "Choose a saved address or add a new one before placing the order.",
   savedAddressesTitle: "Saved addresses",
@@ -155,7 +159,7 @@ const en: StorefrontCopy = {
   usernameLabel: "Username",
   walletLabel: "Wallet",
   orderHistoryTitle: "Recent orders",
-  noOrders: "No local orders yet.",
+  noOrders: "No orders yet.",
   addressBookTitle: "Saved addresses",
   addressBookLead: "Addresses created during checkout are stored here for faster future orders.",
   noAddresses: "No addresses saved yet.",
@@ -177,6 +181,8 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     languageAria: "\u0110\u1ed5i ng\u00f4n ng\u1eef",
     guestLabel: "Kh\u00e1ch",
     signedInLabel: "\u0110\u00e3 \u0111\u0103ng nh\u1eadp",
+    adminPanel: "Qu\u1ea3n tr\u1ecb",
+    staffPanel: "Nh\u00e2n vi\u00ean",
     loading: "\u0110ang t\u1ea3i...",
     shopTitle: "C\u1eeda h\u00e0ng",
     shopLead:

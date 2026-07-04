@@ -9,6 +9,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  guestAdminAccess,
+  type StorefrontAdminAccess,
+} from "@/lib/admin-access";
 import type { PiVerifiedUser } from "@/lib/pi-types";
 import {
   createStorefrontAddress,
@@ -29,6 +33,7 @@ import {
 } from "@/lib/storefront-state";
 
 type StorefrontContextValue = {
+  adminAccess: StorefrontAdminAccess;
   hydrated: boolean;
   viewer: PiVerifiedUser | null;
   cartItems: StorefrontCartItem[];
@@ -191,6 +196,9 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     initialState.addresses,
   );
   const [ownerUid, setOwnerUid] = useState<string | null>(initialState.ownerUid);
+  const [adminAccess, setAdminAccess] = useState<StorefrontAdminAccess>(
+    guestAdminAccess(),
+  );
   const [databaseConfigured, setDatabaseConfigured] = useState(false);
   const [syncedViewerUid, setSyncedViewerUid] = useState<string | null>(null);
 
@@ -325,6 +333,35 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     };
   }, [ownerUid, viewerUid]);
 
+  useEffect(() => {
+    if (!viewerUid) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const response = await fetch("/api/admin/access", {
+          cache: "no-store",
+        });
+        const data = (await response.json()) as StorefrontAdminAccess;
+
+        if (!cancelled) {
+          setAdminAccess(data);
+        }
+      } catch {
+        if (!cancelled) {
+          setAdminAccess(guestAdminAccess());
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [viewerUid]);
+
   const enqueueRemoteMutation = useEffectEvent(
     (payload: Record<string, unknown>) => {
       const targetViewerUid = viewerRef.current?.uid;
@@ -413,6 +450,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     setSyncedViewerUid(null);
 
     if (!nextViewer) {
+      setAdminAccess(guestAdminAccess());
       return;
     }
 
@@ -544,6 +582,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   return (
     <StorefrontContext.Provider
       value={{
+        adminAccess,
         hydrated,
         viewer,
         cartItems,

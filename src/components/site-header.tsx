@@ -19,6 +19,7 @@ export async function SiteHeader() {
       copy={{
         account: storefrontCopy.account,
         accountAria: storefrontCopy.accountAria,
+        adminPanel: storefrontCopy.adminPanel,
         brandSlogan: storefrontCopy.brandSlogan,
         cart: storefrontCopy.cart,
         cartAria: storefrontCopy.cartAria,
@@ -34,6 +35,7 @@ export async function SiteHeader() {
         processing: orderCenterCopy.processing,
         shipping: orderCenterCopy.shipping,
         signedInLabel: storefrontCopy.signedInLabel,
+        staffPanel: storefrontCopy.staffPanel,
         statusSummaryTitle: orderCenterCopy.statusSummaryTitle,
         viewAllOrders: orderCenterCopy.viewAllOrders,
       }}

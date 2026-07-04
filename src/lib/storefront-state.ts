@@ -1,3 +1,5 @@
+import { isOrderStatus, type OrderStatus } from "@/lib/order-status";
+
 export type StorefrontCartItem = {
   productId: string;
   quantity: number;
@@ -39,8 +41,12 @@ export type StorefrontOrder = {
   quantity: number;
   totalPi: number;
   createdAt: string;
+  shopperUid?: string;
   txid?: string;
   paymentId?: string;
+  status?: OrderStatus;
+  statusUpdatedAt?: string;
+  statusUpdatedBy?: string;
   username?: string;
   items?: StorefrontOrderLine[];
   shippingAddress?: StorefrontShippingAddress;
@@ -188,6 +194,13 @@ export function isStorefrontOrder(value: unknown): value is StorefrontOrder {
     candidate.quantity > 0 &&
     isFiniteNumber(candidate.totalPi) &&
     typeof candidate.createdAt === "string" &&
+    (candidate.shopperUid === undefined ||
+      typeof candidate.shopperUid === "string") &&
+    (candidate.status === undefined || isOrderStatus(candidate.status)) &&
+    (candidate.statusUpdatedAt === undefined ||
+      typeof candidate.statusUpdatedAt === "string") &&
+    (candidate.statusUpdatedBy === undefined ||
+      typeof candidate.statusUpdatedBy === "string") &&
     hasValidItems &&
     hasValidShippingAddress
   );
@@ -334,7 +347,10 @@ function normalizeOrderLines(
   ];
 }
 
-export function normalizeOrders(orders: StorefrontOrder[]): StorefrontOrder[] {
+export function normalizeOrders(
+  orders: StorefrontOrder[],
+  limit = MAX_SAVED_ORDERS,
+): StorefrontOrder[] {
   const uniqueOrders: StorefrontOrder[] = [];
   const seenIds = new Set<string>();
 
@@ -361,8 +377,14 @@ export function normalizeOrders(orders: StorefrontOrder[]): StorefrontOrder[] {
       quantity: Math.max(1, Math.round(order.quantity)),
       totalPi: Number(order.totalPi.toFixed(4)),
       createdAt: toIsoDate(order.createdAt),
+      shopperUid: normalizeText(order.shopperUid) || undefined,
       txid: normalizeText(order.txid) || undefined,
       paymentId: normalizeText(order.paymentId) || undefined,
+      status: order.status,
+      statusUpdatedAt: order.statusUpdatedAt
+        ? toIsoDate(order.statusUpdatedAt)
+        : undefined,
+      statusUpdatedBy: normalizeText(order.statusUpdatedBy) || undefined,
       username: normalizeText(order.username) || undefined,
       items: normalizeOrderLines(order),
       shippingAddress: normalizeShippingAddress(order.shippingAddress),
@@ -374,7 +396,7 @@ export function normalizeOrders(orders: StorefrontOrder[]): StorefrontOrder[] {
       (left, right) =>
         Date.parse(right.createdAt) - Date.parse(left.createdAt),
     )
-    .slice(0, MAX_SAVED_ORDERS);
+    .slice(0, limit);
 }
 
 export function normalizeStorefrontState(
@@ -397,7 +419,7 @@ export function mergeStorefrontState(
   return {
     cartItems: normalizeCartItems([...local.cartItems, ...remote.cartItems]),
     addresses: normalizeAddresses([...local.addresses, ...remote.addresses]),
-    orders: normalizeOrders([...local.orders, ...remote.orders]),
+    orders: normalizeOrders([...remote.orders, ...local.orders]),
   };
 }
 
@@ -431,8 +453,12 @@ export function createStorefrontOrder(
       quantity: Math.max(1, Math.round(input.quantity)),
       totalPi: Number(input.totalPi.toFixed(4)),
       createdAt: toIsoDate(input.createdAt),
+      shopperUid: normalizeText(input.shopperUid) || undefined,
       txid: normalizeText(input.txid) || undefined,
       paymentId: normalizeText(input.paymentId) || undefined,
+      status: input.status,
+      statusUpdatedAt: input.statusUpdatedAt,
+      statusUpdatedBy: normalizeText(input.statusUpdatedBy) || undefined,
       username: normalizeText(input.username) || undefined,
       items: input.items,
       shippingAddress: input.shippingAddress,

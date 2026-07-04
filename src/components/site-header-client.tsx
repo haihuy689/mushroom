@@ -21,12 +21,14 @@ type HeaderCopy = Pick<
   StorefrontCopy,
   | "account"
   | "accountAria"
+  | "adminPanel"
   | "brandSlogan"
   | "cart"
   | "cartAria"
   | "guestLabel"
   | "languageAria"
   | "signedInLabel"
+  | "staffPanel"
 > &
   Pick<
     OrderCenterCopy,
@@ -51,6 +53,7 @@ type SiteHeaderClientProps = {
 
 type AccountMenuProps = {
   accountStatus: string;
+  adminAccess: ReturnType<typeof useStorefront>["adminAccess"];
   cartCount: number;
   copy: HeaderCopy;
   hydrated: boolean;
@@ -99,6 +102,7 @@ function AccountIcon() {
 
 function AccountMenu({
   accountStatus,
+  adminAccess,
   cartCount,
   copy,
   hydrated,
@@ -165,6 +169,24 @@ function AccountMenu({
           </div>
 
           <div className={styles.accountLinkList}>
+            {adminAccess.canAccessAdmin ? (
+              <Link
+                href="/admin"
+                className={styles.accountLinkRow}
+                onClick={closeMenu}
+              >
+                <span>
+                  {adminAccess.role === "owner"
+                    ? copy.adminPanel
+                    : copy.staffPanel}
+                </span>
+                <span className={styles.accountLinkMeta}>
+                  {adminAccess.role === "owner"
+                    ? copy.adminPanel
+                    : copy.staffPanel}
+                </span>
+              </Link>
+            ) : null}
             <Link
               href="/account"
               className={styles.accountLinkRow}
@@ -213,7 +235,7 @@ export function SiteHeaderClient({
   copy,
 }: SiteHeaderClientProps) {
   const pathname = usePathname();
-  const { cartCount, hydrated, orders, viewer } = useStorefront();
+  const { adminAccess, cartCount, hydrated, orders, viewer } = useStorefront();
 
   const visibleCartCount = hydrated ? cartCount : 0;
   const visibleOrderCount = hydrated ? orders.length : 0;
@@ -269,6 +291,7 @@ export function SiteHeaderClient({
 
               <AccountMenu
                 accountStatus={accountStatus}
+                adminAccess={adminAccess}
                 cartCount={visibleCartCount}
                 copy={copy}
                 hydrated={hydrated}

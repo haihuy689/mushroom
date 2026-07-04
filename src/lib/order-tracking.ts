@@ -1,12 +1,16 @@
-export type OrderStatus = "processing" | "shipping" | "delivered";
+import { type OrderStatus } from "@/lib/order-status";
 
 const SHIPPING_START_MS = 4 * 60 * 1000;
 const DELIVERY_DONE_MS = 16 * 60 * 1000;
 
 export function resolveOrderStatus(
-  order: { createdAt: string },
+  order: { createdAt: string; status?: OrderStatus },
   nowMs = Date.now(),
 ): OrderStatus {
+  if (order.status) {
+    return order.status;
+  }
+
   const createdAtMs = Date.parse(order.createdAt);
   const elapsedMs = Number.isFinite(createdAtMs)
     ? Math.max(0, nowMs - createdAtMs)

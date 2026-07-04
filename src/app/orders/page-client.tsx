@@ -8,8 +8,8 @@ import {
   getOrderStatusCounts,
   getOrderStatusStepIndex,
   resolveOrderStatus,
-  type OrderStatus,
 } from "@/lib/order-tracking";
+import type { OrderStatus } from "@/lib/order-status";
 import { useStorefront } from "@/components/storefront-provider";
 import styles from "./page.module.css";
 
@@ -187,7 +187,10 @@ export function OrdersPageClient({
                   <div className={styles.orderMeta}>
                     <span>{formatter.format(new Date(order.createdAt))}</span>
                     <span>
-                      {copy.updatedLabel}: {formatter.format(new Date(order.createdAt))}
+                      {copy.updatedLabel}:{" "}
+                      {formatter.format(
+                        new Date(order.statusUpdatedAt ?? order.createdAt),
+                      )}
                     </span>
                   </div>
 
