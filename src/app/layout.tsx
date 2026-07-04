@@ -46,7 +46,7 @@ export default async function RootLayout({
       <body>
         <Script
           src="https://sdk.minepi.com/pi-sdk.js"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
         />
         <StorefrontProvider>
           <div className="site-shell">

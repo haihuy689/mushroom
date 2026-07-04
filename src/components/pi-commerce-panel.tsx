@@ -1,12 +1,10 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useStorefront } from "@/components/storefront-provider";
 import type { SiteCopy } from "@/lib/site-data";
 import type {
-  PiAuthResult,
-  PiVerifiedUser,
   Product,
 } from "@/lib/pi-types";
 import styles from "./pi-commerce-panel.module.css";
@@ -24,12 +22,9 @@ type MessageState =
   | { kind: "error"; text: string }
   | null;
 
-const scopes = ["username", "payments"] as const;
-
 const networkLabel =
   process.env.NEXT_PUBLIC_PI_NETWORK_LABEL?.trim() || "Pi Testnet";
 const sandboxEnabled = process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
-const autoAuthenticateEnabled = process.env.NEXT_PUBLIC_PI_AUTO_AUTH === "true";
 
 async function postJson<T>(
   path: string,
@@ -62,43 +57,11 @@ export function PiCommercePanel({
   compact = false,
   onPaymentCompleted,
 }: CommercePanelProps) {
-  const { hydrated, recordOrder, setViewer, viewer } = useStorefront();
-  const [sdkReady, setSdkReady] = useState(false);
-  const [authBusy, setAuthBusy] = useState(false);
+  const { authBusy, authError, recordOrder, sdkReady, signInWithPi, viewer } =
+    useStorefront();
   const [purchaseBusy, setPurchaseBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<MessageState>(null);
   const [timeline, setTimeline] = useState<string[]>([copy.initialTimeline]);
-
-  const initializedRef = useRef(false);
-  const autoAuthStartedRef = useRef(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    const tryInit = () => {
-      if (!window.Pi) {
-        timeoutRef.current = setTimeout(tryInit, 250);
-        return;
-      }
-
-      if (!initializedRef.current) {
-        window.Pi.init({
-          version: "2.0",
-          sandbox: sandboxEnabled,
-        });
-        initializedRef.current = true;
-      }
-
-      setSdkReady(true);
-    };
-
-    tryInit();
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
 
   const panelClassName = useMemo(() => {
     return compact ? `${styles.panel} ${styles.compact}` : styles.panel;
@@ -109,7 +72,7 @@ export function PiCommercePanel({
   };
 
   const authenticate = async () => {
-    if (!window.Pi) {
+    if (!sdkReady) {
       setMessage({
         kind: "error",
         text: copy.sdkNotReady,
@@ -117,40 +80,22 @@ export function PiCommercePanel({
       return;
     }
 
-    setAuthBusy(true);
     setMessage(null);
 
     try {
-      const authResult: PiAuthResult = await window.Pi.authenticate(
-        [...scopes],
-        async (payment) => {
-          appendTimeline(`[${payment.identifier}] ${copy.incompleteFound}`);
+      const verified = await signInWithPi();
+      const displayName = verified?.username ?? verified?.uid;
 
-          try {
-            await postJson(
-              "/api/pi/payments/incomplete",
-              { payment },
-              copy.incompleteFailed,
-            );
-            appendTimeline(`[${payment.identifier}] ${copy.incompleteSent}`);
-          } catch (error) {
-            appendTimeline(
-              error instanceof Error ? error.message : copy.incompleteFailed,
-            );
-          }
-        },
-      );
+      if (!displayName) {
+        setMessage({
+          kind: "error",
+          text: authError ?? copy.authFailed,
+        });
+        return;
+      }
 
-      const verified = await postJson<{ user: PiVerifiedUser }>(
-        "/api/pi/auth",
-        { accessToken: authResult.accessToken },
-        copy.authFailed,
-      );
-
-      const displayName = verified.user.username ?? authResult.user.uid;
       const successText = `${copy.authSuccessPrefix} ${displayName}.`;
 
-      setViewer(verified.user);
       setMessage({
         kind: "success",
         text: successText,
@@ -161,37 +106,8 @@ export function PiCommercePanel({
         kind: "error",
         text: error instanceof Error ? error.message : copy.authFailed,
       });
-    } finally {
-      setAuthBusy(false);
     }
   };
-
-  const runAutoAuthenticate = useEffectEvent(() => {
-    void authenticate();
-  });
-
-  useEffect(() => {
-    if (
-      !autoAuthenticateEnabled ||
-      !hydrated ||
-      !sdkReady ||
-      viewer ||
-      authBusy ||
-      autoAuthStartedRef.current
-    ) {
-      return;
-    }
-
-      autoAuthStartedRef.current = true;
-
-    const autoAuthTimer = setTimeout(() => {
-      runAutoAuthenticate();
-    }, 150);
-
-    return () => {
-      clearTimeout(autoAuthTimer);
-    };
-  }, [authBusy, hydrated, sdkReady, viewer]);
 
   const handlePurchase = (product: Product) => {
     if (!window.Pi) {

@@ -35,14 +35,16 @@ import {
 
 type StorefrontContextValue = {
   adminAccess: StorefrontAdminAccess;
+  authError: string | null;
   authBusy: boolean;
   hydrated: boolean;
+  sdkReady: boolean;
   viewer: PiVerifiedUser | null;
   cartItems: StorefrontCartItem[];
   cartCount: number;
   orders: StorefrontOrder[];
   addresses: StorefrontAddress[];
-  signInWithPi: () => Promise<void>;
+  signInWithPi: () => Promise<PiVerifiedUser | null>;
   signOut: () => Promise<void>;
   setViewer: (viewer: PiVerifiedUser | null) => void;
   addToCart: (productId: string, quantity?: number) => void;
@@ -104,6 +106,38 @@ function readStorage<T>(
     return guard(parsed) ? parsed : fallback;
   } catch {
     return fallback;
+  }
+}
+
+function getStorage(type: "localStorage" | "sessionStorage") {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    return window[type];
+  } catch {
+    return null;
+  }
+}
+
+function setStorageItem(
+  type: "localStorage" | "sessionStorage",
+  key: string,
+  value: string,
+) {
+  try {
+    getStorage(type)?.setItem(key, value);
+  } catch {
+    // Some embedded browsers restrict storage access completely.
+  }
+}
+
+function removeStorageItem(type: "localStorage" | "sessionStorage", key: string) {
+  try {
+    getStorage(type)?.removeItem(key);
+  } catch {
+    // Ignore storage failures so the storefront can still render.
   }
 }
 
@@ -228,6 +262,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const [adminAccess, setAdminAccess] = useState<StorefrontAdminAccess>(
     guestAdminAccess(),
   );
+  const [authError, setAuthError] = useState<string | null>(null);
   const [authBusy, setAuthBusy] = useState(false);
   const [databaseConfigured, setDatabaseConfigured] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
@@ -251,19 +286,13 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const viewerUid = viewer?.uid ?? null;
 
   const clearAutoAuthSkip = () => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    window.sessionStorage.removeItem(AUTO_AUTH_SKIP_SESSION_KEY);
+    removeStorageItem("sessionStorage", AUTO_AUTH_SKIP_SESSION_KEY);
   };
 
   const hasAutoAuthSkip = () => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    return window.sessionStorage.getItem(AUTO_AUTH_SKIP_SESSION_KEY) === "true";
+    return (
+      getStorage("sessionStorage")?.getItem(AUTO_AUTH_SKIP_SESSION_KEY) === "true"
+    );
   };
 
   useEffect(() => {
@@ -296,11 +325,16 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
       }
 
       if (!piInitializedRef.current) {
-        window.Pi.init({
-          version: "2.0",
-          sandbox: sandboxEnabled,
-        });
-        piInitializedRef.current = true;
+        try {
+          window.Pi.init({
+            version: "2.0",
+            sandbox: sandboxEnabled,
+          });
+          piInitializedRef.current = true;
+        } catch {
+          piInitTimeoutRef.current = setTimeout(tryInit, 500);
+          return;
+        }
       }
 
       setSdkReady(true);
@@ -320,7 +354,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    setStorageItem("localStorage", CART_STORAGE_KEY, JSON.stringify(cartItems));
   }, [cartItems, hydrated]);
 
   useEffect(() => {
@@ -329,11 +363,11 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     }
 
     if (viewer) {
-      window.localStorage.setItem(VIEWER_STORAGE_KEY, JSON.stringify(viewer));
+      setStorageItem("localStorage", VIEWER_STORAGE_KEY, JSON.stringify(viewer));
       return;
     }
 
-    window.localStorage.removeItem(VIEWER_STORAGE_KEY);
+    removeStorageItem("localStorage", VIEWER_STORAGE_KEY);
   }, [hydrated, viewer]);
 
   useEffect(() => {
@@ -341,7 +375,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    window.localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(orders));
+    setStorageItem("localStorage", ORDER_STORAGE_KEY, JSON.stringify(orders));
   }, [hydrated, orders]);
 
   useEffect(() => {
@@ -349,7 +383,11 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    window.localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(addresses));
+    setStorageItem(
+      "localStorage",
+      ADDRESS_STORAGE_KEY,
+      JSON.stringify(addresses),
+    );
   }, [addresses, hydrated]);
 
   useEffect(() => {
@@ -358,11 +396,11 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     }
 
     if (ownerUid) {
-      window.localStorage.setItem(OWNER_STORAGE_KEY, JSON.stringify(ownerUid));
+      setStorageItem("localStorage", OWNER_STORAGE_KEY, JSON.stringify(ownerUid));
       return;
     }
 
-    window.localStorage.removeItem(OWNER_STORAGE_KEY);
+    removeStorageItem("localStorage", OWNER_STORAGE_KEY);
   }, [hydrated, ownerUid]);
 
   useEffect(() => {
@@ -469,9 +507,10 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
 
   const signInWithPi = useCallback(async () => {
     if (!window.Pi || authBusy) {
-      return;
+      return null;
     }
 
+    setAuthError(null);
     setAuthBusy(true);
 
     try {
@@ -488,19 +527,24 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
       setSessionChecked(true);
       autoAuthStartedRef.current = true;
       applyViewerChange(verified.user);
-    } catch {
+      return verified.user;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Pi authentication failed.";
+
       if (!viewerRef.current) {
         setViewerState(null);
       }
+
+      setAuthError(message);
+      return null;
     } finally {
       setAuthBusy(false);
     }
   }, [applyViewerChange, authBusy]);
 
   const signOut = useCallback(async () => {
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem(AUTO_AUTH_SKIP_SESSION_KEY, "true");
-    }
+    setStorageItem("sessionStorage", AUTO_AUTH_SKIP_SESSION_KEY, "true");
 
     try {
       await fetch("/api/pi/session", {
@@ -512,8 +556,9 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     }
 
     autoAuthStartedRef.current = true;
+    setAuthError(null);
     applyViewerChange(null);
-    window.localStorage.removeItem(VIEWER_STORAGE_KEY);
+    removeStorageItem("localStorage", VIEWER_STORAGE_KEY);
   }, [applyViewerChange]);
 
   useEffect(() => {
@@ -791,8 +836,10 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     <StorefrontContext.Provider
       value={{
         adminAccess,
+        authError,
         authBusy,
         hydrated,
+        sdkReady,
         viewer,
         cartItems,
         cartCount,

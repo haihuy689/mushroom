@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStorefront, type StorefrontAddress } from "@/components/storefront-provider";
-import type { Product, PiAuthResult, PiVerifiedUser } from "@/lib/pi-types";
+import type { Product } from "@/lib/pi-types";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
 import type { SiteCopy } from "@/lib/site-data";
 import styles from "./cart-checkout-card.module.css";
@@ -28,11 +28,9 @@ type MessageState =
   | { kind: "error"; text: string }
   | null;
 
-const scopes = ["username", "payments"] as const;
 const networkLabel =
   process.env.NEXT_PUBLIC_PI_NETWORK_LABEL?.trim() || "Pi Testnet";
 const sandboxEnabled = process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
-const autoAuthenticateEnabled = process.env.NEXT_PUBLIC_PI_AUTO_AUTH === "true";
 
 async function postJson<T>(
   path: string,
@@ -67,50 +65,25 @@ export function CartCheckoutCard({
   piCopy,
 }: CartCheckoutCardProps) {
   const router = useRouter();
-  const { clearCart, hydrated, recordOrder, setViewer, viewer } = useStorefront();
-  const [authBusy, setAuthBusy] = useState(false);
+  const {
+    authBusy,
+    authError,
+    clearCart,
+    recordOrder,
+    sdkReady,
+    signInWithPi,
+    viewer,
+  } = useStorefront();
   const [message, setMessage] = useState<MessageState>(null);
   const [paymentBusy, setPaymentBusy] = useState(false);
-  const [sdkReady, setSdkReady] = useState(false);
-
-  const initializedRef = useRef(false);
-  const autoAuthStartedRef = useRef(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const totalPi = Number(
     lines.reduce((sum, line) => sum + line.lineTotalPi, 0).toFixed(4),
   );
   const totalItems = lines.reduce((sum, line) => sum + line.quantity, 0);
 
-  useEffect(() => {
-    const tryInit = () => {
-      if (!window.Pi) {
-        timeoutRef.current = setTimeout(tryInit, 250);
-        return;
-      }
-
-      if (!initializedRef.current) {
-        window.Pi.init({
-          version: "2.0",
-          sandbox: sandboxEnabled,
-        });
-        initializedRef.current = true;
-      }
-
-      setSdkReady(true);
-    };
-
-    tryInit();
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
   const authenticate = async () => {
-    if (!window.Pi) {
+    if (!sdkReady) {
       setMessage({
         kind: "error",
         text: piCopy.sdkNotReady,
@@ -118,72 +91,30 @@ export function CartCheckoutCard({
       return;
     }
 
-    setAuthBusy(true);
     setMessage(null);
 
     try {
-      const authResult: PiAuthResult = await window.Pi.authenticate(
-        [...scopes],
-        async (payment) => {
-          try {
-            await postJson(
-              "/api/pi/payments/incomplete",
-              { payment },
-              piCopy.incompleteFailed,
-            );
-          } catch {
-            return;
-          }
-        },
-      );
+      const verified = await signInWithPi();
 
-      const verified = await postJson<{ user: PiVerifiedUser }>(
-        "/api/pi/auth",
-        { accessToken: authResult.accessToken },
-        piCopy.authFailed,
-      );
+      if (!verified) {
+        setMessage({
+          kind: "error",
+          text: authError ?? piCopy.authFailed,
+        });
+        return;
+      }
 
-      setViewer(verified.user);
       setMessage({
         kind: "success",
-        text: `${piCopy.authSuccessPrefix} ${verified.user.username ?? verified.user.uid}.`,
+        text: `${piCopy.authSuccessPrefix} ${verified.username ?? verified.uid}.`,
       });
     } catch (error) {
       setMessage({
         kind: "error",
         text: error instanceof Error ? error.message : piCopy.authFailed,
       });
-    } finally {
-      setAuthBusy(false);
     }
   };
-
-  const runAutoAuthenticate = useEffectEvent(() => {
-    void authenticate();
-  });
-
-  useEffect(() => {
-    if (
-      !autoAuthenticateEnabled ||
-      !hydrated ||
-      !sdkReady ||
-      viewer ||
-      authBusy ||
-      autoAuthStartedRef.current
-    ) {
-      return;
-    }
-
-    autoAuthStartedRef.current = true;
-
-    const autoAuthTimer = setTimeout(() => {
-      runAutoAuthenticate();
-    }, 150);
-
-    return () => {
-      clearTimeout(autoAuthTimer);
-    };
-  }, [authBusy, hydrated, sdkReady, viewer]);
 
   const handleCheckout = () => {
     if (!window.Pi) {
