@@ -1,22 +1,21 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/add-to-cart-button";
-import { PiCommercePanel } from "@/components/pi-commerce-panel";
+import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
 import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import { getStorefrontCopy } from "@/lib/storefront-copy";
-import { getBlogPosts, getSiteCopy } from "@/lib/site-data";
+import { getBlogPosts } from "@/lib/site-data";
 import styles from "./page.module.css";
 
 export default async function Home() {
   const locale = await getRequestLocale();
-  const siteCopy = getSiteCopy(locale);
+  const siteCopy = getPublicSiteCopy(locale);
   const storefrontCopy = getStorefrontCopy(locale);
   const products = await getStorefrontProducts(locale);
   const blogPosts = getBlogPosts(locale);
   const featuredProducts = products.slice(0, 3);
   const featuredStories = blogPosts.slice(0, 3);
-  const serverConfigured = Boolean(process.env.PI_API_KEY);
 
   return (
     <div className={styles.page}>
@@ -39,7 +38,7 @@ export default async function Home() {
         <div className={styles.heroRail}>
           <div className={styles.heroCard}>
             <span className={styles.cardLabel}>
-              {siteCopy.home.currentDirectionLabel}
+              {siteCopy.home.overviewLabel}
             </span>
             <ul className={styles.statList}>
               {siteCopy.home.stats.map((stat) => (
@@ -53,10 +52,10 @@ export default async function Home() {
 
           <div className={styles.domainCard}>
             <span className={styles.cardLabel}>
-              {siteCopy.home.futureDomainLabel}
+              {siteCopy.home.brandCardLabel}
             </span>
-            <h2>{siteCopy.home.futureDomainTitle}</h2>
-            <p>{siteCopy.home.futureDomainDescription}</p>
+            <h2>{siteCopy.home.brandCardTitle}</h2>
+            <p>{siteCopy.home.brandCardDescription}</p>
           </div>
         </div>
       </section>
@@ -103,22 +102,6 @@ export default async function Home() {
             </article>
           ))}
         </div>
-      </section>
-
-      <section className={styles.commerceSection}>
-        <div className={styles.commerceIntro}>
-          <p className={styles.sectionLabel}>{siteCopy.home.commerceLabel}</p>
-          <h2>{siteCopy.home.commerceTitle}</h2>
-          <p>{siteCopy.home.commerceBody}</p>
-        </div>
-
-        <PiCommercePanel
-          key={locale}
-          products={products.slice(0, 2)}
-          serverConfigured={serverConfigured}
-          copy={siteCopy.piPanel}
-          compact
-        />
       </section>
 
       <section className={styles.storySection}>

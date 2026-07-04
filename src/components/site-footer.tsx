@@ -1,13 +1,14 @@
 import Link from "next/link";
+import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
-import { getNavigationLinks, getSiteCopy } from "@/lib/site-data";
+import { getNavigationLinks } from "@/lib/site-data";
 import { BRAND_SLOGAN } from "@/lib/storefront-copy";
 import { BrandMark } from "./brand-mark";
 import styles from "./site-chrome.module.css";
 
 export async function SiteFooter() {
   const locale = await getRequestLocale();
-  const siteCopy = getSiteCopy(locale);
+  const siteCopy = getPublicSiteCopy(locale);
   const navigationLinks = getNavigationLinks(locale);
 
   return (
@@ -35,22 +36,6 @@ export async function SiteFooter() {
                 {link.label}
               </Link>
             ))}
-            <a
-              href="https://github.com/haihuy689/mushroom"
-              target="_blank"
-              rel="noreferrer"
-              className={styles.footerLink}
-            >
-              {siteCopy.footerGithub}
-            </a>
-            <a
-              href="https://mushroom-theta-five.vercel.app"
-              target="_blank"
-              rel="noreferrer"
-              className={styles.footerLink}
-            >
-              {siteCopy.footerLiveSite}
-            </a>
           </div>
         </div>
       </div>

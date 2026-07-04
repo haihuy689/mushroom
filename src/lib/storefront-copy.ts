@@ -117,7 +117,7 @@ const en: StorefrontCopy = {
   shopLead: "Tap a product, choose quantity, then add it to your cart.",
   cartPageTitle: "Cart | Mushroom.Pi",
   cartPageDescription:
-    "Review your Mushroom.Pi cart, choose a delivery address, and pay with Pi testnet.",
+    "Review your Mushroom.Pi cart, choose a delivery address, and pay with Pi.",
   cartTitle: "Your cart",
   cartLead: "Review products, choose delivery details, and place one Pi order for the whole cart.",
   emptyCartTitle: "Your cart is empty",
@@ -138,8 +138,8 @@ const en: StorefrontCopy = {
   quantityPickerCancel: "Cancel",
   cartSummaryTitle: "Order summary",
   checkoutTitle: "Pi checkout",
-  checkoutLead: "Sign in with Pi, confirm your address, and pay the full cart in one testnet order.",
-  checkoutHint: "Successful testnet payments are saved to your account order history.",
+  checkoutLead: "Sign in with Pi, confirm your address, and pay the full cart in one order.",
+  checkoutHint: "Successful payments are saved to your account order history.",
   shippingAddressTitle: "Delivery address",
   shippingAddressLead: "Choose a saved address or add a new one before placing the order.",
   savedAddressesTitle: "Saved addresses",
@@ -212,7 +212,7 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
       "Ch\u1ecdn s\u1ea3n ph\u1ea9m, t\u0103ng gi\u1ea3m s\u1ed1 l\u01b0\u1ee3ng r\u1ed3i th\u00eam v\u00e0o gi\u1ecf.",
     cartPageTitle: "Gi\u1ecf h\u00e0ng | Mushroom.Pi",
     cartPageDescription:
-      "Xem l\u1ea1i gi\u1ecf h\u00e0ng Mushroom.Pi, ch\u1ecdn \u0111\u1ecba ch\u1ec9 nh\u1eadn h\u00e0ng v\u00e0 thanh to\u00e1n b\u1eb1ng Pi testnet.",
+      "Xem l\u1ea1i gi\u1ecf h\u00e0ng Mushroom.Pi, ch\u1ecdn \u0111\u1ecba ch\u1ec9 nh\u1eadn h\u00e0ng v\u00e0 thanh to\u00e1n b\u1eb1ng Pi.",
     cartTitle: "Gi\u1ecf h\u00e0ng c\u1ee7a b\u1ea1n",
     cartLead:
       "Xem l\u1ea1i s\u1ea3n ph\u1ea9m, ch\u1ecdn \u0111\u1ecba ch\u1ec9 nh\u1eadn h\u00e0ng v\u00e0 t\u1ea1o m\u1ed9t \u0111\u01a1n Pi cho to\u00e0n b\u1ed9 gi\u1ecf.",
@@ -237,9 +237,9 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     cartSummaryTitle: "T\u00f3m t\u1eaft \u0111\u01a1n h\u00e0ng",
     checkoutTitle: "Thanh to\u00e1n Pi",
     checkoutLead:
-      "\u0110\u0103ng nh\u1eadp Pi, x\u00e1c nh\u1eadn \u0111\u1ecba ch\u1ec9 giao h\u00e0ng v\u00e0 thanh to\u00e1n to\u00e0n b\u1ed9 gi\u1ecf trong m\u1ed9t \u0111\u01a1n testnet.",
+      "\u0110\u0103ng nh\u1eadp Pi, x\u00e1c nh\u1eadn \u0111\u1ecba ch\u1ec9 giao h\u00e0ng v\u00e0 thanh to\u00e1n to\u00e0n b\u1ed9 gi\u1ecf trong m\u1ed9t \u0111\u01a1n.",
     checkoutHint:
-      "Khi thanh to\u00e1n testnet th\u00e0nh c\u00f4ng, \u0111\u01a1n s\u1ebd \u0111\u01b0\u1ee3c l\u01b0u v\u00e0o khu v\u1ef1c c\u00e1 nh\u00e2n.",
+      "Khi thanh to\u00e1n th\u00e0nh c\u00f4ng, \u0111\u01a1n s\u1ebd \u0111\u01b0\u1ee3c l\u01b0u v\u00e0o khu v\u1ef1c c\u00e1 nh\u00e2n.",
     shippingAddressTitle: "\u0110\u1ecba ch\u1ec9 nh\u1eadn h\u00e0ng",
     shippingAddressLead:
       "Ch\u1ecdn \u0111\u1ecba ch\u1ec9 \u0111\u00e3 l\u01b0u ho\u1eb7c t\u1ea1o \u0111\u1ecba ch\u1ec9 m\u1edbi tr\u01b0\u1edbc khi \u0111\u1eb7t h\u00e0ng.",
@@ -302,7 +302,7 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     signedInLabel: "Conectado",
     shopLead: "Toca un producto, elige cantidad y agregalo al carrito.",
     cartPageDescription:
-      "Revisa tu carrito de Mushroom.Pi, elige direccion de entrega y paga con Pi testnet.",
+      "Revisa tu carrito de Mushroom.Pi, elige direccion de entrega y paga con Pi.",
     cartLead:
       "Revisa productos, elige entrega y crea un solo pedido Pi para todo el carrito.",
     continueShopping: "Seguir comprando",
@@ -314,9 +314,9 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     cartSummaryTitle: "Resumen del pedido",
     checkoutTitle: "Pago Pi",
     checkoutLead:
-      "Inicia sesion con Pi, confirma tu direccion y paga todo el carrito en un solo pedido testnet.",
+      "Inicia sesion con Pi, confirma tu direccion y paga todo el carrito en un solo pedido.",
     checkoutHint:
-      "Los pagos testnet exitosos se guardan en el area de cuenta como pedidos locales.",
+      "Los pagos exitosos se guardan en el area de cuenta.",
     shippingAddressTitle: "Direccion de entrega",
     shippingAddressLead:
       "Elige una direccion guardada o agrega una nueva antes de hacer el pedido.",
@@ -372,7 +372,7 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     signedInLabel: "Connecte",
     shopLead: "Touchez un produit, choisissez la quantite, puis ajoutez-le au panier.",
     cartPageDescription:
-      "Consultez votre panier Mushroom.Pi, choisissez une adresse et payez en Pi testnet.",
+      "Consultez votre panier Mushroom.Pi, choisissez une adresse et payez en Pi.",
     cartLead:
       "Revoyez les produits, choisissez la livraison et creez une seule commande Pi pour tout le panier.",
     emptyCartBody:
@@ -386,9 +386,9 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     cartSummaryTitle: "Resume de commande",
     checkoutTitle: "Paiement Pi",
     checkoutLead:
-      "Connectez-vous avec Pi, confirmez votre adresse et payez tout le panier en une seule commande testnet.",
+      "Connectez-vous avec Pi, confirmez votre adresse et payez tout le panier en une seule commande.",
     checkoutHint:
-      "Les paiements testnet reussis sont enregistres dans l'espace compte.",
+      "Les paiements reussis sont enregistres dans l'espace compte.",
     shippingAddressTitle: "Adresse de livraison",
     shippingAddressLead:
       "Choisissez une adresse enregistree ou ajoutez-en une avant la commande.",
@@ -448,7 +448,7 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     shopLead:
       "\u70b9\u51fb\u5546\u54c1\u540e\u5148\u9009\u62e9\u6570\u91cf\uff0c\u518d\u52a0\u5165\u8d2d\u7269\u8f66\u3002",
     cartPageDescription:
-      "\u67e5\u770b Mushroom.Pi \u8d2d\u7269\u8f66\uff0c\u9009\u62e9\u6536\u8d27\u5730\u5740\uff0c\u5e76\u4f7f\u7528 Pi \u6d4b\u8bd5\u7f51\u652f\u4ed8\u3002",
+      "\u67e5\u770b Mushroom.Pi \u8d2d\u7269\u8f66\uff0c\u9009\u62e9\u6536\u8d27\u5730\u5740\uff0c\u5e76\u4f7f\u7528 Pi \u652f\u4ed8\u3002",
     cartTitle: "\u4f60\u7684\u8d2d\u7269\u8f66",
     cartLead:
       "\u68c0\u67e5\u5546\u54c1\uff0c\u9009\u62e9\u6536\u8d27\u4fe1\u606f\uff0c\u7136\u540e\u4e3a\u6574\u4e2a\u8d2d\u7269\u8f66\u521b\u5efa\u4e00\u7b14 Pi \u8ba2\u5355\u3002",
@@ -472,9 +472,9 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     cartSummaryTitle: "\u8ba2\u5355\u6458\u8981",
     checkoutTitle: "Pi \u652f\u4ed8",
     checkoutLead:
-      "\u5148\u767b\u5f55 Pi\uff0c\u786e\u8ba4\u6536\u8d27\u5730\u5740\uff0c\u518d\u4ee5\u4e00\u7b14 testnet \u8ba2\u5355\u652f\u4ed8\u6574\u4e2a\u8d2d\u7269\u8f66\u3002",
+      "\u5148\u767b\u5f55 Pi\uff0c\u786e\u8ba4\u6536\u8d27\u5730\u5740\uff0c\u518d\u4e3a\u6574\u4e2a\u8d2d\u7269\u8f66\u652f\u4ed8\u3002",
     checkoutHint:
-      "\u6d4b\u8bd5\u7f51\u652f\u4ed8\u6210\u529f\u540e\uff0c\u8ba2\u5355\u4f1a\u4fdd\u5b58\u5230\u4e2a\u4eba\u4e2d\u5fc3\u3002",
+      "\u652f\u4ed8\u6210\u529f\u540e\uff0c\u8ba2\u5355\u4f1a\u4fdd\u5b58\u5230\u4e2a\u4eba\u4e2d\u5fc3\u3002",
     shippingAddressTitle: "\u6536\u8d27\u5730\u5740",
     shippingAddressLead:
       "\u4e0b\u5355\u524d\u5148\u9009\u62e9\u5df2\u4fdd\u5b58\u5730\u5740\uff0c\u6216\u8005\u65b0\u589e\u4e00\u4e2a\u5730\u5740\u3002",

@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { ProductThumbnail } from "@/components/product-thumbnail";
+import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
 import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import { getStorefrontCopy } from "@/lib/storefront-copy";
 import { formatProductWeight } from "@/lib/storefront-product";
-import { getSiteCopy } from "@/lib/site-data";
 import styles from "./page.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  const siteCopy = getSiteCopy(locale);
+  const siteCopy = getPublicSiteCopy(locale);
 
   return {
     title: siteCopy.metadata.shopTitle,

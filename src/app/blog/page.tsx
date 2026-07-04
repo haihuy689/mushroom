@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
-import { getBlogPosts, getSiteCopy } from "@/lib/site-data";
+import { getBlogPosts } from "@/lib/site-data";
 import styles from "./page.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  const siteCopy = getSiteCopy(locale);
+  const siteCopy = getPublicSiteCopy(locale);
 
   return {
     title: siteCopy.metadata.blogTitle,
@@ -16,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function BlogPage() {
   const locale = await getRequestLocale();
-  const siteCopy = getSiteCopy(locale);
+  const siteCopy = getPublicSiteCopy(locale);
   const blogPosts = getBlogPosts(locale);
 
   return (

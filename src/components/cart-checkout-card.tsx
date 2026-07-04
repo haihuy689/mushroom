@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStorefront, type StorefrontAddress } from "@/components/storefront-provider";
 import type { Product } from "@/lib/pi-types";
+import type { PiCheckoutCopy } from "@/lib/public-site-copy";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
-import type { SiteCopy } from "@/lib/site-data";
 import styles from "./cart-checkout-card.module.css";
 
 type CheckoutLine = {
@@ -20,17 +20,13 @@ type CartCheckoutCardProps = {
   lines: CheckoutLine[];
   selectedAddress: StorefrontAddress | null;
   serverConfigured: boolean;
-  piCopy: SiteCopy["piPanel"];
+  piCopy: PiCheckoutCopy;
 };
 
 type MessageState =
   | { kind: "success"; text: string }
   | { kind: "error"; text: string }
   | null;
-
-const networkLabel =
-  process.env.NEXT_PUBLIC_PI_NETWORK_LABEL?.trim() || "Pi Testnet";
-const sandboxEnabled = process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
 
 async function postJson<T>(
   path: string,
@@ -163,7 +159,7 @@ export function CartCheckoutCard({
     window.Pi.createPayment(
       {
         amount: totalPi,
-        memo: `Mushroom.Pi testnet cart order (${totalItems} items)`,
+        memo: `Mushroom.Pi cart order (${totalItems} items)`,
         metadata: {
           lineCount: lines.length,
           itemCount: totalItems,
@@ -264,16 +260,6 @@ export function CartCheckoutCard({
         <div>
           <p className={styles.eyebrow}>{copy.checkoutTitle}</p>
           <h2>{copy.cartSummaryTitle}</h2>
-        </div>
-
-        <div className={styles.statusPills}>
-          <span className={styles.pill}>{networkLabel}</span>
-          <span className={styles.pill}>
-            {sandboxEnabled ? piCopy.sandboxEnabled : piCopy.browserRuntime}
-          </span>
-          <span className={styles.pill} data-muted={!serverConfigured}>
-            {serverConfigured ? piCopy.serverConfigured : piCopy.serverPending}
-          </span>
         </div>
       </div>
 

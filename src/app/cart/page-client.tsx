@@ -9,15 +9,15 @@ import {
   type StorefrontAddress,
 } from "@/components/storefront-provider";
 import type { Product } from "@/lib/pi-types";
+import type { PiCheckoutCopy } from "@/lib/public-site-copy";
 import { formatProductWeight } from "@/lib/storefront-product";
-import type { SiteCopy } from "@/lib/site-data";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
 import styles from "./page.module.css";
 
 type CartPageClientProps = {
   copy: StorefrontCopy;
   products: Product[];
-  piCopy: SiteCopy["piPanel"];
+  piCopy: PiCheckoutCopy;
   serverConfigured: boolean;
 };
 

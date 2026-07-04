@@ -31,7 +31,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     browseShop: "Browse shop",
     delivered: "Delivered",
     latestOrdersTitle: "Latest orders",
-    menuGuestHint: "Track your cart and testnet orders from one shopper menu.",
+    menuGuestHint: "Track your cart and orders from one shopper menu.",
     menuNoOrders: "No orders yet.",
     menuSignedInHint: "Review your cart, orders, and current delivery state here.",
     openCart: "Open cart",
@@ -39,10 +39,10 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     orders: "Orders",
     ordersAria: "Open orders",
     ordersEmptyBody:
-      "Your successful Pi testnet checkouts will appear here for follow-up tracking.",
+      "Your successful Pi orders will appear here for follow-up tracking.",
     ordersEmptyTitle: "No orders yet",
     ordersLead:
-      "This order center keeps your Mushroom.Pi testnet purchases organized with clear shopper-facing stages for processing, shipping, and delivered.",
+      "This order center keeps your Mushroom.Pi purchases organized with clear stages for processing, shipping, and delivered.",
     ordersPageDescription:
       "Track Mushroom.Pi orders by processing, shipping, and delivered states.",
     ordersPageTitle: "Orders | Mushroom.Pi",
@@ -59,7 +59,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     delivered: "\u0110\u00e3 giao",
     latestOrdersTitle: "\u0110\u01a1n g\u1ea7n \u0111\u00e2y",
     menuGuestHint:
-      "Theo d\u00f5i gi\u1ecf h\u00e0ng v\u00e0 \u0111\u01a1n testnet ngay trong menu mua s\u1eafm.",
+      "Theo d\u00f5i gi\u1ecf h\u00e0ng v\u00e0 \u0111\u01a1n h\u00e0ng ngay trong menu mua s\u1eafm.",
     menuNoOrders: "Ch\u01b0a c\u00f3 \u0111\u01a1n n\u00e0o.",
     menuSignedInHint:
       "Xem gi\u1ecf h\u00e0ng, \u0111\u01a1n h\u00e0ng v\u00e0 tr\u1ea1ng th\u00e1i giao h\u00e0ng ngay t\u1ea1i \u0111\u00e2y.",
@@ -68,7 +68,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     orders: "\u0110\u01a1n h\u00e0ng",
     ordersAria: "M\u1edf \u0111\u01a1n h\u00e0ng",
     ordersEmptyBody:
-      "Khi thanh to\u00e1n Pi testnet th\u00e0nh c\u00f4ng, \u0111\u01a1n s\u1ebd hi\u1ec7n \u1edf \u0111\u00e2y \u0111\u1ec3 theo d\u00f5i.",
+      "Khi thanh to\u00e1n Pi th\u00e0nh c\u00f4ng, \u0111\u01a1n s\u1ebd hi\u1ec7n \u1edf \u0111\u00e2y \u0111\u1ec3 theo d\u00f5i.",
     ordersEmptyTitle: "Ch\u01b0a c\u00f3 \u0111\u01a1n h\u00e0ng",
     ordersLead:
       "Trung t\u00e2m n\u00e0y gom c\u00e1c \u0111\u01a1n Mushroom.Pi theo ki\u1ec3u storefront, gi\u00fap ng\u01b0\u1eddi d\u00f9ng nh\u00ecn nhanh \u0111ang x\u1eed l\u00fd, \u0111ang giao hay \u0111\u00e3 giao.",
@@ -88,7 +88,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     delivered: "Entregado",
     latestOrdersTitle: "Pedidos recientes",
     menuGuestHint:
-      "Controla tu carrito y tus pedidos testnet desde un solo menu de compra.",
+      "Controla tu carrito y tus pedidos desde un solo menu de compra.",
     menuNoOrders: "Aun no hay pedidos.",
     menuSignedInHint:
       "Revisa tu carrito, pedidos y estado de entrega desde aqui.",
@@ -97,7 +97,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     orders: "Pedidos",
     ordersAria: "Abrir pedidos",
     ordersEmptyBody:
-      "Tus pagos exitosos en Pi testnet apareceran aqui para seguimiento.",
+      "Tus pedidos pagados con Pi apareceran aqui para seguimiento.",
     ordersEmptyTitle: "Aun no hay pedidos",
     ordersLead:
       "Este centro organiza las compras de Mushroom.Pi con etapas claras para procesamiento, envio y entrega.",
@@ -117,7 +117,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     delivered: "Livre",
     latestOrdersTitle: "Commandes recentes",
     menuGuestHint:
-      "Suivez votre panier et vos commandes testnet depuis un seul menu client.",
+      "Suivez votre panier et vos commandes depuis un seul menu client.",
     menuNoOrders: "Aucune commande pour le moment.",
     menuSignedInHint:
       "Consultez panier, commandes et statut de livraison ici.",
@@ -126,7 +126,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     orders: "Commandes",
     ordersAria: "Ouvrir les commandes",
     ordersEmptyBody:
-      "Vos achats Pi testnet reussis apparaitront ici pour le suivi.",
+      "Vos commandes payees avec Pi apparaitront ici pour le suivi.",
     ordersEmptyTitle: "Aucune commande pour le moment",
     ordersLead:
       "Ce centre regroupe les achats Mushroom.Pi avec des etapes lisibles pour la preparation, l'expedition et la livraison.",
@@ -146,7 +146,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     delivered: "\u5df2\u9001\u8fbe",
     latestOrdersTitle: "\u6700\u8fd1\u8ba2\u5355",
     menuGuestHint:
-      "\u5728\u4e00\u4e2a\u8d2d\u7269\u83dc\u5355\u91cc\u8ddf\u8e2a\u8d2d\u7269\u8f66\u548c testnet \u8ba2\u5355\u3002",
+      "\u5728\u4e00\u4e2a\u8d2d\u7269\u83dc\u5355\u91cc\u8ddf\u8e2a\u8d2d\u7269\u8f66\u548c\u8ba2\u5355\u3002",
     menuNoOrders: "\u8fd8\u6ca1\u6709\u8ba2\u5355\u3002",
     menuSignedInHint:
       "\u53ef\u4ee5\u5728\u8fd9\u91cc\u67e5\u770b\u8d2d\u7269\u8f66\u3001\u8ba2\u5355\u548c\u5f53\u524d\u914d\u9001\u72b6\u6001\u3002",
@@ -155,7 +155,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     orders: "\u8ba2\u5355",
     ordersAria: "\u6253\u5f00\u8ba2\u5355",
     ordersEmptyBody:
-      "\u6210\u529f\u7684 Pi testnet \u652f\u4ed8\u4f1a\u51fa\u73b0\u5728\u8fd9\u91cc\u4f9b\u4f60\u7ee7\u7eed\u8ddf\u8e2a\u3002",
+      "\u6210\u529f\u7684 Pi \u8ba2\u5355\u4f1a\u51fa\u73b0\u5728\u8fd9\u91cc\u4f9b\u4f60\u7ee7\u7eed\u8ddf\u8e2a\u3002",
     ordersEmptyTitle: "\u8fd8\u6ca1\u6709\u8ba2\u5355",
     ordersLead:
       "\u8fd9\u4e2a\u8ba2\u5355\u4e2d\u5fc3\u4ee5 storefront \u65b9\u5f0f\u6574\u7406 Mushroom.Pi \u7684\u8d2d\u7269\u8bb0\u5f55\uff0c\u65b9\u4fbf\u67e5\u770b\u5904\u7406\u4e2d\u3001\u8fd0\u9001\u4e2d\u548c\u5df2\u9001\u8fbe\u3002",

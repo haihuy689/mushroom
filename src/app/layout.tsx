@@ -4,8 +4,8 @@ import { Cormorant_Garamond, Space_Grotesk } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { StorefrontProvider } from "@/components/storefront-provider";
+import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
-import { getSiteCopy } from "@/lib/site-data";
 import "./globals.css";
 
 const bodyFont = Space_Grotesk({
@@ -23,7 +23,7 @@ const displayFont = Cormorant_Garamond({
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
-  const siteCopy = getSiteCopy(locale);
+  const siteCopy = getPublicSiteCopy(locale);
 
   return {
     title: siteCopy.metadata.rootTitle,

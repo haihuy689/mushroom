@@ -130,6 +130,11 @@ type BlogCatalogEntry = {
   content: Record<SiteLocale, BlogPost>;
 };
 
+const hiddenPublicBlogSlugs = new Set([
+  "how-to-explain-test-pi-checkout-to-customers",
+  "what-to-prepare-before-mainnet",
+]);
+
 const copy: Record<SiteLocale, SiteCopy> = {
   en: {
     metadata: {
@@ -1624,7 +1629,7 @@ export function getSiteCopy(locale: SiteLocale) {
 }
 
 export function getNavigationLinks(locale: SiteLocale) {
-  return copy[locale].navigation;
+  return copy[locale].navigation.filter((link) => link.href !== "/pi-lab");
 }
 
 export function getProducts(locale: SiteLocale): Product[] {
@@ -1638,9 +1643,15 @@ export function getProducts(locale: SiteLocale): Product[] {
 }
 
 export function getBlogPosts(locale: SiteLocale): BlogPost[] {
-  return blogCatalog.map((entry) => entry.content[locale]);
+  return blogCatalog
+    .filter((entry) => !hiddenPublicBlogSlugs.has(entry.slug))
+    .map((entry) => entry.content[locale]);
 }
 
 export function getBlogPostBySlug(slug: string, locale: SiteLocale) {
+  if (hiddenPublicBlogSlugs.has(slug)) {
+    return undefined;
+  }
+
   return blogCatalog.find((entry) => entry.slug === slug)?.content[locale];
 }

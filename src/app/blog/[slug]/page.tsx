@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { defaultLocale } from "@/lib/i18n";
+import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
 import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import {
   getBlogPostBySlug,
   getBlogPosts,
-  getSiteCopy,
 } from "@/lib/site-data";
 import styles from "./page.module.css";
 
@@ -16,7 +16,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await props.params;
   const locale = await getRequestLocale();
-  const siteCopy = getSiteCopy(locale);
+  const siteCopy = getPublicSiteCopy(locale);
   const post = getBlogPostBySlug(slug, locale);
 
   if (!post) {
@@ -38,7 +38,7 @@ export function generateStaticParams() {
 export default async function BlogPostPage(props: PageProps<"/blog/[slug]">) {
   const { slug } = await props.params;
   const locale = await getRequestLocale();
-  const siteCopy = getSiteCopy(locale);
+  const siteCopy = getPublicSiteCopy(locale);
   const post = getBlogPostBySlug(slug, locale);
 
   if (!post) {
