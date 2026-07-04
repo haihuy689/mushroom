@@ -360,7 +360,7 @@ export function CartCheckoutCard({
           <span>{copy.deliverTo}</span>
           <strong>{selectedAddress.fullName}</strong>
           <p>
-            {selectedAddress.phone} · {selectedAddress.line1}
+            {selectedAddress.phone} | {selectedAddress.line1}
             {selectedAddress.line2 ? `, ${selectedAddress.line2}` : ""}
             {`, ${selectedAddress.ward}, ${selectedAddress.district}, ${selectedAddress.city}, ${selectedAddress.country}`}
           </p>

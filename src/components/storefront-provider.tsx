@@ -4,62 +4,34 @@ import {
   createContext,
   useContext,
   useEffect,
+  useEffectEvent,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import type { PiVerifiedUser } from "@/lib/pi-types";
-
-type CartItem = {
-  productId: string;
-  quantity: number;
-};
-
-export type StorefrontAddress = {
-  id: string;
-  fullName: string;
-  phone: string;
-  line1: string;
-  line2?: string;
-  ward: string;
-  district: string;
-  city: string;
-  country: string;
-  note?: string;
-  isDefault: boolean;
-  createdAt: string;
-};
-
-export type StorefrontOrderLine = {
-  productId: string;
-  productName: string;
-  quantity: number;
-  totalPi: number;
-};
-
-export type StorefrontOrder = {
-  id: string;
-  productId: string;
-  productName: string;
-  quantity: number;
-  totalPi: number;
-  createdAt: string;
-  txid?: string;
-  paymentId?: string;
-  username?: string;
-  items?: StorefrontOrderLine[];
-  shippingAddress?: Omit<StorefrontAddress, "createdAt" | "id" | "isDefault">;
-};
-
-type AddressInput = Omit<StorefrontAddress, "createdAt" | "id" | "isDefault"> & {
-  isDefault?: boolean;
-};
-
-type RecordOrderInput = Omit<StorefrontOrder, "createdAt" | "id">;
+import {
+  createStorefrontAddress,
+  createStorefrontOrder,
+  isStorefrontAddress,
+  isStorefrontCartItem,
+  isStorefrontOrder,
+  normalizeAddresses,
+  normalizeCartItems,
+  normalizeOrders,
+  type StorefrontAddress,
+  type StorefrontAddressInput,
+  type StorefrontCartItem,
+  type StorefrontOrder,
+  type StorefrontOrderInput,
+  type StorefrontOrderLine,
+  type StorefrontStateResponse,
+} from "@/lib/storefront-state";
 
 type StorefrontContextValue = {
   hydrated: boolean;
   viewer: PiVerifiedUser | null;
-  cartItems: CartItem[];
+  cartItems: StorefrontCartItem[];
   cartCount: number;
   orders: StorefrontOrder[];
   addresses: StorefrontAddress[];
@@ -68,8 +40,8 @@ type StorefrontContextValue = {
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  recordOrder: (order: RecordOrderInput) => void;
-  saveAddress: (address: AddressInput) => string;
+  recordOrder: (order: StorefrontOrderInput) => void;
+  saveAddress: (address: StorefrontAddressInput) => string;
   setDefaultAddress: (addressId: string) => void;
 };
 
@@ -77,22 +49,17 @@ const CART_STORAGE_KEY = "mushroom.pi.cart";
 const VIEWER_STORAGE_KEY = "mushroom.pi.viewer";
 const ORDER_STORAGE_KEY = "mushroom.pi.orders";
 const ADDRESS_STORAGE_KEY = "mushroom.pi.addresses";
+const OWNER_STORAGE_KEY = "mushroom.pi.ownerUid";
 
 const StorefrontContext = createContext<StorefrontContextValue | null>(null);
 
-function isCartItem(value: unknown): value is CartItem {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-
-  const candidate = value as CartItem;
-  return (
-    typeof candidate.productId === "string" &&
-    typeof candidate.quantity === "number" &&
-    Number.isFinite(candidate.quantity) &&
-    candidate.quantity > 0
-  );
-}
+type InitialStorefrontState = {
+  viewer: PiVerifiedUser | null;
+  cartItems: StorefrontCartItem[];
+  orders: StorefrontOrder[];
+  addresses: StorefrontAddress[];
+  ownerUid: string | null;
+};
 
 function isViewer(value: unknown): value is PiVerifiedUser {
   if (typeof value !== "object" || value === null) {
@@ -100,74 +67,12 @@ function isViewer(value: unknown): value is PiVerifiedUser {
   }
 
   const candidate = value as PiVerifiedUser;
+
   return typeof candidate.uid === "string";
 }
 
-function isAddress(value: unknown): value is StorefrontAddress {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-
-  const candidate = value as StorefrontAddress;
-  return (
-    typeof candidate.id === "string" &&
-    typeof candidate.fullName === "string" &&
-    typeof candidate.phone === "string" &&
-    typeof candidate.line1 === "string" &&
-    typeof candidate.ward === "string" &&
-    typeof candidate.district === "string" &&
-    typeof candidate.city === "string" &&
-    typeof candidate.country === "string" &&
-    typeof candidate.isDefault === "boolean" &&
-    typeof candidate.createdAt === "string"
-  );
-}
-
-function isOrderLine(value: unknown): value is StorefrontOrderLine {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-
-  const candidate = value as StorefrontOrderLine;
-  return (
-    typeof candidate.productId === "string" &&
-    typeof candidate.productName === "string" &&
-    typeof candidate.quantity === "number" &&
-    typeof candidate.totalPi === "number"
-  );
-}
-
-function isOrder(value: unknown): value is StorefrontOrder {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-
-  const candidate = value as StorefrontOrder;
-  const hasValidItems =
-    candidate.items === undefined ||
-    (Array.isArray(candidate.items) && candidate.items.every(isOrderLine));
-  const hasValidShippingAddress =
-    candidate.shippingAddress === undefined ||
-    (typeof candidate.shippingAddress === "object" &&
-      candidate.shippingAddress !== null &&
-      typeof candidate.shippingAddress.fullName === "string" &&
-      typeof candidate.shippingAddress.phone === "string" &&
-      typeof candidate.shippingAddress.line1 === "string" &&
-      typeof candidate.shippingAddress.ward === "string" &&
-      typeof candidate.shippingAddress.district === "string" &&
-      typeof candidate.shippingAddress.city === "string" &&
-      typeof candidate.shippingAddress.country === "string");
-
-  return (
-    typeof candidate.id === "string" &&
-    typeof candidate.productId === "string" &&
-    typeof candidate.productName === "string" &&
-    typeof candidate.quantity === "number" &&
-    typeof candidate.totalPi === "number" &&
-    typeof candidate.createdAt === "string" &&
-    hasValidItems &&
-    hasValidShippingAddress
-  );
+function isStringOrNull(value: unknown): value is string | null {
+  return value === null || typeof value === "string";
 }
 
 function readStorage<T>(
@@ -177,6 +82,7 @@ function readStorage<T>(
 ) {
   try {
     const rawValue = window.localStorage.getItem(key);
+
     if (!rawValue) {
       return fallback;
     }
@@ -188,53 +94,130 @@ function readStorage<T>(
   }
 }
 
+function serializeCartItems(cartItems: StorefrontCartItem[]) {
+  return JSON.stringify(normalizeCartItems(cartItems));
+}
+
+function serializeAddresses(addresses: StorefrontAddress[]) {
+  return JSON.stringify(normalizeAddresses(addresses));
+}
+
+async function postStorefrontState<T>(payload: Record<string, unknown>) {
+  const response = await fetch("/api/storefront/state", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json()) as T & { error?: string };
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.error === "string" ? data.error : "Storefront sync failed.",
+    );
+  }
+
+  return data;
+}
+
+function getInitialStorefrontState(): InitialStorefrontState {
+  if (typeof window === "undefined") {
+    return {
+      viewer: null,
+      cartItems: [],
+      orders: [],
+      addresses: [],
+      ownerUid: null,
+    };
+  }
+
+  const viewer = readStorage<PiVerifiedUser | null>(
+    VIEWER_STORAGE_KEY,
+    null,
+    (value): value is PiVerifiedUser | null => value === null || isViewer(value),
+  );
+  const ownerUid = readStorage<string | null>(
+    OWNER_STORAGE_KEY,
+    null,
+    isStringOrNull,
+  );
+  const hasOwnerMismatch = Boolean(
+    viewer?.uid && ownerUid && ownerUid !== viewer.uid,
+  );
+
+  return {
+    viewer,
+    cartItems: hasOwnerMismatch
+      ? []
+      : readStorage<StorefrontCartItem[]>(
+          CART_STORAGE_KEY,
+          [],
+          (value): value is StorefrontCartItem[] =>
+            Array.isArray(value) && value.every(isStorefrontCartItem),
+        ),
+    orders: hasOwnerMismatch
+      ? []
+      : readStorage<StorefrontOrder[]>(
+          ORDER_STORAGE_KEY,
+          [],
+          (value): value is StorefrontOrder[] =>
+            Array.isArray(value) && value.every(isStorefrontOrder),
+        ),
+    addresses: hasOwnerMismatch
+      ? []
+      : readStorage<StorefrontAddress[]>(
+          ADDRESS_STORAGE_KEY,
+          [],
+          (value): value is StorefrontAddress[] =>
+            Array.isArray(value) && value.every(isStorefrontAddress),
+        ),
+    ownerUid: viewer?.uid ?? ownerUid,
+  };
+}
+
 export function StorefrontProvider({ children }: { children: ReactNode }) {
+  const [initialState] = useState<InitialStorefrontState>(getInitialStorefrontState);
   const [hydrated, setHydrated] = useState(false);
-  const [viewer, setViewer] = useState<PiVerifiedUser | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
+  const [viewerState, setViewerState] = useState<PiVerifiedUser | null>(
+    initialState.viewer,
+  );
+  const [cartItems, setCartItems] = useState<StorefrontCartItem[]>(
+    initialState.cartItems,
+  );
+  const [orders, setOrders] = useState<StorefrontOrder[]>(initialState.orders);
+  const [addresses, setAddresses] = useState<StorefrontAddress[]>(
+    initialState.addresses,
+  );
+  const [ownerUid, setOwnerUid] = useState<string | null>(initialState.ownerUid);
+  const [databaseConfigured, setDatabaseConfigured] = useState(false);
+  const [syncedViewerUid, setSyncedViewerUid] = useState<string | null>(null);
 
-    return readStorage<PiVerifiedUser | null>(
-      VIEWER_STORAGE_KEY,
-      null,
-      (value): value is PiVerifiedUser | null => value === null || isViewer(value),
-    );
+  const viewerRef = useRef<PiVerifiedUser | null>(viewerState);
+  const stateSnapshotRef = useRef({
+    cartItems,
+    addresses,
+    orders,
   });
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") {
-      return [];
-    }
+  const mutationQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const lastCartSignatureRef = useRef("");
+  const lastAddressSignatureRef = useRef("");
 
-    return readStorage<CartItem[]>(
-      CART_STORAGE_KEY,
-      [],
-      (value): value is CartItem[] => Array.isArray(value) && value.every(isCartItem),
-    );
-  });
-  const [orders, setOrders] = useState<StorefrontOrder[]>(() => {
-    if (typeof window === "undefined") {
-      return [];
-    }
+  const viewer = viewerState;
+  const viewerUid = viewer?.uid ?? null;
 
-    return readStorage<StorefrontOrder[]>(
-      ORDER_STORAGE_KEY,
-      [],
-      (value): value is StorefrontOrder[] => Array.isArray(value) && value.every(isOrder),
-    );
-  });
-  const [addresses, setAddresses] = useState<StorefrontAddress[]>(() => {
-    if (typeof window === "undefined") {
-      return [];
-    }
+  useEffect(() => {
+    viewerRef.current = viewer;
+  }, [viewer]);
 
-    return readStorage<StorefrontAddress[]>(
-      ADDRESS_STORAGE_KEY,
-      [],
-      (value): value is StorefrontAddress[] =>
-        Array.isArray(value) && value.every(isAddress),
-    );
-  });
+  useEffect(() => {
+    stateSnapshotRef.current = {
+      cartItems,
+      addresses,
+      orders,
+    };
+  }, [addresses, cartItems, orders]);
 
   useEffect(() => {
     const animationFrame = window.requestAnimationFrame(() => {
@@ -283,11 +266,176 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(addresses));
   }, [addresses, hydrated]);
 
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    if (ownerUid) {
+      window.localStorage.setItem(OWNER_STORAGE_KEY, JSON.stringify(ownerUid));
+      return;
+    }
+
+    window.localStorage.removeItem(OWNER_STORAGE_KEY);
+  }, [hydrated, ownerUid]);
+
+  useEffect(() => {
+    if (!viewerUid) {
+      return;
+    }
+
+    if (ownerUid && ownerUid !== viewerUid) {
+      return;
+    }
+
+    let cancelled = false;
+    const targetViewerUid = viewerUid;
+
+    void (async () => {
+      try {
+        const response = await postStorefrontState<StorefrontStateResponse>({
+          action: "syncSession",
+          ...stateSnapshotRef.current,
+        });
+
+        if (cancelled || viewerRef.current?.uid !== targetViewerUid) {
+          return;
+        }
+
+        lastCartSignatureRef.current = serializeCartItems(response.cartItems);
+        lastAddressSignatureRef.current = serializeAddresses(response.addresses);
+
+        setCartItems(response.cartItems);
+        setAddresses(response.addresses);
+        setOrders(response.orders);
+        setDatabaseConfigured(response.databaseConfigured);
+        setSyncedViewerUid(targetViewerUid);
+      } catch {
+        if (cancelled || viewerRef.current?.uid !== targetViewerUid) {
+          return;
+        }
+
+        setDatabaseConfigured(false);
+        setSyncedViewerUid(targetViewerUid);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ownerUid, viewerUid]);
+
+  const enqueueRemoteMutation = useEffectEvent(
+    (payload: Record<string, unknown>) => {
+      const targetViewerUid = viewerRef.current?.uid;
+
+      if (!targetViewerUid) {
+        return;
+      }
+
+      mutationQueueRef.current = mutationQueueRef.current
+        .catch(() => undefined)
+        .then(async () => {
+          if (viewerRef.current?.uid !== targetViewerUid) {
+            return;
+          }
+
+          try {
+            await postStorefrontState(payload);
+          } catch {
+            return;
+          }
+        });
+    },
+  );
+
+  useEffect(() => {
+    if (
+      !hydrated ||
+      !viewerUid ||
+      !databaseConfigured ||
+      syncedViewerUid !== viewerUid
+    ) {
+      return;
+    }
+
+    const signature = serializeCartItems(cartItems);
+
+    if (signature === lastCartSignatureRef.current) {
+      return;
+    }
+
+    lastCartSignatureRef.current = signature;
+    enqueueRemoteMutation({
+      action: "setCart",
+      cartItems,
+    });
+  }, [
+    cartItems,
+    databaseConfigured,
+    hydrated,
+    syncedViewerUid,
+    viewerUid,
+  ]);
+
+  useEffect(() => {
+    if (
+      !hydrated ||
+      !viewerUid ||
+      !databaseConfigured ||
+      syncedViewerUid !== viewerUid
+    ) {
+      return;
+    }
+
+    const signature = serializeAddresses(addresses);
+
+    if (signature === lastAddressSignatureRef.current) {
+      return;
+    }
+
+    lastAddressSignatureRef.current = signature;
+    enqueueRemoteMutation({
+      action: "setAddresses",
+      addresses,
+    });
+  }, [
+    addresses,
+    databaseConfigured,
+    hydrated,
+    syncedViewerUid,
+    viewerUid,
+  ]);
+
+  const setViewer = (nextViewer: PiVerifiedUser | null) => {
+    setViewerState(nextViewer);
+    setDatabaseConfigured(false);
+    setSyncedViewerUid(null);
+
+    if (!nextViewer) {
+      return;
+    }
+
+    if (ownerUid && ownerUid !== nextViewer.uid) {
+      setCartItems([]);
+      setOrders([]);
+      setAddresses([]);
+      mutationQueueRef.current = Promise.resolve();
+      lastCartSignatureRef.current = "";
+      lastAddressSignatureRef.current = "";
+    }
+
+    if (ownerUid !== nextViewer.uid) {
+      setOwnerUid(nextViewer.uid);
+    }
+  };
+
   const addToCart = (productId: string, quantity = 1) => {
     const normalizedQuantity = Math.max(1, Math.min(99, quantity));
 
     setCartItems((current) => {
       const match = current.find((item) => item.productId === productId);
+
       if (!match) {
         return [...current, { productId, quantity: normalizedQuantity }];
       }
@@ -331,19 +479,35 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     setCartItems([]);
   };
 
-  const recordOrder = (order: RecordOrderInput) => {
-    setOrders((current) => [
-      {
-        ...order,
-        id: `${order.productId}-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-      },
-      ...current,
-    ].slice(0, 24));
+  const recordOrder = (order: StorefrontOrderInput) => {
+    const nextOrder = createStorefrontOrder(order);
+
+    setOrders((current) => normalizeOrders([nextOrder, ...current]));
+
+    if (viewerRef.current?.uid && databaseConfigured) {
+      const targetViewerUid = viewerRef.current.uid;
+
+      mutationQueueRef.current = mutationQueueRef.current
+        .catch(() => undefined)
+        .then(async () => {
+          if (viewerRef.current?.uid !== targetViewerUid) {
+            return;
+          }
+
+          try {
+            await postStorefrontState({
+              action: "recordOrder",
+              order: nextOrder,
+            });
+          } catch {
+            return;
+          }
+        });
+    }
   };
 
-  const saveAddress = (address: AddressInput) => {
-    const nextId = `address-${Date.now()}`;
+  const saveAddress = (address: StorefrontAddressInput) => {
+    const nextAddress = createStorefrontAddress(address);
 
     setAddresses((current) => {
       const shouldSetDefault =
@@ -352,34 +516,26 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
         ? current.map((entry) => ({ ...entry, isDefault: false }))
         : current;
 
-      return [
+      return normalizeAddresses([
         {
-          id: nextId,
-          fullName: address.fullName.trim(),
-          phone: address.phone.trim(),
-          line1: address.line1.trim(),
-          line2: address.line2?.trim() || "",
-          ward: address.ward.trim(),
-          district: address.district.trim(),
-          city: address.city.trim(),
-          country: address.country.trim(),
-          note: address.note?.trim() || "",
+          ...nextAddress,
           isDefault: shouldSetDefault,
-          createdAt: new Date().toISOString(),
         },
         ...normalizedCurrent,
-      ].slice(0, 8);
+      ]);
     });
 
-    return nextId;
+    return nextAddress.id;
   };
 
   const setDefaultAddress = (addressId: string) => {
     setAddresses((current) =>
-      current.map((address) => ({
-        ...address,
-        isDefault: address.id === addressId,
-      })),
+      normalizeAddresses(
+        current.map((address) => ({
+          ...address,
+          isDefault: address.id === addressId,
+        })),
+      ),
     );
   };
 
@@ -418,3 +574,12 @@ export function useStorefront() {
 
   return value;
 }
+
+export type {
+  StorefrontAddress,
+  StorefrontAddressInput,
+  StorefrontCartItem,
+  StorefrontOrder,
+  StorefrontOrderInput,
+  StorefrontOrderLine,
+};

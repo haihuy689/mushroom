@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PiApiError, verifyPiUser } from "@/lib/pi-server";
+import { applyStorefrontSession } from "@/lib/storefront-session";
 
 export async function POST(request: Request) {
   try {
@@ -16,10 +17,13 @@ export async function POST(request: Request) {
 
     const user = await verifyPiUser(body.accessToken);
 
-    return NextResponse.json({
-      ok: true,
+    return applyStorefrontSession(
+      NextResponse.json({
+        ok: true,
+        user,
+      }),
       user,
-    });
+    );
   } catch (error) {
     if (error instanceof PiApiError) {
       return NextResponse.json(
