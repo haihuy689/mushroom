@@ -1,77 +1,159 @@
 "use client";
 
 import Link from "next/link";
-import type { SiteLocale } from "@/lib/i18n";
+import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { CartCheckoutCard } from "@/components/cart-checkout-card";
+import { ProductThumbnail } from "@/components/product-thumbnail";
+import {
+  useStorefront,
+  type StorefrontAddress,
+} from "@/components/storefront-provider";
 import type { Product } from "@/lib/pi-types";
-import type { StorefrontCopy } from "@/lib/storefront-copy";
 import type { SiteCopy } from "@/lib/site-data";
-import { PiCommercePanel } from "@/components/pi-commerce-panel";
-import { useStorefront } from "@/components/storefront-provider";
+import type { StorefrontCopy } from "@/lib/storefront-copy";
 import styles from "./page.module.css";
 
 type CartPageClientProps = {
-  locale: SiteLocale;
-  products: Product[];
   copy: StorefrontCopy;
+  products: Product[];
   piCopy: SiteCopy["piPanel"];
   serverConfigured: boolean;
 };
 
+type AddressFormState = {
+  city: string;
+  country: string;
+  district: string;
+  fullName: string;
+  isDefault: boolean;
+  line1: string;
+  line2: string;
+  note: string;
+  phone: string;
+  ward: string;
+};
+
+const initialAddressForm: AddressFormState = {
+  city: "",
+  country: "Vietnam",
+  district: "",
+  fullName: "",
+  isDefault: true,
+  line1: "",
+  line2: "",
+  note: "",
+  phone: "",
+  ward: "",
+};
+
+function formatAddress(address: StorefrontAddress) {
+  return [
+    address.line1,
+    address.line2,
+    address.ward,
+    address.district,
+    address.city,
+    address.country,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
 export function CartPageClient({
-  locale,
-  products,
   copy,
+  products,
   piCopy,
   serverConfigured,
 }: CartPageClientProps) {
   const {
+    addresses,
     cartItems,
     clearCart,
     hydrated,
     removeFromCart,
+    saveAddress,
+    setDefaultAddress,
     updateCartQuantity,
   } = useStorefront();
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [formState, setFormState] = useState<AddressFormState>(initialAddressForm);
 
-  const catalogById = new Map(products.map((product) => [product.id, product]));
+  const catalogById = useMemo(
+    () => new Map(products.map((product) => [product.id, product])),
+    [products],
+  );
 
-  const cartLines = cartItems.reduce<
-    Array<{
-      item: { productId: string; quantity: number };
-      sourceProduct: Product;
-      checkoutProduct: Product;
-    }>
-  >((lines, item) => {
-      const sourceProduct = catalogById.get(item.productId);
-      if (!sourceProduct) {
+  const cartLines = useMemo(
+    () =>
+      cartItems.reduce<
+        Array<{
+          item: { productId: string; quantity: number };
+          lineTotalPi: number;
+          product: Product;
+        }>
+      >((lines, item) => {
+        const product = catalogById.get(item.productId);
+        if (!product) {
+          return lines;
+        }
+
+        lines.push({
+          item,
+          lineTotalPi: Number((product.pricePi * item.quantity).toFixed(4)),
+          product,
+        });
+
         return lines;
-      }
-
-      const totalPi = Number((sourceProduct.pricePi * item.quantity).toFixed(4));
-
-      lines.push({
-        item,
-        sourceProduct,
-        checkoutProduct: {
-          ...sourceProduct,
-          id: `${sourceProduct.id}::${item.quantity}`,
-          sourceProductId: sourceProduct.id,
-          quantity: item.quantity,
-          name:
-            item.quantity > 1
-              ? `${sourceProduct.name} x${item.quantity}`
-              : sourceProduct.name,
-          pricePi: totalPi,
-        },
-      });
-
-      return lines;
-    }, []);
+      }, []),
+    [cartItems, catalogById],
+  );
 
   const totalPi = Number(
-    cartLines
-      .reduce((sum, entry) => sum + entry.checkoutProduct.pricePi, 0)
-      .toFixed(4),
+    cartLines.reduce((sum, line) => sum + line.lineTotalPi, 0).toFixed(4),
   );
+  const totalItems = cartLines.reduce((sum, line) => sum + line.item.quantity, 0);
+  const defaultAddress = addresses.find((address) => address.isDefault) ?? addresses[0] ?? null;
+  const selectedAddress =
+    addresses.find((address) => address.id === selectedAddressId) ?? defaultAddress;
+
+  const handleFieldChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const target = event.target;
+    const { name } = target;
+
+    setFormState((current) => ({
+      ...current,
+      [name]:
+        target instanceof HTMLInputElement && target.type === "checkbox"
+          ? target.checked
+          : target.value,
+    }));
+  };
+
+  const handleAddressSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const nextId = saveAddress({
+      city: formState.city,
+      country: formState.country,
+      district: formState.district,
+      fullName: formState.fullName,
+      line1: formState.line1,
+      line2: formState.line2,
+      note: formState.note,
+      phone: formState.phone,
+      ward: formState.ward,
+      isDefault: addresses.length === 0 || formState.isDefault,
+    });
+
+    setSelectedAddressId(nextId);
+    setFormState({
+      ...initialAddressForm,
+      country: formState.country || initialAddressForm.country,
+      isDefault: false,
+    });
+  };
 
   return (
     <div className={styles.page}>
@@ -87,9 +169,10 @@ export function CartPageClient({
           <strong>{totalPi} Pi</strong>
           <span className={styles.summaryMeta}>
             {hydrated
-              ? `${cartLines.length} ${copy.linesLabel} / ${cartItems.reduce((sum, item) => sum + item.quantity, 0)} ${copy.itemsLabel}`
+              ? `${cartLines.length} ${copy.linesLabel} / ${totalItems} ${copy.itemsLabel}`
               : copy.loading}
           </span>
+
           {cartLines.length > 0 ? (
             <button
               type="button"
@@ -120,84 +203,268 @@ export function CartPageClient({
           </Link>
         </section>
       ) : (
-        <section className={styles.grid}>
-          <div className={styles.lineList}>
-            {cartLines.map(({ item, sourceProduct }) => (
-              <article key={item.productId} className={styles.lineCard}>
-                <div className={styles.lineTop}>
-                  <div>
-                    <span className={styles.lineBadge}>{sourceProduct.badge}</span>
-                    <h2>{sourceProduct.name}</h2>
-                    <p>{sourceProduct.tagline}</p>
-                  </div>
-
-                  <button
-                    type="button"
-                    className={styles.removeButton}
-                    onClick={() => removeFromCart(item.productId)}
-                  >
-                    {copy.remove}
-                  </button>
+        <section className={styles.layout}>
+          <div className={styles.leftColumn}>
+            <article className={styles.sectionCard}>
+              <div className={styles.sectionHeading}>
+                <div>
+                  <p className={styles.sectionLabel}>{copy.cart}</p>
+                  <h2>{copy.cartSummaryTitle}</h2>
                 </div>
+                <span className={styles.lineCount}>
+                  {cartLines.length} {copy.linesLabel}
+                </span>
+              </div>
 
-                <div className={styles.lineMeta}>
-                  <span>{sourceProduct.category}</span>
-                  <span>{sourceProduct.format}</span>
-                  <span>{sourceProduct.pricePi} Pi</span>
-                </div>
+              <div className={styles.lineList}>
+                {cartLines.map(({ item, lineTotalPi, product }) => (
+                  <article key={item.productId} className={styles.lineCard}>
+                    <ProductThumbnail
+                      accent={product.accent}
+                      compact
+                      name={product.name}
+                      productId={product.id}
+                    />
 
-                <div className={styles.lineBottom}>
-                  <div className={styles.stepperWrap}>
-                    <span>{copy.quantity}</span>
-                    <div className={styles.quantityStepper}>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateCartQuantity(item.productId, item.quantity - 1)
-                        }
-                      >
-                        -
-                      </button>
-                      <strong>{item.quantity}</strong>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateCartQuantity(item.productId, item.quantity + 1)
-                        }
-                      >
-                        +
-                      </button>
+                    <div className={styles.lineContent}>
+                      <div className={styles.lineHeader}>
+                        <div className={styles.lineTitle}>
+                          <h3>{product.name}</h3>
+                          <p>{product.tagline}</p>
+                        </div>
+
+                        <button
+                          type="button"
+                          className={styles.removeButton}
+                          onClick={() => removeFromCart(item.productId)}
+                        >
+                          {copy.remove}
+                        </button>
+                      </div>
+
+                      <div className={styles.lineMeta}>
+                        <span>{product.category}</span>
+                        <span>{product.format}</span>
+                        <span>{product.pricePi} Pi</span>
+                      </div>
+
+                      <div className={styles.lineFooter}>
+                        <div className={styles.stepperWrap}>
+                          <span>{copy.quantity}</span>
+                          <div className={styles.quantityStepper}>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateCartQuantity(item.productId, item.quantity - 1)
+                              }
+                            >
+                              -
+                            </button>
+                            <strong>{item.quantity}</strong>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateCartQuantity(item.productId, item.quantity + 1)
+                              }
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className={styles.priceBlock}>
+                          <span>{copy.lineTotal}</span>
+                          <strong>{lineTotalPi} Pi</strong>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className={styles.lineTotal}>
-                    <span>{copy.lineTotal}</span>
-                    <strong>
-                      {Number((sourceProduct.pricePi * item.quantity).toFixed(4))} Pi
-                    </strong>
-                  </div>
-                </div>
-              </article>
-            ))}
+                  </article>
+                ))}
+              </div>
+            </article>
           </div>
 
-          <div className={styles.checkoutColumn}>
-            <div className={styles.checkoutIntro}>
-              <p className={styles.eyebrow}>{copy.cartCheckoutLabel}</p>
-              <h2>{copy.cartCheckoutTitle}</h2>
-              <p>{copy.cartCheckoutBody}</p>
-              <span className={styles.checkoutHint}>{copy.cartCheckoutHint}</span>
-            </div>
+          <div className={styles.rightColumn}>
+            <article className={styles.sectionCard}>
+              <div className={styles.sectionHeading}>
+                <div>
+                  <p className={styles.sectionLabel}>{copy.shippingAddressTitle}</p>
+                  <h2>{copy.savedAddressesTitle}</h2>
+                </div>
+              </div>
 
-            <PiCommercePanel
-              key={`${locale}-cart`}
-              products={cartLines.map((entry) => entry.checkoutProduct)}
+              <p className={styles.sectionLead}>{copy.shippingAddressLead}</p>
+
+              {addresses.length === 0 ? (
+                <p className={styles.emptyHint}>{copy.noSavedAddresses}</p>
+              ) : (
+                <div className={styles.addressList}>
+                  {addresses.map((address) => {
+                    const isSelected = address.id === selectedAddress?.id;
+
+                    return (
+                      <article
+                        key={address.id}
+                        className={styles.addressCard}
+                        data-selected={isSelected}
+                      >
+                        <button
+                          type="button"
+                          className={styles.addressSelect}
+                          onClick={() => setSelectedAddressId(address.id)}
+                        >
+                          <div className={styles.addressTop}>
+                            <strong>{address.fullName}</strong>
+                            <div className={styles.addressTags}>
+                              {address.isDefault ? (
+                                <span className={styles.addressTag}>
+                                  {copy.defaultAddress}
+                                </span>
+                              ) : null}
+                              {isSelected ? (
+                                <span className={styles.addressTag}>
+                                  {copy.selectedAddress}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                          <p>{address.phone}</p>
+                          <p>{formatAddress(address)}</p>
+                          {address.note ? <p>{address.note}</p> : null}
+                        </button>
+
+                        {!address.isDefault ? (
+                          <button
+                            type="button"
+                            className={styles.secondaryLink}
+                            onClick={() => {
+                              setDefaultAddress(address.id);
+                              setSelectedAddressId(address.id);
+                            }}
+                          >
+                            {copy.setAsDefault}
+                          </button>
+                        ) : null}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+
+              <form className={styles.addressForm} onSubmit={handleAddressSubmit}>
+                <div className={styles.formHeading}>
+                  <h3>{copy.addAddressTitle}</h3>
+                </div>
+
+                <div className={styles.formGrid}>
+                  <label>
+                    <span>{copy.fullName}</span>
+                    <input
+                      required
+                      name="fullName"
+                      value={formState.fullName}
+                      onChange={handleFieldChange}
+                    />
+                  </label>
+                  <label>
+                    <span>{copy.phone}</span>
+                    <input
+                      required
+                      name="phone"
+                      value={formState.phone}
+                      onChange={handleFieldChange}
+                    />
+                  </label>
+                  <label className={styles.fullField}>
+                    <span>{copy.addressLine1}</span>
+                    <input
+                      required
+                      name="line1"
+                      value={formState.line1}
+                      onChange={handleFieldChange}
+                    />
+                  </label>
+                  <label className={styles.fullField}>
+                    <span>{copy.addressLine2}</span>
+                    <input
+                      name="line2"
+                      value={formState.line2}
+                      onChange={handleFieldChange}
+                    />
+                  </label>
+                  <label>
+                    <span>{copy.ward}</span>
+                    <input
+                      required
+                      name="ward"
+                      value={formState.ward}
+                      onChange={handleFieldChange}
+                    />
+                  </label>
+                  <label>
+                    <span>{copy.district}</span>
+                    <input
+                      required
+                      name="district"
+                      value={formState.district}
+                      onChange={handleFieldChange}
+                    />
+                  </label>
+                  <label>
+                    <span>{copy.city}</span>
+                    <input
+                      required
+                      name="city"
+                      value={formState.city}
+                      onChange={handleFieldChange}
+                    />
+                  </label>
+                  <label>
+                    <span>{copy.country}</span>
+                    <input
+                      required
+                      name="country"
+                      value={formState.country}
+                      onChange={handleFieldChange}
+                    />
+                  </label>
+                  <label className={styles.fullField}>
+                    <span>{copy.note}</span>
+                    <textarea
+                      name="note"
+                      value={formState.note}
+                      onChange={handleFieldChange}
+                      rows={3}
+                    />
+                  </label>
+                </div>
+
+                <label className={styles.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    name="isDefault"
+                    checked={formState.isDefault}
+                    onChange={handleFieldChange}
+                  />
+                  <span>{copy.setAsDefault}</span>
+                </label>
+
+                <button type="submit" className={styles.primaryLink}>
+                  {copy.saveAddress}
+                </button>
+              </form>
+            </article>
+
+            <CartCheckoutCard
+              copy={copy}
+              lines={cartLines.map((line) => ({
+                lineTotalPi: line.lineTotalPi,
+                product: line.product,
+                quantity: line.item.quantity,
+              }))}
+              piCopy={piCopy}
+              selectedAddress={selectedAddress}
               serverConfigured={serverConfigured}
-              copy={piCopy}
-              compact
-              onPaymentCompleted={(product) => {
-                removeFromCart(product.sourceProductId ?? product.id);
-              }}
             />
           </div>
         </section>

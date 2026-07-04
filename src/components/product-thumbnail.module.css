@@ -1,0 +1,186 @@
+.frame {
+  position: relative;
+  overflow: hidden;
+  width: 112px;
+  min-width: 112px;
+  height: 112px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 248, 234, 0.72), transparent 30%),
+    radial-gradient(circle at 80% 82%, rgba(39, 74, 57, 0.22), transparent 32%),
+    var(--thumb-accent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 18px 32px rgba(67, 40, 20, 0.14);
+}
+
+.frame[data-compact="true"] {
+  width: 88px;
+  min-width: 88px;
+  height: 88px;
+  border-radius: 22px;
+}
+
+.piPill,
+.initials {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.piPill {
+  top: 10px;
+  left: 10px;
+  min-height: 24px;
+  padding: 0 10px;
+  background: rgba(255, 248, 234, 0.84);
+  color: #5d341d;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.frame[data-compact="true"] .piPill {
+  top: 8px;
+  left: 8px;
+  min-height: 22px;
+  padding: 0 8px;
+  font-size: 0.68rem;
+}
+
+.initials {
+  right: 10px;
+  bottom: 10px;
+  width: 34px;
+  height: 34px;
+  background: rgba(50, 30, 19, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fffaf0;
+  font-size: 0.74rem;
+}
+
+.frame[data-compact="true"] .initials {
+  width: 28px;
+  height: 28px;
+  right: 8px;
+  bottom: 8px;
+  font-size: 0.68rem;
+}
+
+.glow,
+.ring {
+  position: absolute;
+  border-radius: 999px;
+}
+
+.glow {
+  inset: auto auto 14px 14px;
+  width: 54px;
+  height: 54px;
+  background: rgba(255, 247, 232, 0.2);
+  filter: blur(2px);
+}
+
+.ring {
+  top: 18px;
+  right: 14px;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255, 251, 243, 0.26);
+}
+
+.cluster {
+  position: absolute;
+  inset: 20px 16px 14px;
+}
+
+.frame[data-compact="true"] .cluster {
+  inset: 18px 12px 12px;
+}
+
+.capLarge,
+.capSmall,
+.stemTall,
+.stemShort {
+  position: absolute;
+  display: block;
+}
+
+.capLarge,
+.capSmall {
+  background: linear-gradient(180deg, var(--cap-primary), var(--cap-secondary));
+  box-shadow:
+    inset 0 -4px 10px rgba(52, 26, 12, 0.14),
+    0 8px 14px rgba(63, 35, 17, 0.16);
+}
+
+.capLarge {
+  top: 18px;
+  left: 12px;
+  width: 46px;
+  height: 26px;
+  border-radius: 999px 999px 16px 16px;
+  transform: rotate(-7deg);
+}
+
+.capSmall {
+  top: 8px;
+  right: 12px;
+  width: 32px;
+  height: 18px;
+  border-radius: 999px 999px 12px 12px;
+  transform: rotate(12deg);
+}
+
+.stemTall,
+.stemShort {
+  background: linear-gradient(180deg, rgba(255, 247, 232, 0.96), rgba(248, 216, 172, 0.8));
+  box-shadow: inset 0 -2px 4px rgba(126, 90, 49, 0.12);
+}
+
+.stemTall {
+  top: 34px;
+  left: 28px;
+  width: 14px;
+  height: 34px;
+  border-radius: 12px;
+}
+
+.stemShort {
+  top: 22px;
+  right: 22px;
+  width: 12px;
+  height: 24px;
+  border-radius: 10px;
+}
+
+.frame[data-compact="true"] .capLarge {
+  top: 16px;
+  left: 8px;
+  width: 38px;
+  height: 22px;
+}
+
+.frame[data-compact="true"] .capSmall {
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 16px;
+}
+
+.frame[data-compact="true"] .stemTall {
+  top: 30px;
+  left: 22px;
+  width: 12px;
+  height: 30px;
+}
+
+.frame[data-compact="true"] .stemShort {
+  top: 20px;
+  right: 18px;
+  width: 10px;
+  height: 22px;
+}

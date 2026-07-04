@@ -1,20 +1,26 @@
-.addButton {
+.addButton,
+.ghostButton,
+.primaryButton,
+.quantityStepper button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 0 16px;
-  border: 0;
   border-radius: 999px;
+  font-weight: 700;
+}
+
+.addButton {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
   background: linear-gradient(135deg, #97572a, #2f5f45);
   color: #fff8ef;
-  font-weight: 700;
   cursor: pointer;
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
     opacity 180ms ease;
-  box-shadow: 0 12px 24px rgba(71, 44, 22, 0.16);
+  box-shadow: 0 14px 28px rgba(71, 44, 22, 0.16);
 }
 
 .addButton[data-full="true"] {
@@ -25,9 +31,150 @@
   background: linear-gradient(135deg, #2f5f45, #5d7c3f);
 }
 
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: end center;
+  padding: 18px;
+  background: rgba(27, 17, 11, 0.44);
+  backdrop-filter: blur(8px);
+}
+
+.modalCard {
+  width: min(100%, 420px);
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(245, 233, 210, 0.94));
+  border: 1px solid rgba(83, 50, 27, 0.1);
+  box-shadow: 0 24px 54px rgba(43, 24, 12, 0.2);
+}
+
+.modalTop,
+.modalRow,
+.modalSummary,
+.modalActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.modalTop {
+  align-items: start;
+}
+
+.modalTop h3 {
+  margin: 6px 0 0;
+  font-size: 1.28rem;
+  line-height: 1.2;
+  color: #29150d;
+}
+
+.modalTop strong,
+.modalSummary strong {
+  color: #29150d;
+  font-size: 1.04rem;
+}
+
+.modalEyebrow {
+  margin: 0;
+  color: #8b5935;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modalLead,
+.modalRow span,
+.modalSummary span {
+  margin: 0;
+  color: rgba(67, 41, 24, 0.74);
+  line-height: 1.65;
+}
+
+.modalRow {
+  align-items: center;
+}
+
+.quantityStepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(255, 248, 232, 0.78);
+  border: 1px solid rgba(83, 50, 27, 0.08);
+}
+
+.quantityStepper button {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  background: #fffaf0;
+  color: #412818;
+  cursor: pointer;
+}
+
+.modalSummary {
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: rgba(255, 248, 232, 0.76);
+  border: 1px solid rgba(83, 50, 27, 0.08);
+}
+
+.modalActions {
+  align-items: center;
+}
+
+.ghostButton,
+.primaryButton {
+  min-height: 46px;
+  padding: 0 18px;
+  cursor: pointer;
+}
+
+.ghostButton {
+  border: 1px solid rgba(83, 50, 27, 0.12);
+  background: transparent;
+  color: #5a3927;
+}
+
+.primaryButton {
+  border: 0;
+  background: linear-gradient(135deg, #97572a, #2f5f45);
+  color: #fff8ef;
+}
+
 @media (hover: hover) and (pointer: fine) {
-  .addButton:hover {
+  .addButton:hover,
+  .primaryButton:hover {
     transform: translateY(-2px);
     box-shadow: 0 16px 30px rgba(71, 44, 22, 0.2);
+  }
+}
+
+@media (max-width: 640px) {
+  .modalBackdrop {
+    padding: 12px;
+  }
+
+  .modalCard {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+
+  .ghostButton,
+  .primaryButton {
+    width: 100%;
   }
 }

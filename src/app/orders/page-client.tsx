@@ -147,6 +147,20 @@ export function OrdersPageClient({
             {visibleOrders.map((order) => {
               const status = resolveOrderStatus(order, nowMs);
               const activeStepIndex = getOrderStatusStepIndex(status);
+              const headline =
+                order.items && order.items.length > 1
+                  ? order.productName
+                  : order.items?.[0]?.productName ?? order.productName;
+              const addressLine = order.shippingAddress
+                ? [
+                    order.shippingAddress.line1,
+                    order.shippingAddress.ward,
+                    order.shippingAddress.district,
+                    order.shippingAddress.city,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")
+                : null;
 
               return (
                 <article key={order.id} className={styles.orderCard}>
@@ -155,10 +169,11 @@ export function OrdersPageClient({
                       <span className={styles.orderCode}>
                         {copy.orderCodeLabel} #{order.id.slice(-8).toUpperCase()}
                       </span>
-                      <h2>{order.productName}</h2>
+                      <h2>{headline}</h2>
                       <p>
                         {order.quantity} x / {order.totalPi} Pi
                       </p>
+                      {addressLine ? <p>{addressLine}</p> : null}
                     </div>
 
                     <span
@@ -175,6 +190,19 @@ export function OrdersPageClient({
                       {copy.updatedLabel}: {formatter.format(new Date(order.createdAt))}
                     </span>
                   </div>
+
+                  {order.items && order.items.length > 0 ? (
+                    <ul className={styles.itemList}>
+                      {order.items.map((item) => (
+                        <li key={`${order.id}-${item.productId}`} className={styles.itemRow}>
+                          <span>{item.productName}</span>
+                          <strong>
+                            {item.quantity} x / {item.totalPi} Pi
+                          </strong>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
 
                   <div className={styles.progressTrack}>
                     {(["processing", "shipping", "delivered"] as OrderStatus[]).map(

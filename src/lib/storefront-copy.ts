@@ -1,6 +1,6 @@
 import type { SiteLocale } from "@/lib/i18n";
 
-export const BRAND_SLOGAN = "ăn nấm vì sức khỏe";
+export const BRAND_SLOGAN = "\u0103n n\u1ea5m v\u00ec s\u1ee9c kh\u1ecfe";
 
 export type StorefrontCopy = {
   brandSlogan: string;
@@ -14,6 +14,8 @@ export type StorefrontCopy = {
   guestLabel: string;
   signedInLabel: string;
   loading: string;
+  shopTitle: string;
+  shopLead: string;
   cartPageTitle: string;
   cartPageDescription: string;
   cartTitle: string;
@@ -23,15 +25,44 @@ export type StorefrontCopy = {
   continueShopping: string;
   quantity: string;
   lineTotal: string;
+  subtotal: string;
   remove: string;
   clearCart: string;
   total: string;
   linesLabel: string;
   itemsLabel: string;
-  cartCheckoutLabel: string;
-  cartCheckoutTitle: string;
-  cartCheckoutBody: string;
-  cartCheckoutHint: string;
+  quantityPickerTitle: string;
+  quantityPickerLead: string;
+  quantityPickerConfirm: string;
+  quantityPickerCancel: string;
+  cartSummaryTitle: string;
+  checkoutTitle: string;
+  checkoutLead: string;
+  checkoutHint: string;
+  shippingAddressTitle: string;
+  shippingAddressLead: string;
+  savedAddressesTitle: string;
+  noSavedAddresses: string;
+  addAddressTitle: string;
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  ward: string;
+  district: string;
+  city: string;
+  country: string;
+  note: string;
+  setAsDefault: string;
+  saveAddress: string;
+  defaultAddress: string;
+  selectedAddress: string;
+  addressRequired: string;
+  placeOrder: string;
+  placingOrder: string;
+  signInToCheckout: string;
+  checkoutSignedInAs: string;
+  paymentSuccess: string;
   accountPageTitle: string;
   accountPageDescription: string;
   accountTitle: string;
@@ -43,101 +74,194 @@ export type StorefrontCopy = {
   walletLabel: string;
   orderHistoryTitle: string;
   noOrders: string;
+  addressBookTitle: string;
+  addressBookLead: string;
+  noAddresses: string;
+  deliverTo: string;
   cartShortcut: string;
   browseShop: string;
 };
 
+const en: StorefrontCopy = {
+  brandSlogan: BRAND_SLOGAN,
+  addToCart: "Add to cart",
+  addedToCart: "Added",
+  cart: "Cart",
+  cartAria: "Open cart",
+  account: "Account",
+  accountAria: "Open account",
+  languageAria: "Change language",
+  guestLabel: "Guest",
+  signedInLabel: "Signed in",
+  loading: "Loading...",
+  shopTitle: "Shop",
+  shopLead: "Tap a product, choose quantity, then add it to your cart.",
+  cartPageTitle: "Cart | Mushroom.Pi",
+  cartPageDescription:
+    "Review your Mushroom.Pi cart, choose a delivery address, and pay with Pi testnet.",
+  cartTitle: "Your cart",
+  cartLead: "Review products, choose delivery details, and place one Pi order for the whole cart.",
+  emptyCartTitle: "Your cart is empty",
+  emptyCartBody: "Add a few mushroom products from the shop and they will appear here right away.",
+  continueShopping: "Continue shopping",
+  quantity: "Quantity",
+  lineTotal: "Line total",
+  subtotal: "Subtotal",
+  remove: "Remove",
+  clearCart: "Clear cart",
+  total: "Total",
+  linesLabel: "lines",
+  itemsLabel: "items",
+  quantityPickerTitle: "Choose quantity",
+  quantityPickerLead: "Adjust the amount before adding this product to the cart.",
+  quantityPickerConfirm: "Add now",
+  quantityPickerCancel: "Cancel",
+  cartSummaryTitle: "Order summary",
+  checkoutTitle: "Pi checkout",
+  checkoutLead: "Sign in with Pi, confirm your address, and pay the full cart in one testnet order.",
+  checkoutHint: "Successful testnet payments are saved to the account area as local orders.",
+  shippingAddressTitle: "Delivery address",
+  shippingAddressLead: "Choose a saved address or add a new one before placing the order.",
+  savedAddressesTitle: "Saved addresses",
+  noSavedAddresses: "No saved addresses yet. Add one below to continue.",
+  addAddressTitle: "Add new address",
+  fullName: "Full name",
+  phone: "Phone number",
+  addressLine1: "Street address",
+  addressLine2: "Apartment, suite, building",
+  ward: "Ward",
+  district: "District",
+  city: "City",
+  country: "Country",
+  note: "Delivery note",
+  setAsDefault: "Set as default",
+  saveAddress: "Save address",
+  defaultAddress: "Default",
+  selectedAddress: "Selected",
+  addressRequired: "Choose or save a delivery address before placing the order.",
+  placeOrder: "Place order with Pi",
+  placingOrder: "Preparing Pi payment...",
+  signInToCheckout: "Sign in with Pi",
+  checkoutSignedInAs: "Signed in as",
+  paymentSuccess: "Order saved to your account.",
+  accountPageTitle: "Account | Mushroom.Pi",
+  accountPageDescription:
+    "View your Mushroom.Pi Pi sign-in status, saved addresses, and local order history.",
+  accountTitle: "Account",
+  accountLead: "Keep your Pi identity, saved delivery addresses, and order history in one place.",
+  statusTitle: "Pi shopper status",
+  statusSignedIn: "Your Pi account is connected in this browser session.",
+  statusGuest: "No Pi account is connected yet. Sign in from checkout and it will appear here automatically.",
+  usernameLabel: "Username",
+  walletLabel: "Wallet",
+  orderHistoryTitle: "Recent orders",
+  noOrders: "No local orders yet.",
+  addressBookTitle: "Saved addresses",
+  addressBookLead: "Addresses created during checkout are stored here for faster future orders.",
+  noAddresses: "No addresses saved yet.",
+  deliverTo: "Deliver to",
+  cartShortcut: "Open cart",
+  browseShop: "Browse shop",
+};
+
 const copy: Record<SiteLocale, StorefrontCopy> = {
-  en: {
-    brandSlogan: BRAND_SLOGAN,
-    addToCart: "Add to cart",
-    addedToCart: "Added",
-    cart: "Cart",
-    cartAria: "Open cart",
-    account: "Account",
-    accountAria: "Open account",
-    languageAria: "Change language",
-    guestLabel: "Guest",
-    signedInLabel: "Signed in",
-    loading: "Loading...",
-    cartPageTitle: "Cart | Mushroom.Pi",
-    cartPageDescription: "Review your Mushroom.Pi cart and continue with Pi testnet checkout.",
-    cartTitle: "Your cart",
-    cartLead: "Products added from the storefront appear here so shoppers can review, adjust quantity, and continue to Pi checkout.",
-    emptyCartTitle: "Your cart is empty",
-    emptyCartBody: "Add a few mushroom products from the shop and they will show up here right away.",
-    continueShopping: "Continue shopping",
-    quantity: "Quantity",
-    lineTotal: "Line total",
-    remove: "Remove",
-    clearCart: "Clear cart",
-    total: "Total",
-    linesLabel: "lines",
-    itemsLabel: "items",
-    cartCheckoutLabel: "Pi testnet checkout",
-    cartCheckoutTitle: "Pay each cart line with Pi",
-    cartCheckoutBody: "Each payment button below uses the quantity currently in your cart, so shoppers can complete test purchases without leaving this page.",
-    cartCheckoutHint: "Successful testnet payments are saved to the account area as local order history.",
-    accountPageTitle: "Account | Mushroom.Pi",
-    accountPageDescription: "View your Mushroom.Pi Pi sign-in status and local order history.",
-    accountTitle: "Account",
-    accountLead: "This space is ready for shopper-facing details like Pi identity, order history, and quick access back to the cart.",
-    statusTitle: "Pi shopper status",
-    statusSignedIn: "Your Pi account is connected in this browser session.",
-    statusGuest: "No Pi account is connected yet. Sign in from the checkout panel and it will appear here automatically.",
-    usernameLabel: "Username",
-    walletLabel: "Wallet",
-    orderHistoryTitle: "Recent orders",
-    noOrders: "No local order history yet.",
-    cartShortcut: "Open cart",
-    browseShop: "Browse shop",
-  },
+  en,
   vi: {
-    brandSlogan: BRAND_SLOGAN,
-    addToCart: "Thêm vào giỏ",
-    addedToCart: "Đã thêm",
-    cart: "Giỏ hàng",
-    cartAria: "Mở giỏ hàng",
-    account: "Cá nhân",
-    accountAria: "Mở khu vực cá nhân",
-    languageAria: "Đổi ngôn ngữ",
-    guestLabel: "Khách",
-    signedInLabel: "Đã đăng nhập",
-    loading: "Đang tải...",
-    cartPageTitle: "Giỏ hàng | Mushroom.Pi",
-    cartPageDescription: "Xem lại giỏ hàng Mushroom.Pi và tiếp tục thanh toán bằng Pi testnet.",
-    cartTitle: "Giỏ hàng của bạn",
-    cartLead: "Những sản phẩm được thêm từ storefront sẽ hiện ở đây để người dùng xem lại, chỉnh số lượng và tiếp tục sang bước thanh toán Pi.",
-    emptyCartTitle: "Giỏ hàng đang trống",
-    emptyCartBody: "Hãy thêm vài sản phẩm nấm từ shop, chúng sẽ xuất hiện ở đây ngay.",
-    continueShopping: "Tiếp tục mua sắm",
-    quantity: "Số lượng",
-    lineTotal: "Tổng dòng",
-    remove: "Xóa",
-    clearCart: "Xóa giỏ hàng",
-    total: "Tổng cộng",
-    linesLabel: "dòng",
-    itemsLabel: "món",
-    cartCheckoutLabel: "Thanh toán Pi testnet",
-    cartCheckoutTitle: "Thanh toán từng dòng sản phẩm bằng Pi",
-    cartCheckoutBody: "Mỗi nút thanh toán bên dưới sẽ lấy đúng số lượng hiện có trong giỏ, để người dùng test mua hàng ngay trên trang giỏ.",
-    cartCheckoutHint: "Khi thanh toán testnet thành công, đơn sẽ được lưu vào khu vực cá nhân dưới dạng lịch sử cục bộ.",
-    accountPageTitle: "Cá nhân | Mushroom.Pi",
-    accountPageDescription: "Xem trạng thái đăng nhập Pi và lịch sử đơn hàng cục bộ của Mushroom.Pi.",
-    accountTitle: "Khu vực cá nhân",
-    accountLead: "Phần này đã sẵn sàng cho các nội dung hướng người mua như định danh Pi, lịch sử đơn hàng và đường tắt quay lại giỏ hàng.",
-    statusTitle: "Trạng thái người dùng Pi",
-    statusSignedIn: "Tài khoản Pi của bạn đã được kết nối trên trình duyệt này.",
-    statusGuest: "Hiện chưa có tài khoản Pi nào được kết nối. Chỉ cần đăng nhập từ khu vực thanh toán, thông tin sẽ tự hiện ở đây.",
-    usernameLabel: "Tên người dùng",
-    walletLabel: "Ví",
-    orderHistoryTitle: "Đơn hàng gần đây",
-    noOrders: "Chưa có lịch sử đơn hàng cục bộ.",
-    cartShortcut: "Mở giỏ hàng",
-    browseShop: "Vào shop",
+    ...en,
+    addToCart: "Th\u00eam v\u00e0o gi\u1ecf",
+    addedToCart: "\u0110\u00e3 th\u00eam",
+    cart: "Gi\u1ecf h\u00e0ng",
+    cartAria: "M\u1edf gi\u1ecf h\u00e0ng",
+    account: "C\u00e1 nh\u00e2n",
+    accountAria: "M\u1edf khu v\u1ef1c c\u00e1 nh\u00e2n",
+    languageAria: "\u0110\u1ed5i ng\u00f4n ng\u1eef",
+    guestLabel: "Kh\u00e1ch",
+    signedInLabel: "\u0110\u00e3 \u0111\u0103ng nh\u1eadp",
+    loading: "\u0110ang t\u1ea3i...",
+    shopTitle: "C\u1eeda h\u00e0ng",
+    shopLead:
+      "Ch\u1ecdn s\u1ea3n ph\u1ea9m, t\u0103ng gi\u1ea3m s\u1ed1 l\u01b0\u1ee3ng r\u1ed3i th\u00eam v\u00e0o gi\u1ecf.",
+    cartPageTitle: "Gi\u1ecf h\u00e0ng | Mushroom.Pi",
+    cartPageDescription:
+      "Xem l\u1ea1i gi\u1ecf h\u00e0ng Mushroom.Pi, ch\u1ecdn \u0111\u1ecba ch\u1ec9 nh\u1eadn h\u00e0ng v\u00e0 thanh to\u00e1n b\u1eb1ng Pi testnet.",
+    cartTitle: "Gi\u1ecf h\u00e0ng c\u1ee7a b\u1ea1n",
+    cartLead:
+      "Xem l\u1ea1i s\u1ea3n ph\u1ea9m, ch\u1ecdn \u0111\u1ecba ch\u1ec9 nh\u1eadn h\u00e0ng v\u00e0 t\u1ea1o m\u1ed9t \u0111\u01a1n Pi cho to\u00e0n b\u1ed9 gi\u1ecf.",
+    emptyCartTitle: "Gi\u1ecf h\u00e0ng \u0111ang tr\u1ed1ng",
+    emptyCartBody:
+      "H\u00e3y th\u00eam v\u00e0i s\u1ea3n ph\u1ea9m n\u1ea5m t\u1eeb shop, ch\u00fang s\u1ebd hi\u1ec7n \u1edf \u0111\u00e2y ngay.",
+    continueShopping: "Ti\u1ebfp t\u1ee5c mua s\u1eafm",
+    quantity: "S\u1ed1 l\u01b0\u1ee3ng",
+    lineTotal: "T\u1ed5ng m\u00f3n",
+    subtotal: "T\u1ea1m t\u00ednh",
+    remove: "X\u00f3a",
+    clearCart: "X\u00f3a gi\u1ecf h\u00e0ng",
+    total: "T\u1ed5ng c\u1ed9ng",
+    linesLabel: "d\u00f2ng",
+    itemsLabel: "m\u00f3n",
+    quantityPickerTitle: "Ch\u1ecdn s\u1ed1 l\u01b0\u1ee3ng",
+    quantityPickerLead:
+      "Ch\u1ec9nh s\u1ed1 l\u01b0\u1ee3ng tr\u01b0\u1edbc khi th\u00eam s\u1ea3n ph\u1ea9m v\u00e0o gi\u1ecf.",
+    quantityPickerConfirm: "Th\u00eam ngay",
+    quantityPickerCancel: "\u0110\u00f3ng",
+    cartSummaryTitle: "T\u00f3m t\u1eaft \u0111\u01a1n h\u00e0ng",
+    checkoutTitle: "Thanh to\u00e1n Pi",
+    checkoutLead:
+      "\u0110\u0103ng nh\u1eadp Pi, x\u00e1c nh\u1eadn \u0111\u1ecba ch\u1ec9 giao h\u00e0ng v\u00e0 thanh to\u00e1n to\u00e0n b\u1ed9 gi\u1ecf trong m\u1ed9t \u0111\u01a1n testnet.",
+    checkoutHint:
+      "Khi thanh to\u00e1n testnet th\u00e0nh c\u00f4ng, \u0111\u01a1n s\u1ebd \u0111\u01b0\u1ee3c l\u01b0u v\u00e0o khu v\u1ef1c c\u00e1 nh\u00e2n.",
+    shippingAddressTitle: "\u0110\u1ecba ch\u1ec9 nh\u1eadn h\u00e0ng",
+    shippingAddressLead:
+      "Ch\u1ecdn \u0111\u1ecba ch\u1ec9 \u0111\u00e3 l\u01b0u ho\u1eb7c t\u1ea1o \u0111\u1ecba ch\u1ec9 m\u1edbi tr\u01b0\u1edbc khi \u0111\u1eb7t h\u00e0ng.",
+    savedAddressesTitle: "\u0110\u1ecba ch\u1ec9 \u0111\u00e3 l\u01b0u",
+    noSavedAddresses:
+      "Ch\u01b0a c\u00f3 \u0111\u1ecba ch\u1ec9 n\u00e0o. H\u00e3y th\u00eam m\u1ed9t \u0111\u1ecba ch\u1ec9 b\u00ean d\u01b0\u1edbi \u0111\u1ec3 ti\u1ebfp t\u1ee5c.",
+    addAddressTitle: "Th\u00eam \u0111\u1ecba ch\u1ec9 m\u1edbi",
+    fullName: "H\u1ecd v\u00e0 t\u00ean",
+    phone: "S\u1ed1 \u0111i\u1ec7n tho\u1ea1i",
+    addressLine1: "\u0110\u1ecba ch\u1ec9",
+    addressLine2: "C\u0103n h\u1ed9, t\u00f2a nh\u00e0, s\u1ed1 t\u1ea7ng",
+    ward: "Ph\u01b0\u1eddng / x\u00e3",
+    district: "Qu\u1eadn / huy\u1ec7n",
+    city: "T\u1ec9nh / th\u00e0nh ph\u1ed1",
+    country: "Qu\u1ed1c gia",
+    note: "Ghi ch\u00fa giao h\u00e0ng",
+    setAsDefault: "\u0110\u1eb7t l\u00e0m m\u1eb7c \u0111\u1ecbnh",
+    saveAddress: "L\u01b0u \u0111\u1ecba ch\u1ec9",
+    defaultAddress: "M\u1eb7c \u0111\u1ecbnh",
+    selectedAddress: "\u0110ang ch\u1ecdn",
+    addressRequired:
+      "H\u00e3y ch\u1ecdn ho\u1eb7c l\u01b0u \u0111\u1ecba ch\u1ec9 nh\u1eadn h\u00e0ng tr\u01b0\u1edbc khi \u0111\u1eb7t \u0111\u01a1n.",
+    placeOrder: "\u0110\u1eb7t h\u00e0ng b\u1eb1ng Pi",
+    placingOrder: "\u0110ang chu\u1ea9n b\u1ecb thanh to\u00e1n Pi...",
+    signInToCheckout: "\u0110\u0103ng nh\u1eadp b\u1eb1ng Pi",
+    checkoutSignedInAs: "\u0110\u00e3 \u0111\u0103ng nh\u1eadp d\u01b0\u1edbi t\u00ean",
+    paymentSuccess: "\u0110\u01a1n h\u00e0ng \u0111\u00e3 \u0111\u01b0\u1ee3c l\u01b0u v\u00e0o t\u00e0i kho\u1ea3n.",
+    accountPageTitle: "C\u00e1 nh\u00e2n | Mushroom.Pi",
+    accountPageDescription:
+      "Xem t\u00ecnh tr\u1ea1ng \u0111\u0103ng nh\u1eadp Pi, \u0111\u1ecba ch\u1ec9 \u0111\u00e3 l\u01b0u v\u00e0 l\u1ecbch s\u1eed \u0111\u01a1n h\u00e0ng c\u1ee7a Mushroom.Pi.",
+    accountTitle: "Khu v\u1ef1c c\u00e1 nh\u00e2n",
+    accountLead:
+      "L\u01b0u tr\u1eef th\u00f4ng tin Pi, \u0111\u1ecba ch\u1ec9 giao h\u00e0ng v\u00e0 l\u1ecbch s\u1eed \u0111\u1eb7t h\u00e0ng trong c\u00f9ng m\u1ed9t n\u01a1i.",
+    statusTitle: "Tr\u1ea1ng th\u00e1i ng\u01b0\u1eddi d\u00f9ng Pi",
+    statusSignedIn:
+      "T\u00e0i kho\u1ea3n Pi c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c k\u1ebft n\u1ed1i tr\u00ean tr\u00ecnh duy\u1ec7t n\u00e0y.",
+    statusGuest:
+      "Hi\u1ec7n ch\u01b0a c\u00f3 t\u00e0i kho\u1ea3n Pi n\u00e0o \u0111\u01b0\u1ee3c k\u1ebft n\u1ed1i. \u0110\u0103ng nh\u1eadp t\u1eeb b\u01b0\u1edbc thanh to\u00e1n, th\u00f4ng tin s\u1ebd hi\u1ec7n \u1edf \u0111\u00e2y.",
+    usernameLabel: "T\u00ean ng\u01b0\u1eddi d\u00f9ng",
+    walletLabel: "V\u00ed",
+    orderHistoryTitle: "\u0110\u01a1n h\u00e0ng g\u1ea7n \u0111\u00e2y",
+    noOrders: "Ch\u01b0a c\u00f3 \u0111\u01a1n h\u00e0ng n\u00e0o.",
+    addressBookTitle: "\u0110\u1ecba ch\u1ec9 \u0111\u00e3 l\u01b0u",
+    addressBookLead:
+      "Nh\u1eefng \u0111\u1ecba ch\u1ec9 t\u1ea1o trong l\u00fac thanh to\u00e1n s\u1ebd \u0111\u01b0\u1ee3c l\u01b0u \u1edf \u0111\u00e2y \u0111\u1ec3 \u0111\u1eb7t h\u00e0ng nhanh h\u01a1n.",
+    noAddresses: "Ch\u01b0a c\u00f3 \u0111\u1ecba ch\u1ec9 n\u00e0o \u0111\u01b0\u1ee3c l\u01b0u.",
+    deliverTo: "Giao t\u1edbi",
+    cartShortcut: "M\u1edf gi\u1ecf h\u00e0ng",
+    browseShop: "V\u00e0o shop",
   },
   es: {
-    brandSlogan: BRAND_SLOGAN,
+    ...en,
     addToCart: "Agregar al carrito",
     addedToCart: "Agregado",
     cart: "Carrito",
@@ -145,43 +269,69 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     account: "Cuenta",
     accountAria: "Abrir cuenta",
     languageAria: "Cambiar idioma",
-    guestLabel: "Invitado",
     signedInLabel: "Conectado",
-    loading: "Cargando...",
-    cartPageTitle: "Carrito | Mushroom.Pi",
-    cartPageDescription: "Revisa tu carrito de Mushroom.Pi y continúa con el pago en Pi testnet.",
-    cartTitle: "Tu carrito",
-    cartLead: "Los productos agregados desde la tienda aparecen aquí para que el usuario revise, ajuste cantidades y continúe con el pago en Pi.",
-    emptyCartTitle: "Tu carrito está vacío",
-    emptyCartBody: "Agrega algunos productos de hongos desde la tienda y aparecerán aquí al instante.",
+    shopLead: "Toca un producto, elige cantidad y agregalo al carrito.",
+    cartPageDescription:
+      "Revisa tu carrito de Mushroom.Pi, elige direccion de entrega y paga con Pi testnet.",
+    cartLead:
+      "Revisa productos, elige entrega y crea un solo pedido Pi para todo el carrito.",
     continueShopping: "Seguir comprando",
-    quantity: "Cantidad",
-    lineTotal: "Total de línea",
-    remove: "Eliminar",
-    clearCart: "Vaciar carrito",
-    total: "Total",
-    linesLabel: "líneas",
-    itemsLabel: "artículos",
-    cartCheckoutLabel: "Pago Pi testnet",
-    cartCheckoutTitle: "Paga cada línea del carrito con Pi",
-    cartCheckoutBody: "Cada botón de pago usa la cantidad actual del carrito para que los compradores completen pruebas sin salir de esta página.",
-    cartCheckoutHint: "Los pagos testnet exitosos se guardan en el área de cuenta como historial local.",
-    accountPageTitle: "Cuenta | Mushroom.Pi",
-    accountPageDescription: "Consulta el estado de inicio de sesión de Pi y el historial local de pedidos.",
-    accountTitle: "Cuenta",
-    accountLead: "Este espacio está listo para mostrar identidad Pi, historial de pedidos y acceso rápido al carrito.",
+    quantityPickerTitle: "Elegir cantidad",
+    quantityPickerLead:
+      "Ajusta la cantidad antes de agregar este producto al carrito.",
+    quantityPickerConfirm: "Agregar ahora",
+    quantityPickerCancel: "Cancelar",
+    cartSummaryTitle: "Resumen del pedido",
+    checkoutTitle: "Pago Pi",
+    checkoutLead:
+      "Inicia sesion con Pi, confirma tu direccion y paga todo el carrito en un solo pedido testnet.",
+    checkoutHint:
+      "Los pagos testnet exitosos se guardan en el area de cuenta como pedidos locales.",
+    shippingAddressTitle: "Direccion de entrega",
+    shippingAddressLead:
+      "Elige una direccion guardada o agrega una nueva antes de hacer el pedido.",
+    savedAddressesTitle: "Direcciones guardadas",
+    noSavedAddresses: "Todavia no hay direcciones guardadas.",
+    addAddressTitle: "Agregar nueva direccion",
+    fullName: "Nombre completo",
+    phone: "Telefono",
+    addressLine1: "Direccion",
+    addressLine2: "Apartamento, edificio, piso",
+    ward: "Barrio",
+    district: "Distrito",
+    city: "Ciudad",
+    country: "Pais",
+    note: "Nota de entrega",
+    setAsDefault: "Usar por defecto",
+    saveAddress: "Guardar direccion",
+    defaultAddress: "Predeterminada",
+    selectedAddress: "Seleccionada",
+    addressRequired:
+      "Elige o guarda una direccion antes de hacer el pedido.",
+    placeOrder: "Hacer pedido con Pi",
+    placingOrder: "Preparando pago Pi...",
+    signInToCheckout: "Entrar con Pi",
+    checkoutSignedInAs: "Conectado como",
+    paymentSuccess: "Pedido guardado en tu cuenta.",
+    accountPageDescription:
+      "Consulta el estado de Pi, las direcciones guardadas y el historial local de pedidos.",
+    accountLead:
+      "Guarda tu identidad Pi, tus direcciones y tu historial en un solo lugar.",
     statusTitle: "Estado del comprador Pi",
-    statusSignedIn: "Tu cuenta Pi está conectada en este navegador.",
-    statusGuest: "Todavía no hay una cuenta Pi conectada. Inicia sesión desde el panel de pago y aparecerá aquí automáticamente.",
-    usernameLabel: "Usuario",
-    walletLabel: "Billetera",
+    statusSignedIn: "Tu cuenta Pi esta conectada en este navegador.",
+    statusGuest:
+      "Todavia no hay una cuenta Pi conectada. Inicia sesion desde el checkout y aparecera aqui.",
     orderHistoryTitle: "Pedidos recientes",
-    noOrders: "Todavía no hay historial local de pedidos.",
-    cartShortcut: "Abrir carrito",
+    noOrders: "Todavia no hay pedidos locales.",
+    addressBookTitle: "Direcciones guardadas",
+    addressBookLead:
+      "Las direcciones creadas durante el checkout se guardan aqui para futuros pedidos.",
+    noAddresses: "Todavia no hay direcciones guardadas.",
+    deliverTo: "Entregar a",
     browseShop: "Ver tienda",
   },
   fr: {
-    brandSlogan: BRAND_SLOGAN,
+    ...en,
     addToCart: "Ajouter au panier",
     addedToCart: "Ajoute",
     cart: "Panier",
@@ -189,84 +339,161 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     account: "Compte",
     accountAria: "Ouvrir le compte",
     languageAria: "Changer de langue",
-    guestLabel: "Invite",
     signedInLabel: "Connecte",
-    loading: "Chargement...",
-    cartPageTitle: "Panier | Mushroom.Pi",
-    cartPageDescription: "Consultez votre panier Mushroom.Pi et poursuivez le paiement en Pi testnet.",
-    cartTitle: "Votre panier",
-    cartLead: "Les produits ajoutes depuis la boutique apparaissent ici pour revoir le contenu, ajuster la quantite et poursuivre vers le paiement Pi.",
-    emptyCartTitle: "Votre panier est vide",
-    emptyCartBody: "Ajoutez quelques produits a la boutique et ils apparaitront ici immediatement.",
+    shopLead: "Touchez un produit, choisissez la quantite, puis ajoutez-le au panier.",
+    cartPageDescription:
+      "Consultez votre panier Mushroom.Pi, choisissez une adresse et payez en Pi testnet.",
+    cartLead:
+      "Revoyez les produits, choisissez la livraison et creez une seule commande Pi pour tout le panier.",
+    emptyCartBody:
+      "Ajoutez quelques produits de champignons depuis la boutique et ils apparaitront ici tout de suite.",
     continueShopping: "Continuer vos achats",
-    quantity: "Quantite",
-    lineTotal: "Total de ligne",
-    remove: "Retirer",
-    clearCart: "Vider le panier",
-    total: "Total",
-    linesLabel: "lignes",
-    itemsLabel: "articles",
-    cartCheckoutLabel: "Paiement Pi testnet",
-    cartCheckoutTitle: "Payer chaque ligne du panier avec Pi",
-    cartCheckoutBody: "Chaque bouton de paiement reprend la quantite actuelle du panier pour permettre des achats test directement depuis cette page.",
-    cartCheckoutHint: "Les paiements testnet reussis sont enregistres dans l'espace compte comme historique local.",
-    accountPageTitle: "Compte | Mushroom.Pi",
-    accountPageDescription: "Consultez l'etat de connexion Pi et l'historique local des commandes.",
-    accountTitle: "Compte",
-    accountLead: "Cet espace est pret pour l'identite Pi, l'historique des commandes et un acces rapide au panier.",
+    quantityPickerTitle: "Choisir la quantite",
+    quantityPickerLead:
+      "Ajustez la quantite avant d'ajouter ce produit au panier.",
+    quantityPickerConfirm: "Ajouter maintenant",
+    quantityPickerCancel: "Fermer",
+    cartSummaryTitle: "Resume de commande",
+    checkoutTitle: "Paiement Pi",
+    checkoutLead:
+      "Connectez-vous avec Pi, confirmez votre adresse et payez tout le panier en une seule commande testnet.",
+    checkoutHint:
+      "Les paiements testnet reussis sont enregistres dans l'espace compte.",
+    shippingAddressTitle: "Adresse de livraison",
+    shippingAddressLead:
+      "Choisissez une adresse enregistree ou ajoutez-en une avant la commande.",
+    savedAddressesTitle: "Adresses enregistrees",
+    noSavedAddresses: "Aucune adresse enregistree pour le moment.",
+    addAddressTitle: "Ajouter une adresse",
+    fullName: "Nom complet",
+    phone: "Telephone",
+    addressLine1: "Adresse",
+    addressLine2: "Appartement, batiment, etage",
+    ward: "Quartier",
+    district: "District",
+    city: "Ville",
+    country: "Pays",
+    note: "Note de livraison",
+    setAsDefault: "Definir par defaut",
+    saveAddress: "Enregistrer l'adresse",
+    defaultAddress: "Par defaut",
+    selectedAddress: "Selectionnee",
+    addressRequired:
+      "Choisissez ou enregistrez une adresse avant de passer la commande.",
+    placeOrder: "Commander avec Pi",
+    placingOrder: "Preparation du paiement Pi...",
+    signInToCheckout: "Se connecter avec Pi",
+    checkoutSignedInAs: "Connecte en tant que",
+    paymentSuccess: "Commande enregistree sur votre compte.",
+    accountPageDescription:
+      "Consultez votre statut Pi, vos adresses enregistrees et l'historique local des commandes.",
+    accountLead:
+      "Gardez votre identite Pi, vos adresses et vos commandes au meme endroit.",
     statusTitle: "Statut acheteur Pi",
     statusSignedIn: "Votre compte Pi est connecte dans ce navigateur.",
-    statusGuest: "Aucun compte Pi n'est encore connecte. Connectez-vous depuis le panneau de paiement et il apparaitra ici automatiquement.",
-    usernameLabel: "Nom d'utilisateur",
-    walletLabel: "Portefeuille",
+    statusGuest:
+      "Aucun compte Pi n'est connecte pour le moment. Connectez-vous depuis le checkout et il apparaitra ici.",
     orderHistoryTitle: "Commandes recentes",
-    noOrders: "Aucun historique local pour le moment.",
-    cartShortcut: "Ouvrir le panier",
+    noOrders: "Aucune commande locale pour le moment.",
+    addressBookTitle: "Adresses enregistrees",
+    addressBookLead:
+      "Les adresses creees pendant le checkout sont conservees ici pour les prochaines commandes.",
+    noAddresses: "Aucune adresse enregistree pour le moment.",
+    deliverTo: "Livrer a",
     browseShop: "Voir la boutique",
   },
   zh: {
-    brandSlogan: BRAND_SLOGAN,
-    addToCart: "加入购物车",
-    addedToCart: "已加入",
-    cart: "购物车",
-    cartAria: "打开购物车",
-    account: "个人中心",
-    accountAria: "打开个人中心",
-    languageAria: "切换语言",
-    guestLabel: "访客",
-    signedInLabel: "已登录",
-    loading: "加载中...",
-    cartPageTitle: "购物车 | Mushroom.Pi",
-    cartPageDescription: "查看 Mushroom.Pi 购物车并继续使用 Pi 测试网付款。",
-    cartTitle: "你的购物车",
-    cartLead: "从商店加入的商品会显示在这里，方便用户查看、调整数量并继续进入 Pi 付款流程。",
-    emptyCartTitle: "购物车还是空的",
-    emptyCartBody: "先去商店添加一些蘑菇产品，它们会立刻出现在这里。",
-    continueShopping: "继续购物",
-    quantity: "数量",
-    lineTotal: "单项合计",
-    remove: "移除",
-    clearCart: "清空购物车",
-    total: "总计",
-    linesLabel: "行",
-    itemsLabel: "件",
-    cartCheckoutLabel: "Pi 测试网支付",
-    cartCheckoutTitle: "按购物车单项使用 Pi 支付",
-    cartCheckoutBody: "下面每个支付按钮都会按当前购物车数量发起测试支付，让用户无需离开此页即可完成测试购买。",
-    cartCheckoutHint: "测试网支付成功后，会在个人中心保存为本地订单记录。",
-    accountPageTitle: "个人中心 | Mushroom.Pi",
-    accountPageDescription: "查看 Mushroom.Pi 的 Pi 登录状态与本地订单记录。",
-    accountTitle: "个人中心",
-    accountLead: "这里已经为 Pi 身份、订单历史和返回购物车的快捷入口准备好了结构。",
-    statusTitle: "Pi 用户状态",
-    statusSignedIn: "你的 Pi 账户已在当前浏览器中连接。",
-    statusGuest: "当前还没有连接 Pi 账户。只要在支付区域登录，这里就会自动显示。",
-    usernameLabel: "用户名",
-    walletLabel: "钱包",
-    orderHistoryTitle: "最近订单",
-    noOrders: "还没有本地订单记录。",
-    cartShortcut: "打开购物车",
-    browseShop: "前往商店",
+    ...en,
+    addToCart: "\u52a0\u5165\u8d2d\u7269\u8f66",
+    addedToCart: "\u5df2\u52a0\u5165",
+    cart: "\u8d2d\u7269\u8f66",
+    cartAria: "\u6253\u5f00\u8d2d\u7269\u8f66",
+    account: "\u4e2a\u4eba\u4e2d\u5fc3",
+    accountAria: "\u6253\u5f00\u4e2a\u4eba\u4e2d\u5fc3",
+    languageAria: "\u5207\u6362\u8bed\u8a00",
+    guestLabel: "\u8bbf\u5ba2",
+    signedInLabel: "\u5df2\u767b\u5f55",
+    loading: "\u52a0\u8f7d\u4e2d...",
+    shopTitle: "\u5546\u5e97",
+    shopLead:
+      "\u70b9\u51fb\u5546\u54c1\u540e\u5148\u9009\u62e9\u6570\u91cf\uff0c\u518d\u52a0\u5165\u8d2d\u7269\u8f66\u3002",
+    cartPageDescription:
+      "\u67e5\u770b Mushroom.Pi \u8d2d\u7269\u8f66\uff0c\u9009\u62e9\u6536\u8d27\u5730\u5740\uff0c\u5e76\u4f7f\u7528 Pi \u6d4b\u8bd5\u7f51\u652f\u4ed8\u3002",
+    cartTitle: "\u4f60\u7684\u8d2d\u7269\u8f66",
+    cartLead:
+      "\u68c0\u67e5\u5546\u54c1\uff0c\u9009\u62e9\u6536\u8d27\u4fe1\u606f\uff0c\u7136\u540e\u4e3a\u6574\u4e2a\u8d2d\u7269\u8f66\u521b\u5efa\u4e00\u7b14 Pi \u8ba2\u5355\u3002",
+    emptyCartTitle: "\u8d2d\u7269\u8f66\u8fd8\u662f\u7a7a\u7684",
+    emptyCartBody:
+      "\u4ece\u5546\u5e97\u91cc\u5148\u52a0\u5165\u4e00\u4e9b\u8631\u83c7\u5546\u54c1\uff0c\u5b83\u4eec\u4f1a\u7acb\u5373\u51fa\u73b0\u5728\u8fd9\u91cc\u3002",
+    continueShopping: "\u7ee7\u7eed\u8d2d\u7269",
+    quantity: "\u6570\u91cf",
+    lineTotal: "\u5355\u9879\u5408\u8ba1",
+    subtotal: "\u5c0f\u8ba1",
+    remove: "\u79fb\u9664",
+    clearCart: "\u6e05\u7a7a\u8d2d\u7269\u8f66",
+    total: "\u603b\u8ba1",
+    linesLabel: "\u884c",
+    itemsLabel: "\u4ef6",
+    quantityPickerTitle: "\u9009\u62e9\u6570\u91cf",
+    quantityPickerLead:
+      "\u5148\u8c03\u6574\u6570\u91cf\uff0c\u518d\u5c06\u6b64\u5546\u54c1\u52a0\u5165\u8d2d\u7269\u8f66\u3002",
+    quantityPickerConfirm: "\u7acb\u5373\u52a0\u5165",
+    quantityPickerCancel: "\u53d6\u6d88",
+    cartSummaryTitle: "\u8ba2\u5355\u6458\u8981",
+    checkoutTitle: "Pi \u652f\u4ed8",
+    checkoutLead:
+      "\u5148\u767b\u5f55 Pi\uff0c\u786e\u8ba4\u6536\u8d27\u5730\u5740\uff0c\u518d\u4ee5\u4e00\u7b14 testnet \u8ba2\u5355\u652f\u4ed8\u6574\u4e2a\u8d2d\u7269\u8f66\u3002",
+    checkoutHint:
+      "\u6d4b\u8bd5\u7f51\u652f\u4ed8\u6210\u529f\u540e\uff0c\u8ba2\u5355\u4f1a\u4fdd\u5b58\u5230\u4e2a\u4eba\u4e2d\u5fc3\u3002",
+    shippingAddressTitle: "\u6536\u8d27\u5730\u5740",
+    shippingAddressLead:
+      "\u4e0b\u5355\u524d\u5148\u9009\u62e9\u5df2\u4fdd\u5b58\u5730\u5740\uff0c\u6216\u8005\u65b0\u589e\u4e00\u4e2a\u5730\u5740\u3002",
+    savedAddressesTitle: "\u5df2\u4fdd\u5b58\u5730\u5740",
+    noSavedAddresses:
+      "\u8fd8\u6ca1\u6709\u4fdd\u5b58\u7684\u5730\u5740\uff0c\u8bf7\u5148\u5728\u4e0b\u65b9\u65b0\u5efa\u4e00\u4e2a\u3002",
+    addAddressTitle: "\u65b0\u589e\u5730\u5740",
+    fullName: "\u6536\u4ef6\u4eba\u59d3\u540d",
+    phone: "\u7535\u8bdd\u53f7\u7801",
+    addressLine1: "\u8857\u9053\u5730\u5740",
+    addressLine2: "\u516c\u5bd3\uff0c\u697c\u680b\uff0c\u697c\u5c42",
+    ward: "\u8857\u9053 / \u793e\u533a",
+    district: "\u533a / \u53bf",
+    city: "\u57ce\u5e02",
+    country: "\u56fd\u5bb6",
+    note: "\u914d\u9001\u5907\u6ce8",
+    setAsDefault: "\u8bbe\u4e3a\u9ed8\u8ba4",
+    saveAddress: "\u4fdd\u5b58\u5730\u5740",
+    defaultAddress: "\u9ed8\u8ba4",
+    selectedAddress: "\u5df2\u9009\u62e9",
+    addressRequired:
+      "\u8bf7\u5148\u9009\u62e9\u6216\u4fdd\u5b58\u4e00\u4e2a\u6536\u8d27\u5730\u5740\uff0c\u518d\u8fdb\u884c\u4e0b\u5355\u3002",
+    placeOrder: "\u4f7f\u7528 Pi \u4e0b\u5355",
+    placingOrder: "\u6b63\u5728\u51c6\u5907 Pi \u652f\u4ed8...",
+    signInToCheckout: "\u4f7f\u7528 Pi \u767b\u5f55",
+    checkoutSignedInAs: "\u5df2\u767b\u5f55\u4e3a",
+    paymentSuccess: "\u8ba2\u5355\u5df2\u4fdd\u5b58\u5230\u4f60\u7684\u8d26\u6237\u3002",
+    accountPageTitle: "\u4e2a\u4eba\u4e2d\u5fc3 | Mushroom.Pi",
+    accountPageDescription:
+      "\u67e5\u770b Mushroom.Pi \u7684 Pi \u767b\u5f55\u72b6\u6001\uff0c\u5df2\u4fdd\u5b58\u5730\u5740\u548c\u672c\u5730\u8ba2\u5355\u8bb0\u5f55\u3002",
+    accountTitle: "\u4e2a\u4eba\u4e2d\u5fc3",
+    accountLead:
+      "\u5728\u4e00\u4e2a\u5730\u65b9\u7ba1\u7406 Pi \u8eab\u4efd\uff0c\u6536\u8d27\u5730\u5740\u548c\u8ba2\u5355\u8bb0\u5f55\u3002",
+    statusTitle: "Pi \u7528\u6237\u72b6\u6001",
+    statusSignedIn:
+      "\u4f60\u7684 Pi \u8d26\u6237\u5df2\u5728\u5f53\u524d\u6d4f\u89c8\u5668\u4e2d\u8fde\u63a5\u3002",
+    statusGuest:
+      "\u5f53\u524d\u8fd8\u6ca1\u6709\u8fde\u63a5 Pi \u8d26\u6237\u3002\u53ea\u8981\u5728 checkout \u4e2d\u767b\u5f55\uff0c\u8fd9\u91cc\u5c31\u4f1a\u81ea\u52a8\u663e\u793a\u3002",
+    usernameLabel: "\u7528\u6237\u540d",
+    walletLabel: "\u94b1\u5305",
+    orderHistoryTitle: "\u6700\u8fd1\u8ba2\u5355",
+    noOrders: "\u8fd8\u6ca1\u6709\u672c\u5730\u8ba2\u5355\u3002",
+    addressBookTitle: "\u5df2\u4fdd\u5b58\u5730\u5740",
+    addressBookLead:
+      "\u5728 checkout \u4e2d\u521b\u5efa\u7684\u5730\u5740\u4f1a\u4fdd\u7559\u5728\u8fd9\u91cc\uff0c\u4ee5\u4fbf\u4e0b\u6b21\u66f4\u5feb\u4e0b\u5355\u3002",
+    noAddresses: "\u8fd8\u6ca1\u6709\u4fdd\u5b58\u5730\u5740\u3002",
+    deliverTo: "\u914d\u9001\u81f3",
+    cartShortcut: "\u6253\u5f00\u8d2d\u7269\u8f66",
+    browseShop: "\u524d\u5f80\u5546\u5e97",
   },
 };
 

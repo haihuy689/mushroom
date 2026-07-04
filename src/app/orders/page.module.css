@@ -166,6 +166,10 @@
   font-size: 1.3rem;
 }
 
+.orderTop p {
+  margin: 6px 0 0;
+}
+
 .orderCode {
   color: #8b5935;
   font-size: 0.84rem;
@@ -206,6 +210,32 @@
   justify-content: space-between;
   gap: 10px;
   color: rgba(67, 41, 24, 0.72);
+}
+
+.itemList {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 248, 232, 0.76);
+  border: 1px solid rgba(83, 50, 27, 0.08);
+}
+
+.itemRow span {
+  color: #4d3120;
+}
+
+.itemRow strong {
+  color: #29150d;
 }
 
 .progressTrack {
@@ -298,6 +328,10 @@
   }
 
   .orderTop {
+    flex-direction: column;
+  }
+
+  .itemRow {
     flex-direction: column;
   }
 }

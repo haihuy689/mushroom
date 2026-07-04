@@ -83,10 +83,17 @@ export default async function Home() {
               </div>
               <div className={styles.productActions}>
                 <AddToCartButton
-                  productId={product.id}
                   addLabel={storefrontCopy.addToCart}
                   addedLabel={storefrontCopy.addedToCart}
+                  cancelLabel={storefrontCopy.quantityPickerCancel}
+                  confirmLabel={storefrontCopy.quantityPickerConfirm}
                   fullWidth
+                  lead={storefrontCopy.quantityPickerLead}
+                  pricePi={product.pricePi}
+                  productId={product.id}
+                  productName={product.name}
+                  quantityLabel={storefrontCopy.quantity}
+                  title={storefrontCopy.quantityPickerTitle}
                 />
               </div>
             </article>

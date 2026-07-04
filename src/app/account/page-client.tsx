@@ -19,7 +19,7 @@ export function AccountPageClient({
   copy,
   orderCopy,
 }: AccountPageClientProps) {
-  const { cartCount, hydrated, orders, viewer } = useStorefront();
+  const { addresses, cartCount, hydrated, orders, viewer } = useStorefront();
   const statusCounts = hydrated ? getOrderStatusCounts(orders) : null;
 
   const formatter = new Intl.DateTimeFormat(locale, {
@@ -98,14 +98,22 @@ export function AccountPageClient({
             <ul className={styles.orderList}>
               {orders.map((order) => {
                 const status = resolveOrderStatus(order);
+                const itemLabel =
+                  order.items && order.items.length > 1
+                    ? `${order.items.length} ${copy.linesLabel}`
+                    : order.items?.[0]?.productName ?? order.productName;
+                const addressLabel = order.shippingAddress
+                  ? `${order.shippingAddress.city}, ${order.shippingAddress.country}`
+                  : "--";
 
                 return (
                   <li key={order.id} className={styles.orderItem}>
                     <div>
-                      <strong>{order.productName}</strong>
+                      <strong>{itemLabel}</strong>
                       <span>
                         {order.quantity} x / {order.totalPi} Pi
                       </span>
+                      <span>{addressLabel}</span>
                     </div>
                     <div className={styles.orderMeta}>
                       <span
@@ -119,6 +127,44 @@ export function AccountPageClient({
                   </li>
                 );
               })}
+            </ul>
+          )}
+        </article>
+
+        <article className={styles.card}>
+          <p className={styles.cardLabel}>{copy.addressBookTitle}</p>
+          <h2>{hydrated ? addresses.length : copy.loading}</h2>
+          <p>{copy.addressBookLead}</p>
+
+          {!hydrated ? (
+            <p>{copy.loading}</p>
+          ) : addresses.length === 0 ? (
+            <p>{copy.noAddresses}</p>
+          ) : (
+            <ul className={styles.addressList}>
+              {addresses.map((address) => (
+                <li key={address.id} className={styles.addressItem}>
+                  <div className={styles.addressHeader}>
+                    <strong>{address.fullName}</strong>
+                    {address.isDefault ? (
+                      <span className={styles.addressTag}>{copy.defaultAddress}</span>
+                    ) : null}
+                  </div>
+                  <span>{address.phone}</span>
+                  <span>
+                    {[
+                      address.line1,
+                      address.line2,
+                      address.ward,
+                      address.district,
+                      address.city,
+                      address.country,
+                    ]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </span>
+                </li>
+              ))}
             </ul>
           )}
         </article>

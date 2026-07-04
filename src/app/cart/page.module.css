@@ -9,7 +9,7 @@
 
 .hero,
 .emptyState,
-.grid {
+.layout {
   position: relative;
   overflow: clip;
   border-radius: 34px;
@@ -22,7 +22,7 @@
 
 .hero::before,
 .emptyState::before,
-.grid::before {
+.layout::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -33,55 +33,77 @@
 }
 
 .hero,
-.grid {
+.layout {
   display: grid;
   gap: 20px;
   padding: 28px;
 }
 
 .hero {
-  grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.72fr);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
   align-items: start;
 }
 
 .heroCopy,
 .summaryCard,
-.lineCard,
-.checkoutIntro {
+.leftColumn,
+.rightColumn {
   position: relative;
   z-index: 1;
+  min-width: 0;
 }
 
-.eyebrow {
+.eyebrow,
+.sectionLabel,
+.summaryLabel {
   margin: 0;
+  color: #8b5935;
   font-size: 0.78rem;
+  font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #8b5935;
 }
 
 .heroCopy h1,
-.checkoutIntro h2,
+.sectionHeading h2,
 .emptyState h2 {
   margin: 12px 0 0;
   font-family: var(--font-display);
-  font-size: clamp(2.8rem, 6vw, 4.6rem);
-  line-height: 0.92;
   letter-spacing: -0.04em;
 }
 
+.heroCopy h1 {
+  font-size: clamp(2.8rem, 6vw, 4.6rem);
+  line-height: 0.92;
+}
+
+.sectionHeading h2,
+.formHeading h3 {
+  font-size: 1.36rem;
+  color: #29150d;
+}
+
 .lead,
-.checkoutIntro p,
+.summaryMeta,
+.sectionLead,
 .emptyState p,
-.lineCard p {
+.lineTitle p,
+.addressSelect p,
+.formGrid label span,
+.checkboxRow span {
   color: var(--text-soft);
   line-height: 1.72;
-  font-size: 1rem;
+}
+
+.lead {
+  margin: 12px 0 0;
+  max-width: 56ch;
 }
 
 .summaryCard,
+.sectionCard,
 .lineCard,
-.checkoutIntro {
+.addressCard {
   display: grid;
   gap: 14px;
   padding: 22px;
@@ -90,28 +112,17 @@
   border: 1px solid rgba(83, 50, 27, 0.08);
 }
 
-.summaryLabel {
-  color: rgba(67, 41, 24, 0.68);
-  font-size: 0.84rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .summaryCard strong {
-  font-size: 2.2rem;
-  font-family: var(--font-display);
-}
-
-.summaryMeta,
-.checkoutHint {
-  color: rgba(67, 41, 24, 0.72);
+  font-size: 2.1rem;
+  color: #29150d;
 }
 
 .primaryLink,
+.secondaryLink,
 .clearButton,
 .removeButton,
-.quantityStepper button {
+.quantityStepper button,
+.addressSelect {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -120,17 +131,21 @@
 }
 
 .primaryLink,
+.secondaryLink,
 .clearButton {
   min-height: 46px;
   padding: 0 18px;
 }
 
 .primaryLink {
+  border: 0;
   background: linear-gradient(135deg, #97572a, #2f5f45);
   color: #fff8ef;
 }
 
-.clearButton {
+.secondaryLink,
+.clearButton,
+.removeButton {
   border: 1px solid rgba(83, 50, 27, 0.12);
   background: rgba(255, 248, 232, 0.86);
   color: #4a2e1d;
@@ -142,49 +157,75 @@
   text-align: center;
 }
 
-.grid {
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+.layout {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.88fr);
   align-items: start;
 }
 
-.lineList,
-.checkoutColumn {
-  position: relative;
-  z-index: 1;
+.leftColumn,
+.rightColumn {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
-.lineTop {
+.sectionHeading,
+.lineHeader,
+.lineFooter,
+.addressTop {
   display: flex;
   justify-content: space-between;
+  gap: 14px;
+}
+
+.sectionHeading {
+  align-items: start;
+}
+
+.lineCount {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 248, 232, 0.82);
+  color: #53331f;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.lineList,
+.addressList,
+.addressForm,
+.formGrid {
+  display: grid;
+  gap: 14px;
+}
+
+.lineCard {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
   gap: 16px;
 }
 
-.lineTop h2 {
-  margin: 10px 0 0;
-  font-size: 1.26rem;
+.lineContent {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
 }
 
-.lineBadge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(255, 248, 232, 0.86);
-  border: 1px solid rgba(83, 50, 27, 0.08);
-  font-size: 0.8rem;
-  font-weight: 700;
+.lineTitle h3 {
+  margin: 0;
+  font-size: 1.14rem;
+  color: #29150d;
+}
+
+.lineTitle p {
+  margin: 6px 0 0;
 }
 
 .removeButton {
   min-height: 38px;
   padding: 0 14px;
-  border: 1px solid rgba(83, 50, 27, 0.12);
-  background: transparent;
-  color: #6a4330;
-  cursor: pointer;
 }
 
 .lineMeta {
@@ -195,24 +236,20 @@
   font-size: 0.9rem;
 }
 
-.lineBottom {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
+.lineFooter {
   flex-wrap: wrap;
   align-items: end;
 }
 
 .stepperWrap,
-.lineTotal {
+.priceBlock {
   display: grid;
   gap: 8px;
 }
 
-.stepperWrap span,
-.lineTotal span {
-  color: rgba(67, 41, 24, 0.68);
-  font-size: 0.86rem;
+.priceBlock strong {
+  color: #29150d;
+  font-size: 1.08rem;
 }
 
 .quantityStepper {
@@ -234,14 +271,132 @@
   cursor: pointer;
 }
 
-.quantityStepper strong,
-.lineTotal strong {
-  font-size: 1.08rem;
+.addressCard {
+  gap: 12px;
+}
+
+.addressCard[data-selected="true"] {
+  border-color: rgba(48, 95, 69, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(48, 95, 69, 0.16);
+}
+
+.addressSelect {
+  width: 100%;
+  min-height: auto;
+  padding: 0;
+  align-items: stretch;
+  justify-content: stretch;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.addressSelect p {
+  margin: 0;
+}
+
+.addressTop {
+  align-items: start;
+}
+
+.addressTop strong {
+  color: #29150d;
+  font-size: 1rem;
+}
+
+.addressTags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 8px;
+}
+
+.addressTag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 248, 232, 0.82);
+  border: 1px solid rgba(83, 50, 27, 0.08);
+  color: #5f3b27;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.formHeading h3 {
+  margin: 0;
+}
+
+.sectionLead,
+.emptyHint {
+  margin: 0;
+}
+
+.formGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.formGrid label {
+  display: grid;
+  gap: 8px;
+}
+
+.fullField {
+  grid-column: 1 / -1;
+}
+
+.formGrid input,
+.formGrid textarea {
+  width: 100%;
+  border: 1px solid rgba(83, 50, 27, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 252, 246, 0.9);
+  padding: 12px 14px;
+  color: #29150d;
+}
+
+.formGrid textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
+.checkboxRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkboxRow input {
+  width: 18px;
+  height: 18px;
 }
 
 @media (max-width: 1080px) {
   .hero,
-  .grid {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .lineCard {
+    grid-template-columns: 1fr;
+  }
+
+  .lineHeader,
+  .lineFooter,
+  .addressTop,
+  .sectionHeading {
+    flex-direction: column;
+  }
+
+  .addressTags {
+    justify-content: start;
+  }
+
+  .formGrid {
     grid-template-columns: 1fr;
   }
 }
@@ -253,18 +408,17 @@
   }
 
   .hero,
-  .grid,
+  .layout,
   .emptyState,
   .summaryCard,
+  .sectionCard,
   .lineCard,
-  .checkoutIntro {
+  .addressCard {
     padding: 18px;
     border-radius: 24px;
   }
 
-  .heroCopy h1,
-  .checkoutIntro h2,
-  .emptyState h2 {
+  .heroCopy h1 {
     font-size: clamp(2.35rem, 12vw, 3.8rem);
   }
 }

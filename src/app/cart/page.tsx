@@ -23,7 +23,6 @@ export default async function CartPage() {
 
   return (
     <CartPageClient
-      locale={locale}
       products={products}
       copy={copy}
       piCopy={siteCopy.piPanel}
