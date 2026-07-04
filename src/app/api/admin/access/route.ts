@@ -8,7 +8,7 @@ export async function GET() {
 
     return NextResponse.json({
       ...access,
-      username: access.username ?? user?.username ?? null,
+      username: access.username ?? user?.username ?? user?.uid ?? null,
     });
   } catch {
     return NextResponse.json(guestAdminAccess());

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { SiteLocale } from "@/lib/i18n";
+import { isStorefrontOwner } from "@/lib/admin-access";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { getOrderStatusCounts, resolveOrderStatus } from "@/lib/order-tracking";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
@@ -21,6 +22,10 @@ export function AccountPageClient({
 }: AccountPageClientProps) {
   const { addresses, adminAccess, cartCount, hydrated, orders, viewer } =
     useStorefront();
+  const localOwner = hydrated && isStorefrontOwner(viewer);
+  const showAdminShortcut = adminAccess.canAccessAdmin || localOwner;
+  const adminShortcutLabel =
+    adminAccess.role === "owner" || localOwner ? copy.adminPanel : copy.staffPanel;
   const statusCounts = hydrated ? getOrderStatusCounts(orders) : null;
 
   const formatter = new Intl.DateTimeFormat(locale, {
@@ -45,13 +50,21 @@ export function AccountPageClient({
       <section className={styles.grid}>
         <article className={styles.card}>
           <p className={styles.cardLabel}>{copy.statusTitle}</p>
-          <h2>{hydrated ? viewer?.username ?? copy.guestLabel : copy.loading}</h2>
+          <h2>
+            {hydrated
+              ? viewer?.username ?? viewer?.uid ?? copy.guestLabel
+              : copy.loading}
+          </h2>
           <p>{hydrated ? (viewer ? copy.statusSignedIn : copy.statusGuest) : copy.loading}</p>
 
           <dl className={styles.metaList}>
             <div>
               <dt>{copy.usernameLabel}</dt>
-              <dd>{hydrated ? viewer?.username ?? copy.guestLabel : copy.loading}</dd>
+              <dd>
+                {hydrated
+                  ? viewer?.username ?? viewer?.uid ?? copy.guestLabel
+                  : copy.loading}
+              </dd>
             </div>
             <div>
               <dt>{copy.walletLabel}</dt>
@@ -75,9 +88,9 @@ export function AccountPageClient({
           </div>
 
           <div className={styles.actionRow}>
-            {adminAccess.canAccessAdmin ? (
+            {showAdminShortcut ? (
               <Link href="/admin" className={styles.secondaryLink}>
-                {adminAccess.role === "owner" ? copy.adminPanel : copy.staffPanel}
+                {adminShortcutLabel}
               </Link>
             ) : null}
             <Link href="/cart" className={styles.primaryLink}>

@@ -117,6 +117,26 @@
   gap: 1rem;
 }
 
+.accessCard {
+  justify-items: flex-start;
+}
+
+.accessCard h2 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+
+.accessCard p {
+  margin: 0;
+  color: #5f5a73;
+}
+
+.accessActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 .cardHeading {
   display: flex;
   align-items: center;

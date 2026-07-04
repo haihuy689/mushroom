@@ -9,7 +9,7 @@ export async function PATCH(
 ) {
   const { access, user } = await getStorefrontAdminContext();
 
-  if (!access.canManageOrders || !user?.username) {
+  if (!access.canManageOrders || (!user?.username && !user?.uid)) {
     return NextResponse.json(
       {
         error: "Admin access is required.",
@@ -35,7 +35,7 @@ export async function PATCH(
     const order = await updateStorefrontOrderStatus(
       orderId,
       body.status,
-      user.username,
+      user.username ?? user.uid,
     );
 
     return NextResponse.json({

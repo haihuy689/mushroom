@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
+import { isStorefrontOwner } from "@/lib/admin-access";
 import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { getOrderStatusCounts } from "@/lib/order-tracking";
+import type { PiVerifiedUser } from "@/lib/pi-types";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
 import { LanguageSwitcher } from "./language-switcher";
 import { BrandMark } from "./brand-mark";
@@ -61,6 +63,7 @@ type AccountMenuProps = {
   hydrated: boolean;
   orderCount: number;
   orders: Array<{ id: string; createdAt: string }>;
+  viewer: PiVerifiedUser | null;
   viewerName: string | null;
 };
 
@@ -110,10 +113,16 @@ function AccountMenu({
   hydrated,
   orderCount,
   orders,
+  viewer,
   viewerName,
 }: AccountMenuProps) {
   const { signInWithPi, signOut } = useStorefront();
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
+  const isSignedIn = hydrated && Boolean(viewer);
+  const localOwner = hydrated && isStorefrontOwner(viewer);
+  const showAdminShortcut = adminAccess.canAccessAdmin || localOwner;
+  const adminShortcutLabel =
+    adminAccess.role === "owner" || localOwner ? copy.adminPanel : copy.staffPanel;
   const orderCounts = hydrated
     ? getOrderStatusCounts(orders)
     : {
@@ -122,7 +131,7 @@ function AccountMenu({
         delivered: 0,
       };
   const avatarLabel = viewerName?.trim().slice(0, 1).toUpperCase() || "Pi";
-  const statusHint = hydrated && viewerName ? copy.menuSignedInHint : copy.menuGuestHint;
+  const statusHint = isSignedIn ? copy.menuSignedInHint : copy.menuGuestHint;
 
   const closeMenu = () => {
     detailsRef.current?.removeAttribute("open");
@@ -136,7 +145,7 @@ function AccountMenu({
         title={copy.account}
       >
         <AccountIcon />
-        {hydrated && (viewerName || orderCount > 0) ? (
+        {hydrated && (isSignedIn || orderCount > 0) ? (
           <span className={styles.iconIndicator} />
         ) : null}
       </summary>
@@ -172,22 +181,14 @@ function AccountMenu({
           </div>
 
           <div className={styles.accountLinkList}>
-            {adminAccess.canAccessAdmin ? (
+            {showAdminShortcut ? (
               <Link
                 href="/admin"
                 className={styles.accountLinkRow}
                 onClick={closeMenu}
               >
-                <span>
-                  {adminAccess.role === "owner"
-                    ? copy.adminPanel
-                    : copy.staffPanel}
-                </span>
-                <span className={styles.accountLinkMeta}>
-                  {adminAccess.role === "owner"
-                    ? copy.adminPanel
-                    : copy.staffPanel}
-                </span>
+                <span>{adminShortcutLabel}</span>
+                <span className={styles.accountLinkMeta}>{adminShortcutLabel}</span>
               </Link>
             ) : null}
             <Link
@@ -197,7 +198,7 @@ function AccountMenu({
             >
               <span>{copy.account}</span>
               <span className={styles.accountLinkMeta}>
-                {hydrated && viewerName ? copy.signedInLabel : copy.guestLabel}
+                {isSignedIn ? copy.signedInLabel : copy.guestLabel}
               </span>
             </Link>
             <Link
@@ -219,7 +220,7 @@ function AccountMenu({
           </div>
 
           <div className={styles.accountFooterRow}>
-            {hydrated && viewerName ? (
+            {isSignedIn ? (
               <>
                 <span>
                   {orderCount > 0 ? copy.latestOrdersTitle : copy.menuNoOrders}
@@ -266,7 +267,9 @@ export function SiteHeaderClient({
   const visibleCartCount = hydrated ? cartCount : 0;
   const visibleOrderCount = hydrated ? orders.length : 0;
   const accountStatus =
-    hydrated && viewer ? viewer.username ?? copy.guestLabel : copy.guestLabel;
+    hydrated && viewer
+      ? viewer.username ?? viewer.uid ?? copy.guestLabel
+      : copy.guestLabel;
 
   return (
     <header className={styles.headerWrap}>
@@ -323,7 +326,8 @@ export function SiteHeaderClient({
                 hydrated={hydrated}
                 orderCount={visibleOrderCount}
                 orders={orders}
-                viewerName={viewer?.username ?? null}
+                viewer={viewer}
+                viewerName={viewer?.username ?? viewer?.uid ?? null}
               />
             </div>
           </div>

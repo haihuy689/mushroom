@@ -671,11 +671,15 @@ async function isStorefrontStaff(username: string | undefined | null) {
 export async function getStorefrontAdminAccess(
   user: PiVerifiedUser | null,
 ): Promise<StorefrontAdminAccess> {
-  if (!user?.username) {
+  if (!user?.username && !user?.uid) {
     return buildStorefrontAdminAccess(null, false);
   }
 
   if (isStorefrontOwner(user)) {
+    return buildStorefrontAdminAccess(user, false);
+  }
+
+  if (!user?.username) {
     return buildStorefrontAdminAccess(user, false);
   }
 
