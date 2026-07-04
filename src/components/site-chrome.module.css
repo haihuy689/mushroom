@@ -423,6 +423,16 @@
   color: #6a4330;
 }
 
+.accountFooterRow button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: #6a4330;
+  cursor: pointer;
+}
+
 .footerWrap {
   padding: 18px 20px 30px;
 }

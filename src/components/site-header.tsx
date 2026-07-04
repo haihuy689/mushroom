@@ -34,6 +34,8 @@ export async function SiteHeader() {
         ordersAria: orderCenterCopy.ordersAria,
         processing: orderCenterCopy.processing,
         shipping: orderCenterCopy.shipping,
+        signInLabel: storefrontCopy.signInLabel,
+        signOutLabel: storefrontCopy.signOutLabel,
         signedInLabel: storefrontCopy.signedInLabel,
         staffPanel: storefrontCopy.staffPanel,
         statusSummaryTitle: orderCenterCopy.statusSummaryTitle,

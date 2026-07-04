@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   createContext,
   useContext,
   useEffect,
@@ -13,7 +14,7 @@ import {
   guestAdminAccess,
   type StorefrontAdminAccess,
 } from "@/lib/admin-access";
-import type { PiVerifiedUser } from "@/lib/pi-types";
+import type { PiAuthResult, PiVerifiedUser } from "@/lib/pi-types";
 import {
   createStorefrontAddress,
   createStorefrontOrder,
@@ -34,12 +35,15 @@ import {
 
 type StorefrontContextValue = {
   adminAccess: StorefrontAdminAccess;
+  authBusy: boolean;
   hydrated: boolean;
   viewer: PiVerifiedUser | null;
   cartItems: StorefrontCartItem[];
   cartCount: number;
   orders: StorefrontOrder[];
   addresses: StorefrontAddress[];
+  signInWithPi: () => Promise<void>;
+  signOut: () => Promise<void>;
   setViewer: (viewer: PiVerifiedUser | null) => void;
   addToCart: (productId: string, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
@@ -55,6 +59,10 @@ const VIEWER_STORAGE_KEY = "mushroom.pi.viewer";
 const ORDER_STORAGE_KEY = "mushroom.pi.orders";
 const ADDRESS_STORAGE_KEY = "mushroom.pi.addresses";
 const OWNER_STORAGE_KEY = "mushroom.pi.ownerUid";
+const AUTO_AUTH_SKIP_SESSION_KEY = "mushroom.pi.skipAutoAuth";
+const PI_SCOPES = ["username", "payments"] as const;
+const autoAuthenticateEnabled = process.env.NEXT_PUBLIC_PI_AUTO_AUTH === "true";
+const sandboxEnabled = process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
 
 const StorefrontContext = createContext<StorefrontContextValue | null>(null);
 
@@ -122,6 +130,27 @@ async function postStorefrontState<T>(payload: Record<string, unknown>) {
     throw new Error(
       typeof data.error === "string" ? data.error : "Storefront sync failed.",
     );
+  }
+
+  return data;
+}
+
+async function postJson<T>(path: string, payload?: Record<string, unknown>) {
+  const response = await fetch(path, {
+    method: payload ? "POST" : "GET",
+    headers: payload
+      ? {
+          "Content-Type": "application/json",
+        }
+      : undefined,
+    body: payload ? JSON.stringify(payload) : undefined,
+    cache: "no-store",
+  });
+
+  const data = (await response.json()) as T & { error?: string };
+
+  if (!response.ok) {
+    throw new Error(typeof data.error === "string" ? data.error : "Request failed.");
   }
 
   return data;
@@ -199,7 +228,9 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const [adminAccess, setAdminAccess] = useState<StorefrontAdminAccess>(
     guestAdminAccess(),
   );
+  const [authBusy, setAuthBusy] = useState(false);
   const [databaseConfigured, setDatabaseConfigured] = useState(false);
+  const [sdkReady, setSdkReady] = useState(false);
   const [syncedViewerUid, setSyncedViewerUid] = useState<string | null>(null);
 
   const viewerRef = useRef<PiVerifiedUser | null>(viewerState);
@@ -211,9 +242,29 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const mutationQueueRef = useRef<Promise<void>>(Promise.resolve());
   const lastCartSignatureRef = useRef("");
   const lastAddressSignatureRef = useRef("");
+  const autoAuthStartedRef = useRef(false);
+  const piInitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const piInitializedRef = useRef(false);
+  const sessionCheckedRef = useRef(false);
 
   const viewer = viewerState;
   const viewerUid = viewer?.uid ?? null;
+
+  const clearAutoAuthSkip = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.sessionStorage.removeItem(AUTO_AUTH_SKIP_SESSION_KEY);
+  };
+
+  const hasAutoAuthSkip = () => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.sessionStorage.getItem(AUTO_AUTH_SKIP_SESSION_KEY) === "true";
+  };
 
   useEffect(() => {
     viewerRef.current = viewer;
@@ -234,6 +285,33 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
+    };
+  }, []);
+
+  useEffect(() => {
+    const tryInit = () => {
+      if (!window.Pi) {
+        piInitTimeoutRef.current = setTimeout(tryInit, 250);
+        return;
+      }
+
+      if (!piInitializedRef.current) {
+        window.Pi.init({
+          version: "2.0",
+          sandbox: sandboxEnabled,
+        });
+        piInitializedRef.current = true;
+      }
+
+      setSdkReady(true);
+    };
+
+    tryInit();
+
+    return () => {
+      if (piInitTimeoutRef.current) {
+        clearTimeout(piInitTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -362,6 +440,153 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     };
   }, [viewer, viewerUid]);
 
+  const applyViewerChange = useCallback(
+    (nextViewer: PiVerifiedUser | null) => {
+      setViewerState(nextViewer);
+      setDatabaseConfigured(false);
+      setSyncedViewerUid(null);
+
+      if (!nextViewer) {
+        setAdminAccess(guestAdminAccess());
+        return;
+      }
+
+      if (ownerUid && ownerUid !== nextViewer.uid) {
+        setCartItems([]);
+        setOrders([]);
+        setAddresses([]);
+        mutationQueueRef.current = Promise.resolve();
+        lastCartSignatureRef.current = "";
+        lastAddressSignatureRef.current = "";
+      }
+
+      if (ownerUid !== nextViewer.uid) {
+        setOwnerUid(nextViewer.uid);
+      }
+    },
+    [ownerUid],
+  );
+
+  const signInWithPi = useCallback(async () => {
+    if (!window.Pi || authBusy) {
+      return;
+    }
+
+    setAuthBusy(true);
+
+    try {
+      const authResult: PiAuthResult = await window.Pi.authenticate(
+        [...PI_SCOPES],
+        async () => undefined,
+      );
+
+      const verified = await postJson<{ user: PiVerifiedUser }>("/api/pi/auth", {
+        accessToken: authResult.accessToken,
+      });
+
+      clearAutoAuthSkip();
+      sessionCheckedRef.current = true;
+      autoAuthStartedRef.current = true;
+      applyViewerChange(verified.user);
+    } catch {
+      if (!viewerRef.current) {
+        setViewerState(null);
+      }
+    } finally {
+      setAuthBusy(false);
+    }
+  }, [applyViewerChange, authBusy]);
+
+  const signOut = useCallback(async () => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(AUTO_AUTH_SKIP_SESSION_KEY, "true");
+    }
+
+    try {
+      await fetch("/api/pi/session", {
+        method: "DELETE",
+        cache: "no-store",
+      });
+    } catch {
+      // Ignore network errors here and still clear client state.
+    }
+
+    autoAuthStartedRef.current = true;
+    applyViewerChange(null);
+    window.localStorage.removeItem(VIEWER_STORAGE_KEY);
+  }, [applyViewerChange]);
+
+  useEffect(() => {
+    if (!hydrated || sessionCheckedRef.current) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const data = await postJson<{ user: PiVerifiedUser | null }>("/api/pi/session");
+
+        if (cancelled) {
+          return;
+        }
+
+        sessionCheckedRef.current = true;
+
+        if (data.user) {
+          clearAutoAuthSkip();
+          autoAuthStartedRef.current = true;
+          setViewerState(data.user);
+          if (ownerUid !== data.user.uid) {
+            setOwnerUid(data.user.uid);
+          }
+          return;
+        }
+
+        if (viewerRef.current) {
+          setViewerState(null);
+          setAdminAccess(guestAdminAccess());
+        }
+      } catch {
+        if (!cancelled) {
+          sessionCheckedRef.current = true;
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, ownerUid]);
+
+  useEffect(() => {
+    if (
+      !autoAuthenticateEnabled ||
+      !hydrated ||
+      !sdkReady ||
+      !sessionCheckedRef.current ||
+      authBusy ||
+      autoAuthStartedRef.current ||
+      hasAutoAuthSkip()
+    ) {
+      return;
+    }
+
+    if (viewerRef.current) {
+      autoAuthStartedRef.current = true;
+      return;
+    }
+
+    autoAuthStartedRef.current = true;
+    const timer = setTimeout(() => {
+      void signInWithPi();
+    }, 150);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [authBusy, hydrated, sdkReady, signInWithPi]);
+
   const enqueueRemoteMutation = useEffectEvent(
     (payload: Record<string, unknown>) => {
       const targetViewerUid = viewerRef.current?.uid;
@@ -444,29 +669,12 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     viewerUid,
   ]);
 
-  const setViewer = (nextViewer: PiVerifiedUser | null) => {
-    setViewerState(nextViewer);
-    setDatabaseConfigured(false);
-    setSyncedViewerUid(null);
-
-    if (!nextViewer) {
-      setAdminAccess(guestAdminAccess());
-      return;
-    }
-
-    if (ownerUid && ownerUid !== nextViewer.uid) {
-      setCartItems([]);
-      setOrders([]);
-      setAddresses([]);
-      mutationQueueRef.current = Promise.resolve();
-      lastCartSignatureRef.current = "";
-      lastAddressSignatureRef.current = "";
-    }
-
-    if (ownerUid !== nextViewer.uid) {
-      setOwnerUid(nextViewer.uid);
-    }
-  };
+  const setViewer = useCallback(
+    (nextViewer: PiVerifiedUser | null) => {
+      applyViewerChange(nextViewer);
+    },
+    [applyViewerChange],
+  );
 
   const addToCart = (productId: string, quantity = 1) => {
     const normalizedQuantity = Math.max(1, Math.min(99, quantity));
@@ -583,12 +791,15 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     <StorefrontContext.Provider
       value={{
         adminAccess,
+        authBusy,
         hydrated,
         viewer,
         cartItems,
         cartCount,
         orders,
         addresses,
+        signInWithPi,
+        signOut,
         setViewer,
         addToCart,
         removeFromCart,

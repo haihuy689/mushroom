@@ -27,6 +27,8 @@ type HeaderCopy = Pick<
   | "cartAria"
   | "guestLabel"
   | "languageAria"
+  | "signInLabel"
+  | "signOutLabel"
   | "signedInLabel"
   | "staffPanel"
 > &
@@ -110,6 +112,7 @@ function AccountMenu({
   orders,
   viewerName,
 }: AccountMenuProps) {
+  const { signInWithPi, signOut } = useStorefront();
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
   const orderCounts = hydrated
     ? getOrderStatusCounts(orders)
@@ -216,12 +219,35 @@ function AccountMenu({
           </div>
 
           <div className={styles.accountFooterRow}>
-            <span>
-              {orderCount > 0 ? copy.latestOrdersTitle : copy.menuNoOrders}
-            </span>
-            <Link href="/orders" onClick={closeMenu}>
-              {copy.viewAllOrders}
-            </Link>
+            {hydrated && viewerName ? (
+              <>
+                <span>
+                  {orderCount > 0 ? copy.latestOrdersTitle : copy.menuNoOrders}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMenu();
+                    void signOut();
+                  }}
+                >
+                  {copy.signOutLabel}
+                </button>
+              </>
+            ) : (
+              <>
+                <span>{copy.menuGuestHint}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMenu();
+                    void signInWithPi();
+                  }}
+                >
+                  {copy.signInLabel}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

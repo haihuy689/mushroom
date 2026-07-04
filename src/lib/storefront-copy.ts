@@ -13,6 +13,8 @@ export type StorefrontCopy = {
   languageAria: string;
   guestLabel: string;
   signedInLabel: string;
+  signInLabel: string;
+  signOutLabel: string;
   adminPanel: string;
   staffPanel: string;
   loading: string;
@@ -95,6 +97,8 @@ const en: StorefrontCopy = {
   languageAria: "Change language",
   guestLabel: "Guest",
   signedInLabel: "Signed in",
+  signInLabel: "Sign in with Pi",
+  signOutLabel: "Sign out",
   adminPanel: "Admin",
   staffPanel: "Staff",
   loading: "Loading...",
@@ -181,6 +185,8 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     languageAria: "\u0110\u1ed5i ng\u00f4n ng\u1eef",
     guestLabel: "Kh\u00e1ch",
     signedInLabel: "\u0110\u00e3 \u0111\u0103ng nh\u1eadp",
+    signInLabel: "\u0110\u0103ng nh\u1eadp v\u1edbi Pi",
+    signOutLabel: "\u0110\u0103ng xu\u1ea5t",
     adminPanel: "Qu\u1ea3n tr\u1ecb",
     staffPanel: "Nh\u00e2n vi\u00ean",
     loading: "\u0110ang t\u1ea3i...",
