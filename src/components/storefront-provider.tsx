@@ -533,6 +533,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
 
       const verified = await postJson<{ user: PiVerifiedUser }>("/api/pi/auth", {
         accessToken: authResult.accessToken,
+        user: authResult.user,
       });
 
       clearAutoAuthSkip();
