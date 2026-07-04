@@ -208,7 +208,7 @@ export async function GET() {
   const sql = postgres(databaseUrl, {
     connect_timeout: 5,
     idle_timeout: 5,
-    max: 1,
+    max: 4,
     prepare: false,
   });
 
