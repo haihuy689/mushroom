@@ -24,9 +24,11 @@ export function normalizeUsernameKey(value: string | undefined | null) {
 }
 
 export function isStorefrontOwner(user: PiVerifiedUser | null) {
+  const ownerKey = normalizeUsernameKey(STOREFRONT_OWNER_USERNAME);
+
   return (
-    normalizeUsernameKey(user?.username) ===
-    normalizeUsernameKey(STOREFRONT_OWNER_USERNAME)
+    normalizeUsernameKey(user?.username) === ownerKey ||
+    normalizeUsernameKey(user?.uid) === ownerKey
   );
 }
 
@@ -44,7 +46,7 @@ export function buildStorefrontAdminAccess(
   user: PiVerifiedUser | null,
   isStaff: boolean,
 ): StorefrontAdminAccess {
-  if (!user?.username) {
+  if (!user?.username && !user?.uid) {
     return guestAdminAccess();
   }
 
@@ -54,7 +56,7 @@ export function buildStorefrontAdminAccess(
       canManageOrders: true,
       canManageStaff: true,
       role: "owner",
-      username: user.username,
+      username: user.username ?? user.uid,
     };
   }
 
@@ -64,7 +66,7 @@ export function buildStorefrontAdminAccess(
       canManageOrders: true,
       canManageStaff: false,
       role: "staff",
-      username: user.username,
+      username: user.username ?? user.uid,
     };
   }
 
@@ -73,6 +75,6 @@ export function buildStorefrontAdminAccess(
     canManageOrders: false,
     canManageStaff: false,
     role: "guest",
-    username: user.username,
+    username: user.username ?? user.uid,
   };
 }

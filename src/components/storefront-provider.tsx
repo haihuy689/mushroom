@@ -230,6 +230,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   );
   const [authBusy, setAuthBusy] = useState(false);
   const [databaseConfigured, setDatabaseConfigured] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
   const [sdkReady, setSdkReady] = useState(false);
   const [syncedViewerUid, setSyncedViewerUid] = useState<string | null>(null);
 
@@ -245,7 +246,6 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const autoAuthStartedRef = useRef(false);
   const piInitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const piInitializedRef = useRef(false);
-  const sessionCheckedRef = useRef(false);
 
   const viewer = viewerState;
   const viewerUid = viewer?.uid ?? null;
@@ -485,7 +485,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
       });
 
       clearAutoAuthSkip();
-      sessionCheckedRef.current = true;
+      setSessionChecked(true);
       autoAuthStartedRef.current = true;
       applyViewerChange(verified.user);
     } catch {
@@ -517,7 +517,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   }, [applyViewerChange]);
 
   useEffect(() => {
-    if (!hydrated || sessionCheckedRef.current) {
+    if (!hydrated || sessionChecked) {
       return;
     }
 
@@ -531,7 +531,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        sessionCheckedRef.current = true;
+        setSessionChecked(true);
 
         if (data.user) {
           clearAutoAuthSkip();
@@ -549,7 +549,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
         }
       } catch {
         if (!cancelled) {
-          sessionCheckedRef.current = true;
+          setSessionChecked(true);
         }
       }
     })();
@@ -557,14 +557,14 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [hydrated, ownerUid]);
+  }, [hydrated, ownerUid, sessionChecked]);
 
   useEffect(() => {
     if (
       !autoAuthenticateEnabled ||
       !hydrated ||
       !sdkReady ||
-      !sessionCheckedRef.current ||
+      !sessionChecked ||
       authBusy ||
       autoAuthStartedRef.current ||
       hasAutoAuthSkip()
@@ -585,7 +585,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     return () => {
       clearTimeout(timer);
     };
-  }, [authBusy, hydrated, sdkReady, signInWithPi]);
+  }, [authBusy, hydrated, sdkReady, sessionChecked, signInWithPi]);
 
   const enqueueRemoteMutation = useEffectEvent(
     (payload: Record<string, unknown>) => {
