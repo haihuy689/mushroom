@@ -7,7 +7,6 @@ import type { NextResponse } from "next/server";
 const ADMIN_SESSION_COOKIE_NAME = "mushroom.admin.session";
 const ADMIN_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 const DEFAULT_ADMIN_USERNAME = "admin";
-const DEFAULT_ADMIN_PASSWORD = "123456788";
 
 type AdminSessionPayload = {
   expiresAt: number;
@@ -25,8 +24,7 @@ function getSessionSecret() {
 
   const configuredAdminUsername =
     process.env.ADMIN_PORTAL_USERNAME?.trim() || DEFAULT_ADMIN_USERNAME;
-  const configuredAdminPassword =
-    process.env.ADMIN_PORTAL_PASSWORD?.trim() || DEFAULT_ADMIN_PASSWORD;
+  const configuredAdminPassword = process.env.ADMIN_PORTAL_PASSWORD?.trim();
 
   if (configuredAdminPassword) {
     return `mushroom-admin-session:${configuredAdminUsername}:${configuredAdminPassword}`;
@@ -93,7 +91,7 @@ function getConfiguredAdminUsername() {
 }
 
 function getConfiguredAdminPassword() {
-  return process.env.ADMIN_PORTAL_PASSWORD?.trim() || DEFAULT_ADMIN_PASSWORD;
+  return process.env.ADMIN_PORTAL_PASSWORD?.trim() || "";
 }
 
 export function validateAdminCredentials(username: string, password: string) {

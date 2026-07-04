@@ -19,11 +19,7 @@ export function AccountPageClient({
   copy,
   orderCopy,
 }: AccountPageClientProps) {
-  const { addresses, adminAccess, cartCount, hydrated, orders, viewer } =
-    useStorefront();
-  const showAdminShortcut = hydrated && Boolean(viewer) && adminAccess.canAccessAdmin;
-  const adminShortcutLabel =
-    adminAccess.role === "owner" ? copy.adminPanel : copy.staffPanel;
+  const { addresses, cartCount, hydrated, orders, viewer } = useStorefront();
   const statusCounts = hydrated ? getOrderStatusCounts(orders) : null;
 
   const formatter = new Intl.DateTimeFormat(locale, {
@@ -86,11 +82,6 @@ export function AccountPageClient({
           </div>
 
           <div className={styles.actionRow}>
-            {showAdminShortcut ? (
-              <Link href="/admin" className={styles.secondaryLink}>
-                {adminShortcutLabel}
-              </Link>
-            ) : null}
             <Link href="/cart" className={styles.primaryLink}>
               {copy.cartShortcut} ({cartCount})
             </Link>

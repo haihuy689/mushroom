@@ -22,7 +22,6 @@ type HeaderCopy = Pick<
   StorefrontCopy,
   | "account"
   | "accountAria"
-  | "adminPanel"
   | "brandSlogan"
   | "cart"
   | "cartAria"
@@ -31,7 +30,6 @@ type HeaderCopy = Pick<
   | "signInLabel"
   | "signOutLabel"
   | "signedInLabel"
-  | "staffPanel"
 > &
   Pick<
     OrderCenterCopy,
@@ -56,7 +54,6 @@ type SiteHeaderClientProps = {
 
 type AccountMenuProps = {
   accountStatus: string;
-  adminAccess: ReturnType<typeof useStorefront>["adminAccess"];
   cartCount: number;
   copy: HeaderCopy;
   hydrated: boolean;
@@ -106,7 +103,6 @@ function AccountIcon() {
 
 function AccountMenu({
   accountStatus,
-  adminAccess,
   cartCount,
   copy,
   hydrated,
@@ -118,9 +114,6 @@ function AccountMenu({
   const { signInWithPi, signOut } = useStorefront();
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
   const isSignedIn = hydrated && Boolean(viewer);
-  const showAdminShortcut = adminAccess.canAccessAdmin;
-  const adminShortcutLabel =
-    adminAccess.role === "owner" ? copy.adminPanel : copy.staffPanel;
   const orderCounts = hydrated
     ? getOrderStatusCounts(orders)
     : {
@@ -179,16 +172,6 @@ function AccountMenu({
           </div>
 
           <div className={styles.accountLinkList}>
-            {showAdminShortcut ? (
-              <Link
-                href="/admin"
-                className={styles.accountLinkRow}
-                onClick={closeMenu}
-              >
-                <span>{adminShortcutLabel}</span>
-                <span className={styles.accountLinkMeta}>{adminShortcutLabel}</span>
-              </Link>
-            ) : null}
             <Link
               href="/account"
               className={styles.accountLinkRow}
@@ -260,7 +243,7 @@ export function SiteHeaderClient({
   copy,
 }: SiteHeaderClientProps) {
   const pathname = usePathname();
-  const { adminAccess, cartCount, hydrated, orders, viewer } = useStorefront();
+  const { cartCount, hydrated, orders, viewer } = useStorefront();
 
   const visibleCartCount = hydrated ? cartCount : 0;
   const visibleOrderCount = hydrated ? orders.length : 0;
@@ -318,7 +301,6 @@ export function SiteHeaderClient({
 
               <AccountMenu
                 accountStatus={accountStatus}
-                adminAccess={adminAccess}
                 cartCount={visibleCartCount}
                 copy={copy}
                 hydrated={hydrated}
