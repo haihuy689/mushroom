@@ -1,7 +1,8 @@
 .page {
-  width: min(1120px, calc(100% - 24px));
+  width: 100%;
+  max-width: 1140px;
   margin: 0 auto;
-  padding: 28px 0 56px;
+  padding: 32px 20px 64px;
   display: grid;
   gap: 24px;
 }
@@ -9,31 +10,55 @@
 .hero,
 .card,
 .gridSection {
+  position: relative;
+  overflow: clip;
   padding: 28px;
-  border-radius: 30px;
+  border-radius: 34px;
   border: 1px solid var(--line-soft);
-  background: var(--surface);
-  box-shadow: 0 28px 80px rgba(71, 44, 22, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 251, 243, 0.86), rgba(250, 240, 216, 0.72));
+  box-shadow: var(--shadow-soft);
   backdrop-filter: blur(16px);
 }
 
+.hero::before,
+.card::before,
+.gridSection::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top right, rgba(213, 168, 82, 0.16), transparent 28%),
+    radial-gradient(circle at 10% 10%, rgba(111, 152, 109, 0.09), transparent 24%);
+  pointer-events: none;
+}
+
+.hero > *,
+.card > *,
+.gridSection > * {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
 .eyebrow {
-  font-size: 0.8rem;
-  letter-spacing: 0.16em;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #86502e;
+  color: #8b5935;
 }
 
 .hero h1,
 .card h2 {
   margin: 10px 0 0;
   font-family: var(--font-display);
-  line-height: 0.96;
+  line-height: 0.94;
+  letter-spacing: -0.04em;
 }
 
 .hero h1 {
-  font-size: clamp(2.7rem, 7vw, 5rem);
-  max-width: 12ch;
+  font-size: clamp(2.9rem, 7vw, 5rem);
+  max-width: 11ch;
 }
 
 .card h2 {
@@ -44,8 +69,8 @@
 .card p,
 .stepList li {
   color: var(--text-soft);
-  line-height: 1.75;
-  font-size: 1.04rem;
+  line-height: 1.74;
+  font-size: 1rem;
 }
 
 .gridSection {
@@ -63,9 +88,10 @@
 
 .codeBlock {
   overflow-x: auto;
+  max-width: 100%;
   padding: 16px;
   border-radius: 20px;
-  background: rgba(34, 26, 21, 0.92);
+  background: rgba(34, 26, 21, 0.94);
   color: #fff6e6;
 }
 
@@ -88,13 +114,13 @@
 }
 
 .cta {
-  background: linear-gradient(135deg, #7f4725, #355936);
+  background: linear-gradient(135deg, #97572a, #2f5f45);
   color: #fff8ef;
 }
 
 .secondary {
-  border: 1px solid var(--line-soft);
-  background: var(--surface-strong);
+  border: 1px solid rgba(83, 50, 27, 0.12);
+  background: rgba(255, 252, 245, 0.86);
 }
 
 @media (max-width: 900px) {
@@ -105,15 +131,20 @@
 
 @media (max-width: 640px) {
   .page {
-    width: min(100% - 16px, 1120px);
-    padding: 18px 0 42px;
+    padding: 20px 14px 44px;
+    gap: 18px;
   }
 
   .hero,
   .card,
   .gridSection {
     padding: 18px;
-    border-radius: 22px;
+    border-radius: 24px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 13vw, 3.9rem);
+    max-width: 100%;
   }
 
   .linkRow {

@@ -1,33 +1,46 @@
 :root {
-  --bg-top: #f4e8c8;
-  --bg-mid: #d3af63;
-  --bg-bottom: #6b4a31;
-  --surface: rgba(255, 248, 231, 0.82);
-  --surface-strong: rgba(255, 251, 243, 0.92);
-  --line-soft: rgba(70, 44, 22, 0.12);
+  --bg-top: #f8e8c7;
+  --bg-mid: #e7c98d;
+  --bg-bottom: #3f2a1e;
+  --surface: rgba(255, 250, 239, 0.8);
+  --surface-strong: rgba(255, 252, 245, 0.94);
+  --surface-dark: rgba(41, 31, 24, 0.86);
+  --line-soft: rgba(70, 44, 22, 0.1);
+  --line-strong: rgba(70, 44, 22, 0.16);
   --text-main: #24150f;
-  --text-soft: rgba(51, 31, 20, 0.76);
+  --text-soft: rgba(51, 31, 20, 0.74);
+  --accent-amber: #d6953a;
+  --accent-forest: #2f5c42;
+  --shadow-soft: 0 24px 64px rgba(57, 36, 22, 0.1);
 }
 
 html {
   min-height: 100%;
+  overflow-x: clip;
   scroll-behavior: smooth;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
+  overflow-x: clip;
   color: var(--text-main);
   font-family: var(--font-body), "Segoe UI", sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(255, 246, 220, 0.88), transparent 30%),
-    radial-gradient(circle at 82% 18%, rgba(144, 178, 107, 0.34), transparent 24%),
-    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 48%, var(--bg-bottom) 100%);
+    radial-gradient(circle at 14% 10%, rgba(255, 247, 226, 0.92), transparent 24%),
+    radial-gradient(circle at 85% 12%, rgba(103, 141, 87, 0.28), transparent 20%),
+    radial-gradient(circle at 50% 100%, rgba(60, 41, 27, 0.3), transparent 30%),
+    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 44%, var(--bg-bottom) 100%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 * {
+  box-sizing: border-box;
+}
+
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -48,12 +61,20 @@ select {
   font: inherit;
 }
 
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
 .site-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: clip;
 }
 
 .site-main {
   flex: 1;
+  overflow-x: clip;
 }

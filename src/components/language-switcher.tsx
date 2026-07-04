@@ -10,6 +10,16 @@ type LanguageSwitcherProps = {
   currentLocale: SiteLocale;
 };
 
+function FlagChip({ locale }: { locale: SiteLocale }) {
+  return (
+    <span
+      className={styles.languageFlag}
+      data-locale={locale}
+      aria-hidden="true"
+    />
+  );
+}
+
 export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
   const router = useRouter();
   const [pendingLocale, setPendingLocale] = useState<SiteLocale | null>(null);
@@ -49,7 +59,7 @@ export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
         className={styles.languageTrigger}
         aria-label={`Current language: ${currentOption.nativeLabel}`}
       >
-        <span className={styles.languageFlag}>{currentOption.flag}</span>
+        <FlagChip locale={currentOption.code} />
         <span className={styles.languageCode}>
           {currentOption.code.toUpperCase()}
         </span>
@@ -64,7 +74,7 @@ export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
             onClick={() => selectLocale(option.code)}
             disabled={pendingLocale !== null}
           >
-            <span className={styles.languageFlag}>{option.flag}</span>
+            <FlagChip locale={option.code} />
             <span className={styles.languageText}>
               <strong>{option.nativeLabel}</strong>
               <span>{option.label}</span>
