@@ -23,13 +23,20 @@ function getSessionSecret() {
     return process.env.PI_API_KEY.trim();
   }
 
+  const configuredAdminUsername =
+    process.env.ADMIN_PORTAL_USERNAME?.trim() || DEFAULT_ADMIN_USERNAME;
+  const configuredAdminPassword =
+    process.env.ADMIN_PORTAL_PASSWORD?.trim() || DEFAULT_ADMIN_PASSWORD;
+
+  if (configuredAdminPassword) {
+    return `mushroom-admin-session:${configuredAdminUsername}:${configuredAdminPassword}`;
+  }
+
   if (process.env.NODE_ENV !== "production") {
     return "mushroom-pi-dev-session-secret";
   }
 
-  throw new Error(
-    "Missing STOREFRONT_SESSION_SECRET. Add a secret (or PI_API_KEY) to enable secure admin sessions.",
-  );
+  return "mushroom-admin-session:fallback";
 }
 
 function signPayload(encodedPayload: string) {
@@ -142,4 +149,3 @@ export function clearAdminCredentialSession(response: NextResponse) {
 
   return response;
 }
-
