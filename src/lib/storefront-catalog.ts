@@ -1,10 +1,31 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import type { SiteLocale } from "@/lib/i18n";
 import type { Product } from "@/lib/pi-types";
 import { listStorefrontProductRecords } from "@/lib/storefront-db";
-import { mapProductRecordToProduct } from "@/lib/storefront-product";
+import {
+  mapProductRecordToProduct,
+  type StorefrontProductRecord,
+} from "@/lib/storefront-product";
 import { getProducts } from "@/lib/site-data";
+
+const PRODUCT_RECORDS_REVALIDATE_SECONDS = 90;
+const PRODUCT_RECORDS_TIMEOUT_MS = 1200;
+
+const readCachedStorefrontProductRecords = unstable_cache(
+  async () => {
+    try {
+      return await listStorefrontProductRecords();
+    } catch {
+      return [] as StorefrontProductRecord[];
+    }
+  },
+  ["storefront-product-records"],
+  {
+    revalidate: PRODUCT_RECORDS_REVALIDATE_SECONDS,
+  },
+);
 
 function withOperationalDefaults(product: Product): Product {
   return {
@@ -18,10 +39,19 @@ function withOperationalDefaults(product: Product): Product {
   };
 }
 
+async function readStorefrontProductRecordsForCatalog() {
+  return await Promise.race<StorefrontProductRecord[]>([
+    readCachedStorefrontProductRecords(),
+    new Promise<StorefrontProductRecord[]>((resolve) => {
+      setTimeout(() => resolve([]), PRODUCT_RECORDS_TIMEOUT_MS);
+    }),
+  ]);
+}
+
 export async function getStorefrontProducts(locale: SiteLocale) {
   const staticProducts = getProducts(locale).map(withOperationalDefaults);
   const staticById = new Map(staticProducts.map((product) => [product.id, product]));
-  const dbProducts = await listStorefrontProductRecords();
+  const dbProducts = await readStorefrontProductRecordsForCatalog();
 
   if (dbProducts.length === 0) {
     return staticProducts;
