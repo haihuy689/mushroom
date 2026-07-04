@@ -64,7 +64,7 @@
 .statsGrid {
   display: grid;
   gap: 0.8rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .statCard,
@@ -299,10 +299,64 @@
   gap: 1rem;
 }
 
+.productTitleBlock,
+.productHeaderActions {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.productHeaderActions {
+  justify-items: flex-end;
+  align-content: flex-start;
+}
+
 .productHeader h3 {
   margin: 0.18rem 0 0;
   color: #241434;
   font-size: 1.14rem;
+}
+
+.productStatusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.productChip {
+  border-radius: 999px;
+  padding: 0.45rem 0.72rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.productChip[data-tone="custom"] {
+  background: rgba(109, 61, 166, 0.12);
+  color: #5d2b96;
+}
+
+.productChip[data-tone="system"] {
+  background: rgba(88, 83, 109, 0.12);
+  color: #5b556c;
+}
+
+.productChip[data-tone="live"] {
+  background: #ecfbf2;
+  color: #20824d;
+}
+
+.productChip[data-tone="hidden"] {
+  background: #f1eef5;
+  color: #6f6783;
+}
+
+.productChip[data-tone="stock"] {
+  background: #fff4dd;
+  color: #9c6500;
+}
+
+.productChip[data-tone="empty"] {
+  background: #fff0f0;
+  color: #c04a4a;
 }
 
 .productCode,
@@ -444,6 +498,10 @@
   .productHeader {
     grid-template-columns: 1fr;
     display: grid;
+  }
+
+  .productHeaderActions {
+    justify-items: stretch;
   }
 }
 

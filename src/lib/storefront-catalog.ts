@@ -12,6 +12,7 @@ import { getProducts } from "@/lib/site-data";
 
 const PRODUCT_RECORDS_REVALIDATE_SECONDS = 90;
 const PRODUCT_RECORDS_TIMEOUT_MS = 1200;
+export const STOREFRONT_PRODUCT_RECORDS_TAG = "storefront-product-records";
 
 const readCachedStorefrontProductRecords = unstable_cache(
   async () => {
@@ -21,9 +22,10 @@ const readCachedStorefrontProductRecords = unstable_cache(
       return [] as StorefrontProductRecord[];
     }
   },
-  ["storefront-product-records"],
+  [STOREFRONT_PRODUCT_RECORDS_TAG],
   {
     revalidate: PRODUCT_RECORDS_REVALIDATE_SECONDS,
+    tags: [STOREFRONT_PRODUCT_RECORDS_TAG],
   },
 );
 

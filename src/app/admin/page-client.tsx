@@ -104,6 +104,14 @@ export function AdminPageClient({
   const canAccessAdmin = adminAccess.canAccessAdmin;
   const canManageStaff = adminAccess.canManageStaff;
   const orderCounts = getOrderStatusCounts(orders);
+  const productCounts = useMemo(
+    () => ({
+      hidden: products.filter((product) => !product.isActive).length,
+      outOfStock: products.filter((product) => product.inventoryCount <= 0).length,
+      visible: products.filter((product) => product.isActive).length,
+    }),
+    [products],
+  );
   const uiText = getAdminUiText(locale);
 
   const formatter = useMemo(
@@ -438,17 +446,33 @@ export function AdminPageClient({
             <span>{orderCopy.orders}</span>
           </article>
           <article className={styles.statCard}>
-            <strong>{products.length}</strong>
-            <span>{copy.catalogManagerTitle}</span>
-          </article>
-          <article className={styles.statCard}>
-            <strong>{staff.length}</strong>
-            <span>{copy.staffManagerTitle}</span>
-          </article>
-          <article className={styles.statCard}>
             <strong>{orderCounts.processing}</strong>
             <span>{orderCopy.processing}</span>
           </article>
+          {canManageStaff ? (
+            <>
+              <article className={styles.statCard}>
+                <strong>{products.length}</strong>
+                <span>{copy.catalogManagerTitle}</span>
+              </article>
+              <article className={styles.statCard}>
+                <strong>{productCounts.visible}</strong>
+                <span>{copy.liveProductsLabel}</span>
+              </article>
+              <article className={styles.statCard}>
+                <strong>{productCounts.hidden}</strong>
+                <span>{copy.hiddenProductsLabel}</span>
+              </article>
+              <article className={styles.statCard}>
+                <strong>{productCounts.outOfStock}</strong>
+                <span>{copy.outOfStockProductsLabel}</span>
+              </article>
+              <article className={styles.statCard}>
+                <strong>{staff.length}</strong>
+                <span>{copy.staffManagerTitle}</span>
+              </article>
+            </>
+          ) : null}
         </div>
       </section>
 
@@ -713,7 +737,9 @@ export function AdminPageClient({
                     className={styles.primaryButton}
                     disabled={creatingProduct}
                   >
-                    {creatingProduct ? copy.addProduct : copy.addProductButton}
+                    {creatingProduct
+                      ? copy.savingProductButton
+                      : copy.createProductButton}
                   </button>
                 </form>
               </article>
@@ -745,13 +771,42 @@ export function AdminPageClient({
                   <div className={styles.productList}>
                     {products.map((product) => {
                       const isCustomProduct = !product.sourceProductId;
+                      const inventoryAvailable = product.inventoryCount > 0;
+                      const visibilityLabel = product.isActive
+                        ? copy.productLiveStatus
+                        : copy.productHiddenStatus;
+                      const inventoryLabel = inventoryAvailable
+                        ? copy.productInStockStatus
+                        : copy.productOutOfStockStatus;
 
                       return (
                         <article key={product.id} className={styles.productCard}>
                           <div className={styles.productHeader}>
-                            <div>
+                            <div className={styles.productTitleBlock}>
                               <p className={styles.productCode}>{product.id}</p>
                               <h3>{product.name}</h3>
+                              <div className={styles.productStatusRow}>
+                                <span
+                                  className={styles.productChip}
+                                  data-tone={isCustomProduct ? "custom" : "system"}
+                                >
+                                  {isCustomProduct
+                                    ? copy.productCustomLabel
+                                    : copy.productSystemLabel}
+                                </span>
+                                <span
+                                  className={styles.productChip}
+                                  data-tone={product.isActive ? "live" : "hidden"}
+                                >
+                                  {visibilityLabel}
+                                </span>
+                                <span
+                                  className={styles.productChip}
+                                  data-tone={inventoryAvailable ? "stock" : "empty"}
+                                >
+                                  {inventoryLabel}
+                                </span>
+                              </div>
                               <span className={styles.productSubtle}>
                                 {isCustomProduct
                                   ? product.slug
@@ -759,18 +814,24 @@ export function AdminPageClient({
                               </span>
                             </div>
 
-                            <button
-                              type="button"
-                              className={styles.primaryButton}
-                              disabled={savingProductId === product.id}
-                              onClick={() => {
-                                void handleSaveProduct(product);
-                              }}
-                            >
-                              {savingProductId === product.id
-                                ? copy.addProductButton
-                                : copy.addProductButton}
-                            </button>
+                            <div className={styles.productHeaderActions}>
+                              <span className={styles.productSubtle}>
+                                {copy.latestSync}:{" "}
+                                {formatter.format(new Date(product.updatedAt))}
+                              </span>
+                              <button
+                                type="button"
+                                className={styles.primaryButton}
+                                disabled={savingProductId === product.id}
+                                onClick={() => {
+                                  void handleSaveProduct(product);
+                                }}
+                              >
+                                {savingProductId === product.id
+                                  ? copy.savingProductButton
+                                  : copy.saveProductButton}
+                              </button>
+                            </div>
                           </div>
 
                           <div className={styles.productGrid}>

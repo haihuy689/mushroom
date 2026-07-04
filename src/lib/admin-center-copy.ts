@@ -11,14 +11,17 @@ export type AdminCenterCopy = {
   adminTitle: string;
   catalogManagerLead: string;
   catalogManagerTitle: string;
+  createProductButton: string;
   customerLabel: string;
   customProductLead: string;
   customProductTitle: string;
   emptyOrders: string;
   emptyProducts: string;
   emptyStaff: string;
+  hiddenProductsLabel: string;
   inventoryLabel: string;
   latestSync: string;
+  liveProductsLabel: string;
   noAccessBody: string;
   noAccessTitle: string;
   notes: string;
@@ -26,23 +29,32 @@ export type AdminCenterCopy = {
   orderItems: string;
   orderManagerTitle: string;
   ownerPanel: string;
+  outOfStockProductsLabel: string;
   packagingLabel: string;
   priceLabel: string;
   productAccentLabel: string;
   productActiveLabel: string;
   productBadgeLabel: string;
   productCategoryLabel: string;
+  productCustomLabel: string;
   productDescriptionLabel: string;
   productFormatLabel: string;
+  productHiddenStatus: string;
+  productInStockStatus: string;
+  productLiveStatus: string;
   productNameLabel: string;
+  productOutOfStockStatus: string;
   productSlugLabel: string;
   productSourceLabel: string;
+  productSystemLabel: string;
   productTaglineLabel: string;
   productsRefresh: string;
   refreshOrders: string;
   removeStaff: string;
   saveError: string;
+  saveProductButton: string;
   saveSuccess: string;
+  savingProductButton: string;
   staffAddedBy: string;
   staffIdentityLabel: string;
   staffManagerLead: string;
@@ -69,6 +81,7 @@ const en: AdminCenterCopy = {
   catalogManagerLead:
     "Update price, stock, packaging, weight, and active status for the products already live in your storefront.",
   catalogManagerTitle: "Product catalog",
+  createProductButton: "Create product",
   customerLabel: "Customer",
   customProductLead:
     "Create a brand new product that should appear directly in the shop alongside your existing catalog.",
@@ -76,8 +89,10 @@ const en: AdminCenterCopy = {
   emptyOrders: "No orders yet.",
   emptyProducts: "No products available yet.",
   emptyStaff: "No staff accounts added yet.",
+  hiddenProductsLabel: "Hidden products",
   inventoryLabel: "Inventory",
   latestSync: "Latest sync",
+  liveProductsLabel: "Visible products",
   noAccessBody:
     "This page is reserved for the Mushroom.Pi owner and approved staff accounts.",
   noAccessTitle: "Admin access required",
@@ -87,23 +102,32 @@ const en: AdminCenterCopy = {
   orderItems: "Items",
   orderManagerTitle: "Order manager",
   ownerPanel: "Owner panel",
+  outOfStockProductsLabel: "Out of stock",
   packagingLabel: "Packaging",
   priceLabel: "Price (Pi)",
   productAccentLabel: "Accent color",
   productActiveLabel: "Live in storefront",
   productBadgeLabel: "Badge",
   productCategoryLabel: "Category",
+  productCustomLabel: "Custom product",
   productDescriptionLabel: "Description",
   productFormatLabel: "Format",
+  productHiddenStatus: "Hidden",
+  productInStockStatus: "In stock",
+  productLiveStatus: "Showing",
   productNameLabel: "Product name",
+  productOutOfStockStatus: "Out of stock",
   productSlugLabel: "Slug",
-  productSourceLabel: "System catalog item",
+  productSourceLabel: "Linked to system catalog",
+  productSystemLabel: "System catalog",
   productTaglineLabel: "Short tagline",
   productsRefresh: "Refresh products",
   refreshOrders: "Refresh orders",
   removeStaff: "Remove",
   saveError: "Unable to save changes right now.",
+  saveProductButton: "Save changes",
   saveSuccess: "Saved.",
+  savingProductButton: "Saving...",
   staffAddedBy: "Added by",
   staffIdentityLabel: "Pi user id or username",
   staffManagerLead:
@@ -131,6 +155,7 @@ const vi: AdminCenterCopy = {
   catalogManagerLead:
     "Cap nhat gia, ton kho, bao bi, khoi luong va trang thai dang ban cho catalog hien tai.",
   catalogManagerTitle: "Quan ly san pham",
+  createProductButton: "Tao san pham",
   customerLabel: "Khach hang",
   customProductLead:
     "Tao san pham moi de hien truc tiep trong shop cung voi catalog hien co.",
@@ -138,8 +163,10 @@ const vi: AdminCenterCopy = {
   emptyOrders: "Chua co don hang nao.",
   emptyProducts: "Chua co san pham nao.",
   emptyStaff: "Chua them tai khoan nhan vien nao.",
+  hiddenProductsLabel: "San pham dang an",
   inventoryLabel: "Ton kho",
   latestSync: "Lan dong bo gan nhat",
+  liveProductsLabel: "San pham dang hien",
   noAccessBody:
     "Trang nay chi danh cho chu Mushroom.Pi va cac tai khoan nhan vien da duoc cap quyen.",
   noAccessTitle: "Can quyen quan tri",
@@ -149,23 +176,32 @@ const vi: AdminCenterCopy = {
   orderItems: "San pham",
   orderManagerTitle: "Quan ly don hang",
   ownerPanel: "Bang chu shop",
+  outOfStockProductsLabel: "San pham het hang",
   packagingLabel: "Bao bi",
   priceLabel: "Gia (Pi)",
   productAccentLabel: "Mau nhan",
   productActiveLabel: "Dang ban tren shop",
   productBadgeLabel: "Nhan",
   productCategoryLabel: "Danh muc",
+  productCustomLabel: "San pham tu them",
   productDescriptionLabel: "Mo ta",
   productFormatLabel: "Quy cach",
+  productHiddenStatus: "Dang an",
+  productInStockStatus: "Con hang",
+  productLiveStatus: "Dang hien",
   productNameLabel: "Ten san pham",
+  productOutOfStockStatus: "Het hang",
   productSlugLabel: "Slug",
-  productSourceLabel: "San pham he thong",
+  productSourceLabel: "Lien ket catalog he thong",
+  productSystemLabel: "Catalog he thong",
   productTaglineLabel: "Mo ta ngan",
   productsRefresh: "Tai lai san pham",
   refreshOrders: "Tai lai don",
   removeStaff: "Xoa",
   saveError: "Hien chua luu duoc thay doi.",
+  saveProductButton: "Luu thay doi",
   saveSuccess: "Da luu.",
+  savingProductButton: "Dang luu...",
   staffAddedBy: "Them boi",
   staffIdentityLabel: "Pi user id hoac username",
   staffManagerLead:

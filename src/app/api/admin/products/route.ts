@@ -1,9 +1,11 @@
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import type { StorefrontProductInput } from "@/lib/storefront-product";
 import {
   listStorefrontProductRecords,
   saveStorefrontProduct,
 } from "@/lib/storefront-db";
+import { STOREFRONT_PRODUCT_RECORDS_TAG } from "@/lib/storefront-catalog";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 
 function forbiddenResponse() {
@@ -35,9 +37,16 @@ export async function POST(request: Request) {
   }
 
   const body = (await request.json()) as Partial<StorefrontProductInput>;
+  const item = await saveStorefrontProduct(body);
+
+  revalidateTag(STOREFRONT_PRODUCT_RECORDS_TAG, "max");
+  revalidatePath("/");
+  revalidatePath("/shop");
+  revalidatePath("/cart");
+  revalidatePath("/admin");
 
   return NextResponse.json({
-    item: await saveStorefrontProduct(body),
+    item,
     items: await listStorefrontProductRecords(),
   });
 }
