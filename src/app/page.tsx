@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Fragment } from "react";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import {
   BenefitIcon,
@@ -71,7 +72,7 @@ function getHomeThemeCopy(locale: SiteLocale, siteCopy: ReturnType<typeof getPub
       heroEyebrow: "Mushroom.Pi",
       heroLead:
         "Cung cấp nấm tươi, nấm khô và sản phẩm từ nấm - tươi ngon, dinh dưỡng, an toàn cho sức khỏe.",
-      heroTitle: "Nấm sạch thanh toán bằng Pi",
+      heroTitle: "Nấm sạch\nthanh toán bằng Pi",
       primaryAction: "Mua bằng Pi",
       reasonsLabel: "Vì sao chọn Mushroom.Pi",
       secondaryAction: "Xem sản phẩm",
@@ -195,19 +196,24 @@ function getHomeThemeCopy(locale: SiteLocale, siteCopy: ReturnType<typeof getPub
 }
 
 function renderPiTitle(title: string) {
-  const piIndex = title.lastIndexOf("Pi");
+  return title.split("\n").map((line, index) => {
+    const piIndex = line.lastIndexOf("Pi");
 
-  if (piIndex < 0) {
-    return title;
-  }
-
-  return (
-    <>
-      {title.slice(0, piIndex)}
-      <strong>{title.slice(piIndex, piIndex + 2)}</strong>
-      {title.slice(piIndex + 2)}
-    </>
-  );
+    return (
+      <Fragment key={`${line}-${index}`}>
+        {index > 0 ? <br /> : null}
+        {piIndex < 0 ? (
+          line
+        ) : (
+          <>
+            {line.slice(0, piIndex)}
+            <strong>{line.slice(piIndex, piIndex + 2)}</strong>
+            {line.slice(piIndex + 2)}
+          </>
+        )}
+      </Fragment>
+    );
+  });
 }
 
 function FeatureIcon({
@@ -238,8 +244,18 @@ export default async function Home() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
+        <div className={styles.heroImageWrap} aria-hidden="true">
+          <Image
+            alt=""
+            className={styles.heroImage}
+            fill
+            priority
+            sizes="(max-width: 860px) 100vw, 980px"
+            src="/images/mushroom-pi/hero-market.webp"
+          />
+        </div>
+
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>{homeCopy.heroEyebrow}</p>
           <h1>{renderPiTitle(homeCopy.heroTitle)}</h1>
           <p className={styles.lead}>{homeCopy.heroLead}</p>
 
@@ -254,17 +270,6 @@ export default async function Home() {
               {homeCopy.secondaryAction}
             </Link>
           </div>
-        </div>
-
-        <div className={styles.heroImageWrap} aria-hidden="true">
-          <Image
-            alt=""
-            className={styles.heroImage}
-            fill
-            priority
-            sizes="(max-width: 860px) 100vw, 52vw"
-            src="/images/mushroom-pi/hero-market.webp"
-          />
         </div>
       </section>
 
