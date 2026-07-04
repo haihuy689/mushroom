@@ -39,6 +39,40 @@ function getPalette(productId: string) {
   };
 }
 
+function getDefaultImageUrl(productId: string, name: string) {
+  const key = `${productId} ${name}`.toLowerCase();
+
+  if (key.includes("lions") || key.includes("lion")) {
+    return "/images/mushroom-pi/product-lions-mane.webp";
+  }
+
+  if (key.includes("reishi") || key.includes("linh chi")) {
+    return "/images/mushroom-pi/product-reishi.webp";
+  }
+
+  if (key.includes("cordyceps") || key.includes("dong trung")) {
+    return "/images/mushroom-pi/product-cordyceps.webp";
+  }
+
+  if (key.includes("shiitake") || key.includes("huong")) {
+    return "/images/mushroom-pi/product-shiitake.webp";
+  }
+
+  if (key.includes("oyster") || key.includes("bao ngu")) {
+    return "/images/mushroom-pi/product-oyster.webp";
+  }
+
+  if (key.includes("enoki") || key.includes("kim cham")) {
+    return "/images/mushroom-pi/product-enoki.webp";
+  }
+
+  if (key.includes("combo") || key.includes("mix")) {
+    return "/images/mushroom-pi/product-combo.webp";
+  }
+
+  return "/images/mushroom-pi/product-combo.webp";
+}
+
 export function ProductThumbnail({
   accent,
   compact = false,
@@ -53,6 +87,7 @@ export function ProductThumbnail({
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
   const palette = getPalette(productId);
+  const resolvedImageUrl = imageUrl || getDefaultImageUrl(productId, name);
 
   return (
     <div
@@ -67,26 +102,29 @@ export function ProductThumbnail({
       }
       aria-hidden="true"
     >
-      {imageUrl ? (
+      {resolvedImageUrl ? (
         <img
           alt=""
           className={styles.photo}
           loading="lazy"
-          src={imageUrl}
+          src={resolvedImageUrl}
         />
-      ) : null}
-      <span className={styles.piPill}>Pi</span>
-      <span className={styles.glow} />
-      <span className={styles.ring} />
+      ) : (
+        <>
+          <span className={styles.piPill}>Pi</span>
+          <span className={styles.glow} />
+          <span className={styles.ring} />
 
-      <div className={styles.cluster}>
-        <span className={styles.capLarge} />
-        <span className={styles.capSmall} />
-        <span className={styles.stemTall} />
-        <span className={styles.stemShort} />
-      </div>
+          <div className={styles.cluster}>
+            <span className={styles.capLarge} />
+            <span className={styles.capSmall} />
+            <span className={styles.stemTall} />
+            <span className={styles.stemShort} />
+          </div>
 
-      <span className={styles.initials}>{initials}</span>
+          <span className={styles.initials}>{initials}</span>
+        </>
+      )}
     </div>
   );
 }

@@ -1092,6 +1092,7 @@ const productCatalog: ProductCatalogEntry[] = [
     slug: "lions-mane-focus-tonic",
     pricePi: 0.75,
     accent: "linear-gradient(135deg, #f1c857, #915228)",
+    imageUrl: "/images/mushroom-pi/product-lions-mane.webp",
     content: {
       en: {
         name: "Lion's Mane Focus Tonic",
@@ -1145,6 +1146,7 @@ const productCatalog: ProductCatalogEntry[] = [
     slug: "reishi-night-drops",
     pricePi: 0.58,
     accent: "linear-gradient(135deg, #6d3b2a, #c38d58)",
+    imageUrl: "/images/mushroom-pi/product-reishi.webp",
     content: {
       en: {
         name: "Reishi Night Drops",
@@ -1198,6 +1200,7 @@ const productCatalog: ProductCatalogEntry[] = [
     slug: "cordyceps-trail-pack",
     pricePi: 0.49,
     accent: "linear-gradient(135deg, #cc7b33, #4a6d48)",
+    imageUrl: "/images/mushroom-pi/product-cordyceps.webp",
     content: {
       en: {
         name: "Cordyceps Trail Pack",
@@ -1251,6 +1254,7 @@ const productCatalog: ProductCatalogEntry[] = [
     slug: "shiitake-kitchen-box",
     pricePi: 0.67,
     accent: "linear-gradient(135deg, #ad6d3f, #d9b37a)",
+    imageUrl: "/images/mushroom-pi/product-shiitake.webp",
     content: {
       en: {
         name: "Shiitake Kitchen Box",

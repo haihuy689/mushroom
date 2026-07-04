@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { ProductThumbnail } from "@/components/product-thumbnail";
 import { getPublicSiteCopy } from "@/lib/public-site-copy";
@@ -254,17 +255,15 @@ export default async function Home() {
           </div>
         </div>
 
-        <div className={styles.mushroomScene} aria-hidden="true">
-          <span className={styles.sceneGlow} />
-          <span className={styles.basket} />
-          <span className={styles.capOne} />
-          <span className={styles.capTwo} />
-          <span className={styles.capThree} />
-          <span className={styles.capFour} />
-          <span className={styles.stemOne} />
-          <span className={styles.stemTwo} />
-          <span className={styles.stemThree} />
-          <span className={styles.logShape} />
+        <div className={styles.heroImageWrap} aria-hidden="true">
+          <Image
+            alt=""
+            className={styles.heroImage}
+            fill
+            priority
+            sizes="(max-width: 860px) 100vw, 52vw"
+            src="/images/mushroom-pi/hero-market.webp"
+          />
         </div>
       </section>
 

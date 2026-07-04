@@ -143,137 +143,19 @@
   border: 2px solid rgba(255, 229, 141, 0.64);
 }
 
-.mushroomScene {
+.heroImageWrap {
   position: relative;
   z-index: 1;
   min-height: 360px;
   align-self: stretch;
+  overflow: hidden;
+  border-radius: 24px;
+  box-shadow: 0 24px 42px rgba(60, 39, 20, 0.18);
 }
 
-.sceneGlow,
-.basket,
-.capOne,
-.capTwo,
-.capThree,
-.capFour,
-.stemOne,
-.stemTwo,
-.stemThree,
-.logShape {
-  position: absolute;
-  display: block;
-}
-
-.sceneGlow {
-  inset: 8% 2% 8% 4%;
-  border-radius: 45% 55% 40% 60%;
-  background:
-    radial-gradient(circle at 54% 28%, rgba(255, 247, 213, 0.95), transparent 18%),
-    radial-gradient(circle at 66% 24%, rgba(151, 110, 50, 0.34), transparent 24%),
-    radial-gradient(circle at 62% 48%, rgba(237, 220, 169, 0.72), transparent 38%),
-    linear-gradient(135deg, rgba(71, 104, 48, 0.2), rgba(126, 93, 42, 0.08));
-  filter: blur(1px);
-}
-
-.basket {
-  right: 12%;
-  bottom: 23%;
-  width: 54%;
-  height: 34%;
-  border-radius: 50% 50% 44% 44%;
-  background:
-    repeating-linear-gradient(38deg, rgba(84, 48, 20, 0.26) 0 7px, transparent 7px 16px),
-    repeating-linear-gradient(-38deg, rgba(255, 230, 174, 0.34) 0 7px, transparent 7px 16px),
-    linear-gradient(135deg, #c48c48, #755025);
-  box-shadow: inset 0 -18px 24px rgba(73, 42, 19, 0.28), 0 28px 42px rgba(60, 39, 20, 0.22);
-}
-
-.capOne,
-.capTwo,
-.capThree,
-.capFour {
-  border-radius: 999px 999px 42% 42%;
-  background:
-    radial-gradient(circle at 34% 30%, #fff1cf 0 5%, transparent 6%),
-    radial-gradient(circle at 58% 26%, #fff1cf 0 4%, transparent 5%),
-    linear-gradient(180deg, #c99556, #815024);
-  box-shadow: inset 0 -12px 18px rgba(55, 27, 11, 0.18), 0 14px 20px rgba(74, 45, 22, 0.16);
-}
-
-.capOne {
-  right: 44%;
-  top: 18%;
-  width: 124px;
-  height: 78px;
-  transform: rotate(-10deg);
-}
-
-.capTwo {
-  right: 24%;
-  top: 22%;
-  width: 150px;
-  height: 86px;
-  transform: rotate(8deg);
-}
-
-.capThree {
-  right: 5%;
-  bottom: 29%;
-  width: 164px;
-  height: 95px;
-  background:
-    radial-gradient(circle at 40% 30%, #fff8df 0 5%, transparent 6%),
-    linear-gradient(180deg, #f4e5c1, #b58651);
-}
-
-.capFour {
-  right: 42%;
-  bottom: 22%;
-  width: 105px;
-  height: 70px;
-  transform: rotate(14deg);
-}
-
-.stemOne,
-.stemTwo,
-.stemThree {
-  border-radius: 999px 999px 40% 40%;
-  background: linear-gradient(180deg, #fff8e9, #e0bb7b);
-  box-shadow: inset 0 -8px 12px rgba(113, 74, 31, 0.16);
-}
-
-.stemOne {
-  right: 50%;
-  top: 33%;
-  width: 32px;
-  height: 112px;
-  transform: rotate(5deg);
-}
-
-.stemTwo {
-  right: 32%;
-  top: 38%;
-  width: 42px;
-  height: 120px;
-  transform: rotate(-8deg);
-}
-
-.stemThree {
-  right: 13%;
-  bottom: 16%;
-  width: 54px;
-  height: 120px;
-  transform: rotate(23deg);
-}
-
-.logShape {
-  right: 2%;
-  bottom: 8%;
-  width: 74%;
-  height: 48px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #8b6134, #d8b274 36%, #6f4825);
-  transform: rotate(-2deg);
+.heroImage {
+  object-fit: cover;
+  object-position: center right;
 }
 
 .benefitStrip {
@@ -507,9 +389,15 @@
   border-radius: 22px;
   color: white;
   background:
+    linear-gradient(90deg, rgba(23, 36, 18, 0.92), rgba(29, 55, 28, 0.74) 52%, rgba(29, 55, 28, 0.2)),
     radial-gradient(circle at 90% 20%, rgba(255, 238, 190, 0.28), transparent 18%),
     radial-gradient(circle at 78% 68%, rgba(218, 169, 91, 0.26), transparent 22%),
-    linear-gradient(135deg, rgba(53, 78, 32, 0.96), rgba(26, 49, 25, 0.98));
+    url("/images/mushroom-pi/banner-pi-browser.webp") center right / cover no-repeat;
+}
+
+.browserBanner > * {
+  position: relative;
+  z-index: 1;
 }
 
 .piAppIcon {
@@ -561,7 +449,7 @@
     min-height: auto;
   }
 
-  .mushroomScene {
+  .heroImageWrap {
     min-height: 280px;
   }
 
