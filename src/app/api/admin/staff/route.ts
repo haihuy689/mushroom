@@ -6,6 +6,8 @@ import {
 } from "@/lib/storefront-db";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 
+export const preferredRegion = "sin1";
+
 function forbiddenResponse() {
   return NextResponse.json(
     {

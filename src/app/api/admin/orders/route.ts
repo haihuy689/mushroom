@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { listStorefrontOrdersForAdmin } from "@/lib/storefront-db";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 
+export const preferredRegion = "sin1";
+
 export async function GET() {
   const { access } = await getStorefrontAdminContext();
 

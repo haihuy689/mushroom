@@ -8,6 +8,8 @@ import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 
 const ADMIN_DASHBOARD_TIMEOUT_MS = 5000;
 
+export const preferredRegion = "sin1";
+
 type StaffRow = {
   added_by: string;
   created_at: string;

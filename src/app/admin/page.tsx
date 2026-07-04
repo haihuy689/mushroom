@@ -5,6 +5,8 @@ import { getRequestLocale } from "@/lib/request-locale";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 import { AdminPageClient } from "./page-client";
 
+export const preferredRegion = "sin1";
+
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
   const copy = getAdminCenterCopy(locale);

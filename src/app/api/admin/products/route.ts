@@ -8,6 +8,8 @@ import {
 import { STOREFRONT_PRODUCT_RECORDS_TAG } from "@/lib/storefront-catalog";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 
+export const preferredRegion = "sin1";
+
 function forbiddenResponse() {
   return NextResponse.json(
     {

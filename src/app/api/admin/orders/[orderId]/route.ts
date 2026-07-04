@@ -3,6 +3,8 @@ import { isOrderStatus } from "@/lib/order-status";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 import { updateStorefrontOrderStatus } from "@/lib/storefront-db";
 
+export const preferredRegion = "sin1";
+
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ orderId: string }> },
