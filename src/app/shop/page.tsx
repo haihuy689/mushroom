@@ -52,30 +52,18 @@ export default async function ShopPage() {
               />
 
               <div className={styles.content}>
-                <div className={styles.topRow}>
-                  <div className={styles.titleWrap}>
-                    <span className={styles.badge}>{product.badge}</span>
-                    <h2>{product.name}</h2>
-                    <p className={styles.tagline}>{product.tagline}</p>
-                  </div>
-
-                  <div className={styles.priceWrap}>
-                    <strong>{product.pricePi} Pi</strong>
-                    <span>{product.packaging || product.format}</span>
-                  </div>
-                </div>
-
-                <p className={styles.description}>{product.description}</p>
+                <span className={styles.badge}>{product.badge}</span>
+                <h2>{product.name}</h2>
+                <p className={styles.tagline}>
+                  {product.tagline || product.description}
+                </p>
 
                 <div className={styles.meta}>
-                  <span>{product.category}</span>
                   <span>
-                    {copy.packagingLabel}: {product.packaging || product.format}
+                    {product.packaging || product.format}
                   </span>
                   {productWeight ? (
-                    <span>
-                      {copy.weightLabel}: {productWeight}
-                    </span>
+                    <span>{productWeight}</span>
                   ) : null}
                   <span className={styles.stockMeta} data-stocked={inStock}>
                     {inStock
@@ -83,6 +71,8 @@ export default async function ShopPage() {
                       : copy.outOfStock}
                   </span>
                 </div>
+
+                <strong className={styles.price}>{product.pricePi} Pi</strong>
 
                 <div className={styles.actions}>
                   <AddToCartButton
@@ -92,6 +82,7 @@ export default async function ShopPage() {
                     confirmLabel={copy.quantityPickerConfirm}
                     disabled={!inStock}
                     disabledLabel={copy.outOfStock}
+                    fullWidth
                     lead={copy.quantityPickerLead}
                     maxQuantity={availableInventory}
                     pricePi={product.pricePi}

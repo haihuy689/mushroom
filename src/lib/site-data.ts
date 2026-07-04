@@ -154,6 +154,7 @@ const copy: Record<SiteLocale, SiteCopy> = {
     },
     brandTagline: "Pi-powered mushroom store and blog",
     navigation: [
+      { href: "/", label: "Home" },
       { href: "/shop", label: "Shop" },
       { href: "/blog", label: "Blog" },
       { href: "/pi-lab", label: "Pi Lab" },
@@ -347,6 +348,7 @@ const copy: Record<SiteLocale, SiteCopy> = {
     },
     brandTagline: "Cửa hàng và blog về nấm chạy cùng Pi",
     navigation: [
+      { href: "/", label: "Trang chủ" },
       { href: "/shop", label: "Cửa hàng" },
       { href: "/blog", label: "Blog" },
       { href: "/pi-lab", label: "Pi Lab" },
@@ -539,6 +541,7 @@ const copy: Record<SiteLocale, SiteCopy> = {
     },
     brandTagline: "Tienda y blog de hongos impulsados por Pi",
     navigation: [
+      { href: "/", label: "Inicio" },
       { href: "/shop", label: "Tienda" },
       { href: "/blog", label: "Blog" },
       { href: "/pi-lab", label: "Pi Lab" },
@@ -731,6 +734,7 @@ const copy: Record<SiteLocale, SiteCopy> = {
     },
     brandTagline: "Boutique et blog sur les champignons propulsés par Pi",
     navigation: [
+      { href: "/", label: "Accueil" },
       { href: "/shop", label: "Boutique" },
       { href: "/blog", label: "Blog" },
       { href: "/pi-lab", label: "Pi Lab" },
@@ -924,6 +928,7 @@ const copy: Record<SiteLocale, SiteCopy> = {
     },
     brandTagline: "由 Pi 驱动的蘑菇商店与博客",
     navigation: [
+      { href: "/", label: "首页" },
       { href: "/shop", label: "商店" },
       { href: "/blog", label: "博客" },
       { href: "/pi-lab", label: "Pi Lab" },

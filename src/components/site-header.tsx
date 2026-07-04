@@ -9,7 +9,7 @@ export async function SiteHeader() {
   const orderCenterCopy = getOrderCenterCopy(locale);
   const storefrontCopy = getStorefrontCopy(locale);
   const navigationLinks = getNavigationLinks(locale).filter(
-    (link) => link.href === "/shop" || link.href === "/blog",
+    (link) => link.href === "/" || link.href === "/shop" || link.href === "/blog",
   );
 
   return (
