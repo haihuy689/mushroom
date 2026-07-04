@@ -47,44 +47,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   min-width: 0;
 }
 
-.brandIcon {
-  width: 54px;
-  height: 54px;
-  border-radius: 0;
-  display: grid;
-  place-items: center;
-  background: transparent;
-  box-shadow: none;
-}
-
-.brandIconSvg {
-  width: 100%;
-  height: 100%;
-}
-
-.brandCopy {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.brandName {
-  font-size: clamp(1.35rem, 2.8vw, 2.1rem);
-  font-weight: 900;
-  color: #29150d;
-  letter-spacing: -0.06em;
-  line-height: 0.95;
-}
-
-.brandTag {
-  color: #567236;
-  font-size: clamp(0.72rem, 1.5vw, 0.98rem);
-  font-weight: 700;
-  line-height: 1.2;
+.brandLogoImage {
+  display: block;
+  width: clamp(178px, 29vw, 284px);
+  height: auto;
+  object-fit: contain;
 }
 
 .navMenu {
@@ -559,22 +529,8 @@
     gap: 4px;
   }
 
-  .brandIcon {
-    width: 42px;
-    height: 42px;
-    border-radius: 14px;
-  }
-
-  .brandName {
-    font-size: clamp(1.18rem, 6vw, 1.72rem);
-  }
-
-  .brandTag {
-    font-size: 0.68rem;
-  }
-
-  .brandMark {
-    gap: 7px;
+  .brandLogoImage {
+    width: clamp(150px, 42vw, 184px);
   }
 
   .menuButton,

@@ -140,8 +140,8 @@
 .buttonIcon {
   width: 28px;
   height: 28px;
-  color: #ffe58d;
   flex: 0 0 auto;
+  object-fit: contain;
 }
 
 .primaryButton {

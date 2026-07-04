@@ -29,9 +29,9 @@ export async function generateMetadata(): Promise<Metadata> {
     title: siteCopy.metadata.rootTitle,
     description: siteCopy.metadata.rootDescription,
     icons: {
-      icon: "/favicon.svg",
-      shortcut: "/favicon.svg",
-      apple: "/favicon.svg",
+      icon: "/favicon.png",
+      shortcut: "/favicon.png",
+      apple: "/favicon.png",
     },
   };
 }

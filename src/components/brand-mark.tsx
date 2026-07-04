@@ -1,4 +1,4 @@
-import { MushroomLogoMark } from "./brand-icons";
+import Image from "next/image";
 import styles from "./site-chrome.module.css";
 
 type BrandMarkProps = {
@@ -7,14 +7,19 @@ type BrandMarkProps = {
 
 export function BrandMark({ tagline }: BrandMarkProps) {
   return (
-    <span className={styles.brandMark}>
-      <span className={styles.brandIcon} aria-hidden="true">
-        <MushroomLogoMark className={styles.brandIconSvg} />
-      </span>
-      <span className={styles.brandCopy}>
-        <span className={styles.brandName}>mushroom.pi</span>
-        <span className={styles.brandTag}>{tagline}</span>
-      </span>
+    <span
+      aria-label={`mushroom.pi - ${tagline}`}
+      className={styles.brandMark}
+    >
+      <Image
+        alt=""
+        aria-hidden="true"
+        className={styles.brandLogoImage}
+        height={226}
+        priority
+        src="/images/brand/mushroom-pi-logo.png"
+        width={900}
+      />
     </span>
   );
 }

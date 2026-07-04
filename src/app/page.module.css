@@ -132,20 +132,19 @@
   display: inline-grid;
   place-items: center;
   border-radius: 999px;
-  color: #ffe58d;
-  background: #6d198e;
+  background: transparent;
   font-weight: 900;
 }
 
 .piCoin {
   width: 34px;
   height: 34px;
-  border: 2px solid rgba(255, 229, 141, 0.64);
 }
 
 .piCoinSvg {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
 }
 
 .heroImageWrap {
@@ -200,13 +199,13 @@
 }
 
 .featureIcon[data-tone="pi"] {
-  background: #6d198e;
-  color: #f4b43d;
+  background: transparent;
 }
 
 .featureIconSvg {
   width: 34px;
   height: 34px;
+  object-fit: contain;
 }
 
 .benefitItem strong {
@@ -416,8 +415,9 @@
 }
 
 .piAppIconSvg {
-  width: 68px;
-  height: 68px;
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
 }
 
 .browserBanner h2 {
@@ -573,8 +573,8 @@
   }
 
   .piAppIconSvg {
-    width: 54px;
-    height: 54px;
+    width: 72px;
+    height: 72px;
   }
 }
 
