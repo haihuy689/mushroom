@@ -247,6 +247,10 @@
   gap: 1rem;
 }
 
+.widePanel {
+  grid-column: 1 / -1;
+}
+
 .panelHeader {
   display: flex;
   align-items: flex-start;

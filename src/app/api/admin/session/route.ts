@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const username = body.username?.trim() ?? "";
   const password = body.password ?? "";
 
-  if (!validateAdminCredentials(username, password)) {
+  if (!(await validateAdminCredentials(username, password))) {
     return NextResponse.json(
       {
         error: "Invalid admin username or password.",
@@ -53,4 +53,3 @@ export async function DELETE() {
     }),
   );
 }
-

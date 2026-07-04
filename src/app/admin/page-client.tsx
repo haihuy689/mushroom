@@ -221,6 +221,9 @@ export function AdminPageClient({
   const [activeView, setActiveView] = useState<AdminView>("overview");
   const [adminPassword, setAdminPassword] = useState("");
   const [adminUsername, setAdminUsername] = useState("admin");
+  const [adminPasswordConfirm, setAdminPasswordConfirm] = useState("");
+  const [adminPasswordCurrent, setAdminPasswordCurrent] = useState("");
+  const [adminPasswordNew, setAdminPasswordNew] = useState("");
   const [credentialAuthOverride, setCredentialAuthOverride] = useState<boolean | null>(
     null,
   );
@@ -232,6 +235,7 @@ export function AdminPageClient({
   );
   const [loggingInAdmin, setLoggingInAdmin] = useState(false);
   const [loggingOutAdmin, setLoggingOutAdmin] = useState(false);
+  const [changingAdminPassword, setChangingAdminPassword] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
   const [productMode, setProductMode] = useState<ProductEditorMode>("idle");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -616,6 +620,55 @@ export function AdminPageClient({
       });
     } finally {
       setLoggingOutAdmin(false);
+    }
+  };
+
+  const handleChangeAdminPassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setMessage(null);
+
+    if (adminPasswordNew.length < 8) {
+      setMessage({
+        kind: "error",
+        text: copy.adminPasswordTooShortError,
+      });
+      return;
+    }
+
+    if (adminPasswordNew !== adminPasswordConfirm) {
+      setMessage({
+        kind: "error",
+        text: copy.adminPasswordMismatchError,
+      });
+      return;
+    }
+
+    setChangingAdminPassword(true);
+
+    try {
+      await readJson("/api/admin/password", {
+        method: "PATCH",
+        body: JSON.stringify({
+          confirmPassword: adminPasswordConfirm,
+          currentPassword: adminPasswordCurrent,
+          newPassword: adminPasswordNew,
+        }),
+      });
+
+      setAdminPasswordConfirm("");
+      setAdminPasswordCurrent("");
+      setAdminPasswordNew("");
+      setMessage({
+        kind: "success",
+        text: copy.adminPasswordChangeSuccess,
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setChangingAdminPassword(false);
     }
   };
 
@@ -2195,6 +2248,78 @@ export function AdminPageClient({
               </div>
 
               <div className={styles.overviewGrid}>
+                <article className={`${styles.panel} ${styles.widePanel}`}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <p className={styles.sectionEyebrow}>
+                        {copy.operationsTab}
+                      </p>
+                      <h4>{copy.adminPasswordSecurityTitle}</h4>
+                      <p className={styles.sectionLead}>
+                        {copy.adminPasswordSecurityLead}
+                      </p>
+                    </div>
+                  </div>
+
+                  <form
+                    className={styles.formStack}
+                    onSubmit={handleChangeAdminPassword}
+                  >
+                    <div className={styles.formGrid}>
+                      <label className={styles.field}>
+                        <span>{copy.adminPasswordCurrentLabel}</span>
+                        <input
+                          autoComplete="current-password"
+                          required
+                          type="password"
+                          value={adminPasswordCurrent}
+                          onChange={(event) =>
+                            setAdminPasswordCurrent(event.target.value)
+                          }
+                        />
+                      </label>
+                      <label className={styles.field}>
+                        <span>{copy.adminPasswordNewLabel}</span>
+                        <input
+                          autoComplete="new-password"
+                          minLength={8}
+                          required
+                          type="password"
+                          value={adminPasswordNew}
+                          onChange={(event) =>
+                            setAdminPasswordNew(event.target.value)
+                          }
+                        />
+                      </label>
+                      <label className={styles.field}>
+                        <span>{copy.adminPasswordConfirmLabel}</span>
+                        <input
+                          autoComplete="new-password"
+                          minLength={8}
+                          required
+                          type="password"
+                          value={adminPasswordConfirm}
+                          onChange={(event) =>
+                            setAdminPasswordConfirm(event.target.value)
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <div className={styles.formActions}>
+                      <button
+                        type="submit"
+                        className={styles.primaryButton}
+                        disabled={changingAdminPassword}
+                      >
+                        {changingAdminPassword
+                          ? copy.savingLabel
+                          : copy.adminPasswordChangeButton}
+                      </button>
+                    </div>
+                  </form>
+                </article>
+
                 <article className={styles.panel}>
                   <div className={styles.panelHeader}>
                     <div>

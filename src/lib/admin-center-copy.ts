@@ -9,6 +9,15 @@ export type AdminCenterCopy = {
   adminLoginTitle: string;
   adminLoginUsernameLabel: string;
   adminLogoutButton: string;
+  adminPasswordChangeButton: string;
+  adminPasswordChangeSuccess: string;
+  adminPasswordConfirmLabel: string;
+  adminPasswordCurrentLabel: string;
+  adminPasswordMismatchError: string;
+  adminPasswordNewLabel: string;
+  adminPasswordSecurityLead: string;
+  adminPasswordSecurityTitle: string;
+  adminPasswordTooShortError: string;
   adminPageDescription: string;
   adminPageTitle: string;
   adminTitle: string;
@@ -121,6 +130,16 @@ const en: AdminCenterCopy = {
   adminLoginTitle: "Admin sign-in",
   adminLoginUsernameLabel: "Username",
   adminLogoutButton: "Sign out admin",
+  adminPasswordChangeButton: "Change admin password",
+  adminPasswordChangeSuccess: "Admin password changed. Use the new password next time.",
+  adminPasswordConfirmLabel: "Confirm new password",
+  adminPasswordCurrentLabel: "Current password",
+  adminPasswordMismatchError: "The new password confirmation does not match.",
+  adminPasswordNewLabel: "New password",
+  adminPasswordSecurityLead:
+    "Update the direct /admin password. The new password is stored as a secure hash in the database.",
+  adminPasswordSecurityTitle: "Admin password",
+  adminPasswordTooShortError: "New password must be at least 8 characters.",
   adminPageDescription:
     "Operational admin area for Mushroom.Pi products, inventory, employees, and orders.",
   adminPageTitle: "Admin | Mushroom.Pi",
@@ -240,6 +259,17 @@ const vi: AdminCenterCopy = {
   adminLoginTitle: "Dang nhap quan tri",
   adminLoginUsernameLabel: "Tai khoan",
   adminLogoutButton: "Dang xuat quan tri",
+  adminPasswordChangeButton: "Doi mat khau quan tri",
+  adminPasswordChangeSuccess:
+    "Da doi mat khau quan tri. Lan sau hay dung mat khau moi.",
+  adminPasswordConfirmLabel: "Nhap lai mat khau moi",
+  adminPasswordCurrentLabel: "Mat khau hien tai",
+  adminPasswordMismatchError: "Mat khau moi nhap lai chua khop.",
+  adminPasswordNewLabel: "Mat khau moi",
+  adminPasswordSecurityLead:
+    "Cap nhat mat khau vao truc tiep /admin. Mat khau moi se duoc luu dang hash an toan trong database.",
+  adminPasswordSecurityTitle: "Mat khau quan tri",
+  adminPasswordTooShortError: "Mat khau moi can toi thieu 8 ky tu.",
   adminPageDescription:
     "Khu quan tri van hanh cho san pham, ton kho, nhan vien va don hang cua Mushroom.Pi.",
   adminPageTitle: "Quan tri | Mushroom.Pi",

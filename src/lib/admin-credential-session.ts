@@ -3,6 +3,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
+import { verifyStoredAdminPassword } from "@/lib/admin-password-store";
 
 const ADMIN_SESSION_COOKIE_NAME = "mushroom.admin.session";
 const ADMIN_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
@@ -94,11 +95,22 @@ function getConfiguredAdminPassword() {
   return process.env.ADMIN_PORTAL_PASSWORD?.trim() || "";
 }
 
-export function validateAdminCredentials(username: string, password: string) {
-  return (
-    username.trim() === getConfiguredAdminUsername() &&
-    password === getConfiguredAdminPassword()
-  );
+export async function validateAdminCredentials(username: string, password: string) {
+  const configuredUsername = getConfiguredAdminUsername();
+
+  if (username.trim() !== configuredUsername) {
+    return false;
+  }
+
+  const storedPasswordIsValid = await verifyStoredAdminPassword(username, password);
+
+  if (storedPasswordIsValid !== null) {
+    return storedPasswordIsValid;
+  }
+
+  const configuredPassword = getConfiguredAdminPassword();
+
+  return configuredPassword.length > 0 && password === configuredPassword;
 }
 
 export async function getAdminCredentialSession() {

@@ -45,6 +45,7 @@ Environment variables:
   Optional admin username for direct `/admin` credential sign-in. Defaults to `admin`.
 - `ADMIN_PORTAL_PASSWORD`
   Required for direct `/admin` credential sign-in. Set this as a private Vercel environment variable in production, and use `.env.local` for local development.
+  After signing in, the password can be changed from the admin Operations tab. Changed passwords are stored as hashed records in Postgres/Supabase and override this initial environment value.
 - `DATABASE_URL`
   Recommended connection string for a Postgres database. For Supabase on Vercel, use the `Transaction pooler` / `Supavisor` connection string (serverless-safe, usually port `6543`). If this is missing, the storefront falls back to browser `localStorage`.
 - `POSTGRES_URL`
