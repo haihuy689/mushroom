@@ -317,6 +317,38 @@ function mapProductRow(row: ProductRow): StorefrontProductRecord {
   };
 }
 
+function getFallbackStorefrontProductRecords() {
+  const timestamp = new Date().toISOString();
+
+  return getProducts(defaultLocale).map((product) => {
+    const normalized = normalizeStorefrontProductInput({
+      accent: product.accent,
+      badge: product.badge,
+      category: product.category,
+      description: product.description,
+      format: product.format,
+      id: product.id,
+      inventoryCount:
+        typeof product.inventoryCount === "number" ? product.inventoryCount : 24,
+      isActive: product.isActive !== false,
+      name: product.name,
+      packaging: product.packaging ?? product.format,
+      pricePi: product.pricePi,
+      slug: product.slug,
+      sourceProductId: product.id,
+      tagline: product.tagline,
+      weightUnit: product.weightUnit ?? "g",
+      weightValue: product.weightValue ?? null,
+    });
+
+    return {
+      ...normalized,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    } satisfies StorefrontProductRecord;
+  });
+}
+
 async function ensureDefaultStorefrontProductsSeeded() {
   if (!(await ensureStorefrontSchema())) {
     return false;
@@ -843,49 +875,53 @@ async function readAllStorefrontOrders() {
     return [] as StorefrontOrder[];
   }
 
-  const [orderRows, orderItemRows] = await Promise.all([
-    sql<OrderRow[]>`
-      select
-        id,
-        pi_uid,
-        product_id,
-        product_name,
-        quantity,
-        total_pi,
-        created_at::text,
-        txid,
-        payment_id,
-        fulfillment_status,
-        status_updated_at::text,
-        status_updated_by,
-        username,
-        shipping_full_name,
-        shipping_phone,
-        shipping_line1,
-        shipping_line2,
-        shipping_ward,
-        shipping_district,
-        shipping_city,
-        shipping_country,
-        shipping_note
-      from storefront_orders
-      order by created_at desc
-      limit 80
-    `,
-    sql<OrderItemRow[]>`
-      select
-        item.order_id,
-        item.product_id,
-        item.product_name,
-        item.quantity,
-        item.total_pi
-      from storefront_order_items item
-      inner join storefront_orders parent on parent.id = item.order_id
-      order by parent.created_at desc, item.product_name asc
-    `,
-  ]);
+  try {
+    const [orderRows, orderItemRows] = await Promise.all([
+      sql<OrderRow[]>`
+        select
+          id,
+          pi_uid,
+          product_id,
+          product_name,
+          quantity,
+          total_pi,
+          created_at::text,
+          txid,
+          payment_id,
+          fulfillment_status,
+          status_updated_at::text,
+          status_updated_by,
+          username,
+          shipping_full_name,
+          shipping_phone,
+          shipping_line1,
+          shipping_line2,
+          shipping_ward,
+          shipping_district,
+          shipping_city,
+          shipping_country,
+          shipping_note
+        from storefront_orders
+        order by created_at desc
+        limit 80
+      `,
+      sql<OrderItemRow[]>`
+        select
+          item.order_id,
+          item.product_id,
+          item.product_name,
+          item.quantity,
+          item.total_pi
+        from storefront_order_items item
+        inner join storefront_orders parent on parent.id = item.order_id
+        order by parent.created_at desc, item.product_name asc
+      `,
+    ]);
 
-  return mapOrderRows(orderRows, orderItemRows, 80);
+    return mapOrderRows(orderRows, orderItemRows, 80);
+  } catch {
+    return [] as StorefrontOrder[];
+  }
 }
 
 async function isStorefrontStaff(user: PiVerifiedUser | null) {
@@ -931,33 +967,33 @@ export async function getStorefrontAdminAccess(
 }
 
 export async function listStorefrontStaffMembers() {
-  if (!(await ensureStorefrontSchema())) {
-    return [] as StorefrontStaffMember[];
-  }
-
   const sql = getSql();
 
   if (!sql) {
     return [] as StorefrontStaffMember[];
   }
 
-  const rows = await sql<StaffRow[]>`
-    select
-      username_key as identity_key,
-      display_username as display_identity,
-      added_by,
-      created_at::text
-    from storefront_staff_members
-    where is_active = true
-    order by created_at desc
-  `;
+  try {
+    const rows = await sql<StaffRow[]>`
+      select
+        username_key as identity_key,
+        display_username as display_identity,
+        added_by,
+        created_at::text
+      from storefront_staff_members
+      where is_active = true
+      order by created_at desc
+    `;
 
-  return rows.map((row) => ({
-    addedAt: row.created_at,
-    addedBy: row.added_by,
-    identity: row.display_identity,
-    identityKey: row.identity_key,
-  }));
+    return rows.map((row) => ({
+      addedAt: row.created_at,
+      addedBy: row.added_by,
+      identity: row.display_identity,
+      identityKey: row.identity_key,
+    }));
+  } catch {
+    return [] as StorefrontStaffMember[];
+  }
 }
 
 export async function addStorefrontStaffMember(
@@ -1030,41 +1066,41 @@ export async function removeStorefrontStaffMember(username: string) {
 }
 
 export async function listStorefrontProductRecords() {
-  if (!(await ensureDefaultStorefrontProductsSeeded())) {
-    return [] as StorefrontProductRecord[];
-  }
-
   const sql = getSql();
 
   if (!sql) {
-    return [] as StorefrontProductRecord[];
+    return getFallbackStorefrontProductRecords();
   }
 
-  const rows = await sql<ProductRow[]>`
-    select
-      id,
-      source_product_id,
-      slug,
-      name,
-      tagline,
-      description,
-      category,
-      format,
-      price_pi,
-      badge,
-      accent,
-      packaging,
-      weight_value,
-      weight_unit,
-      inventory_count,
-      is_active,
-      created_at::text,
-      updated_at::text
-    from storefront_products
-    order by source_product_id nulls last, updated_at desc, name asc
-  `;
+  try {
+    const rows = await sql<ProductRow[]>`
+      select
+        id,
+        source_product_id,
+        slug,
+        name,
+        tagline,
+        description,
+        category,
+        format,
+        price_pi,
+        badge,
+        accent,
+        packaging,
+        weight_value,
+        weight_unit,
+        inventory_count,
+        is_active,
+        created_at::text,
+        updated_at::text
+      from storefront_products
+      order by source_product_id nulls last, updated_at desc, name asc
+    `;
 
-  return rows.map(mapProductRow);
+    return rows.map(mapProductRow);
+  } catch {
+    return getFallbackStorefrontProductRecords();
+  }
 }
 
 export async function listStorefrontActiveProductRecords() {
@@ -1168,10 +1204,6 @@ export async function saveStorefrontProduct(input: Partial<StorefrontProductInpu
 }
 
 export async function listStorefrontOrdersForAdmin() {
-  if (!(await ensureStorefrontSchema())) {
-    return [] as StorefrontOrder[];
-  }
-
   return readAllStorefrontOrders();
 }
 
