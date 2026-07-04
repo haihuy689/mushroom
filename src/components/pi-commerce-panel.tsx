@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import type { SiteCopy } from "@/lib/site-data";
 import type {
   PiAuthResult,
@@ -27,6 +27,7 @@ const scopes = ["username", "payments"] as const;
 const networkLabel =
   process.env.NEXT_PUBLIC_PI_NETWORK_LABEL?.trim() || "Pi Testnet";
 const sandboxEnabled = process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
+const autoAuthenticateEnabled = process.env.NEXT_PUBLIC_PI_AUTO_AUTH === "true";
 
 async function postJson<T>(
   path: string,
@@ -66,6 +67,7 @@ export function PiCommercePanel({
   const [timeline, setTimeline] = useState<string[]>([copy.initialTimeline]);
 
   const initializedRef = useRef(false);
+  const autoAuthStartedRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -103,7 +105,7 @@ export function PiCommercePanel({
     setTimeline((current) => [entry, ...current].slice(0, 6));
   };
 
-  const handleAuthenticate = async () => {
+  const authenticate = async () => {
     if (!window.Pi) {
       setMessage({
         kind: "error",
@@ -160,6 +162,32 @@ export function PiCommercePanel({
       setAuthBusy(false);
     }
   };
+
+  const runAutoAuthenticate = useEffectEvent(() => {
+    void authenticate();
+  });
+
+  useEffect(() => {
+    if (
+      !autoAuthenticateEnabled ||
+      !sdkReady ||
+      viewer ||
+      authBusy ||
+      autoAuthStartedRef.current
+    ) {
+      return;
+    }
+
+    autoAuthStartedRef.current = true;
+
+    const autoAuthTimer = setTimeout(() => {
+      runAutoAuthenticate();
+    }, 150);
+
+    return () => {
+      clearTimeout(autoAuthTimer);
+    };
+  }, [authBusy, sdkReady, viewer]);
 
   const handlePurchase = (product: Product) => {
     if (!window.Pi) {
@@ -304,7 +332,9 @@ export function PiCommercePanel({
         <button
           type="button"
           className={styles.connectButton}
-          onClick={handleAuthenticate}
+          onClick={() => {
+            void authenticate();
+          }}
           disabled={!sdkReady || authBusy}
         >
           {authBusy ? copy.connectBusy : copy.connectReady}

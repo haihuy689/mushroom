@@ -34,6 +34,8 @@ Environment variables:
   Set to `true` only when testing via Pi Sandbox locally.
 - `NEXT_PUBLIC_PI_NETWORK_LABEL`
   UI label only, useful for showing `Pi Testnet` while the app is still in test mode.
+- `NEXT_PUBLIC_PI_AUTO_AUTH`
+  Set to `true` if you want the Pi auth prompt to fire automatically once the Pi SDK is ready.
 
 ## Pi integration notes
 
