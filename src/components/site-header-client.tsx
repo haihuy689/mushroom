@@ -118,7 +118,7 @@ function AccountMenu({
   const { signInWithPi, signOut } = useStorefront();
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
   const isSignedIn = hydrated && Boolean(viewer);
-  const showAdminShortcut = isSignedIn && adminAccess.canAccessAdmin;
+  const showAdminShortcut = adminAccess.canAccessAdmin;
   const adminShortcutLabel =
     adminAccess.role === "owner" ? copy.adminPanel : copy.staffPanel;
   const orderCounts = hydrated

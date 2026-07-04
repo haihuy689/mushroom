@@ -8,7 +8,7 @@ export async function GET() {
   if (!access.canManageOrders) {
     return NextResponse.json(
       {
-        error: "Admin access is required.",
+        error: "Admin session is required.",
       },
       { status: 403 },
     );

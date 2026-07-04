@@ -9,7 +9,7 @@ import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 function forbiddenResponse() {
   return NextResponse.json(
     {
-      error: "Only the owner can manage staff.",
+      error: "Admin session is required.",
     },
     { status: 403 },
   );
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   if (!identity) {
     return NextResponse.json(
       {
-        error: "Pi user id or username is required.",
+        error: "Employee login or code is required.",
       },
       { status: 400 },
     );
@@ -64,7 +64,7 @@ export async function DELETE(request: Request) {
   if (!identity) {
     return NextResponse.json(
       {
-        error: "Pi user id or username is required.",
+        error: "Employee login or code is required.",
       },
       { status: 400 },
     );

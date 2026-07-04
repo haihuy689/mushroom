@@ -11,7 +11,7 @@ import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 function forbiddenResponse() {
   return NextResponse.json(
     {
-      error: "Only the owner can manage products.",
+      error: "Admin session is required to manage products.",
     },
     { status: 403 },
   );

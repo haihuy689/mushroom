@@ -12,7 +12,7 @@ export async function PATCH(
   if (!access.canManageOrders || (!user?.username && !user?.uid)) {
     return NextResponse.json(
       {
-        error: "Admin access is required.",
+        error: "Admin session is required.",
       },
       { status: 403 },
     );

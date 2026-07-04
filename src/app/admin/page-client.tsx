@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import type {
   StorefrontAdminAccess,
@@ -80,7 +79,6 @@ export function AdminPageClient({
   locale,
   orderCopy,
 }: AdminPageClientProps) {
-  const router = useRouter();
   const [orders, setOrders] = useState<StorefrontOrder[]>(initialOrders);
   const [products, setProducts] = useState<StorefrontProductRecord[]>(initialProducts);
   const [staff, setStaff] = useState<StorefrontStaffMember[]>(initialStaff);
@@ -132,7 +130,7 @@ export function AdminPageClient({
     shipping: orderCopy.shipping,
   };
 
-  const panelLabel = initialAccess.role === "owner" ? copy.ownerPanel : copy.staffPanel;
+  const panelLabel = copy.ownerPanel;
 
   const handleRefreshOrders = async () => {
     setRefreshingOrders(true);
@@ -186,7 +184,7 @@ export function AdminPageClient({
 
       setCredentialAuthOverride(true);
       setAdminPassword("");
-      router.refresh();
+      window.location.replace("/admin");
     } catch (error) {
       setMessage({
         kind: "error",
@@ -207,7 +205,7 @@ export function AdminPageClient({
       });
 
       setCredentialAuthOverride(false);
-      router.refresh();
+      window.location.replace("/admin");
     } catch (error) {
       setMessage({
         kind: "error",
@@ -547,7 +545,7 @@ export function AdminPageClient({
                     <input
                       value={staffIdentity}
                       onChange={(event) => setStaffIdentity(event.target.value)}
-                      placeholder="pi-user-id-or-username"
+                      placeholder="employee-login-or-code"
                       required
                     />
                   </label>
