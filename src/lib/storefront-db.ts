@@ -1,5 +1,6 @@
 import "server-only";
 
+import postgres from "postgres";
 import {
   buildStorefrontAdminAccess,
   getUserAdminIdentityKeys,
@@ -155,6 +156,10 @@ const STOREFRONT_REQUIRED_TABLES = [
   "storefront_staff_members",
   "storefront_products",
 ] as const;
+
+function getStorefrontDatabaseUrl() {
+  return process.env.DATABASE_URL?.trim() || process.env.POSTGRES_URL?.trim() || "";
+}
 
 const STOREFRONT_REQUIRED_COLUMNS = [
   { table: "storefront_orders", column: "fulfillment_status" },
@@ -1348,46 +1353,68 @@ export async function removeStorefrontStaffMember(username: string) {
 }
 
 export async function listStorefrontProductRecords() {
-  const sql = getSql();
+  const directRecords = await readStorefrontProductRecordsDirect();
 
-  if (!sql) {
-    return getFallbackStorefrontProductRecords();
+  if (directRecords !== null) {
+    return directRecords;
   }
 
+  return getFallbackStorefrontProductRecords();
+}
+
+export async function readStorefrontProductRecordsDirect() {
+  const databaseUrl = getStorefrontDatabaseUrl();
+
+  if (!databaseUrl) {
+    return null as StorefrontProductRecord[] | null;
+  }
+
+  const sql = postgres(databaseUrl, {
+    connect_timeout: 5,
+    idle_timeout: 5,
+    max: 1,
+    prepare: false,
+  });
+
   try {
-    const rows = await sql<ProductRow[]>`
-      select
-        id,
-        source_product_id,
-        slug,
-        name,
-        sku,
-        tagline,
-        description,
-        category,
-        format,
-        price_pi,
-        compare_at_pi,
-        cost_pi,
-        badge,
-        accent,
-        packaging,
-        image_url,
-        weight_value,
-        weight_unit,
-        inventory_count,
-        low_stock_threshold,
-        is_active,
-        is_featured,
-        created_at::text,
-        updated_at::text
-      from storefront_products
-      order by source_product_id nulls last, updated_at desc, name asc
-    `;
+    const rows = await withStorefrontTimeout(
+      sql<ProductRow[]>`
+        select
+          id,
+          source_product_id,
+          slug,
+          name,
+          sku,
+          tagline,
+          description,
+          category,
+          format,
+          price_pi,
+          compare_at_pi,
+          cost_pi,
+          badge,
+          accent,
+          packaging,
+          image_url,
+          weight_value,
+          weight_unit,
+          inventory_count,
+          low_stock_threshold,
+          is_active,
+          is_featured,
+          created_at::text,
+          updated_at::text
+        from storefront_products
+        order by source_product_id nulls last, updated_at desc, name asc
+      `,
+      "Storefront catalog read",
+    );
 
     return rows.map(mapProductRow);
   } catch {
-    return getFallbackStorefrontProductRecords();
+    return null as StorefrontProductRecord[] | null;
+  } finally {
+    await sql.end({ timeout: 1 }).catch(() => undefined);
   }
 }
 

@@ -2,7 +2,6 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import type { StorefrontProductInput } from "@/lib/storefront-product";
 import {
-  ensureStorefrontSchema,
   listStorefrontProductRecords,
   saveStorefrontProduct,
 } from "@/lib/storefront-db";
@@ -26,8 +25,6 @@ export async function GET() {
   if (!access.canAccessAdmin) {
     return forbiddenResponse();
   }
-
-  await ensureStorefrontSchema();
 
   return NextResponse.json({
     items: access.canManageProducts ? await listStorefrontProductRecords() : [],

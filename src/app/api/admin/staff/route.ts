@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import {
-  ensureStorefrontSchema,
   listStorefrontStaffMembers,
   removeStorefrontStaffMember,
   saveStorefrontStaffMember,
@@ -24,8 +23,6 @@ export async function GET() {
   if (!access.canAccessAdmin) {
     return forbiddenResponse();
   }
-
-  await ensureStorefrontSchema();
 
   return NextResponse.json({
     items: access.canManageStaff ? await listStorefrontStaffMembers() : [],

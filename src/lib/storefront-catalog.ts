@@ -3,7 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import type { SiteLocale } from "@/lib/i18n";
 import type { Product } from "@/lib/pi-types";
-import { listStorefrontProductRecords } from "@/lib/storefront-db";
+import { readStorefrontProductRecordsDirect } from "@/lib/storefront-db";
 import {
   mapProductRecordToProduct,
   type StorefrontProductRecord,
@@ -11,16 +11,22 @@ import {
 import { getProducts } from "@/lib/site-data";
 
 const PRODUCT_RECORDS_REVALIDATE_SECONDS = 90;
-const PRODUCT_RECORDS_TIMEOUT_MS = 1200;
 export const STOREFRONT_PRODUCT_RECORDS_TAG = "storefront-product-records";
+
+declare global {
+  var __mushroomLastCatalogProductRecords: StorefrontProductRecord[] | undefined;
+}
 
 const readCachedStorefrontProductRecords = unstable_cache(
   async () => {
-    try {
-      return await listStorefrontProductRecords();
-    } catch {
-      return [] as StorefrontProductRecord[];
+    const records = await readStorefrontProductRecordsDirect();
+
+    if (records === null) {
+      throw new Error("Storefront product records are unavailable.");
     }
+
+    globalThis.__mushroomLastCatalogProductRecords = records;
+    return records;
   },
   [STOREFRONT_PRODUCT_RECORDS_TAG],
   {
@@ -48,12 +54,11 @@ function withOperationalDefaults(product: Product): Product {
 }
 
 async function readStorefrontProductRecordsForCatalog() {
-  return await Promise.race<StorefrontProductRecord[]>([
-    readCachedStorefrontProductRecords(),
-    new Promise<StorefrontProductRecord[]>((resolve) => {
-      setTimeout(() => resolve([]), PRODUCT_RECORDS_TIMEOUT_MS);
-    }),
-  ]);
+  try {
+    return await readCachedStorefrontProductRecords();
+  } catch {
+    return globalThis.__mushroomLastCatalogProductRecords ?? [];
+  }
 }
 
 export async function getStorefrontProducts(locale: SiteLocale) {
