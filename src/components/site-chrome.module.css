@@ -13,11 +13,9 @@
 }
 
 .headerCard {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 16px 18px;
+  display: grid;
+  gap: 16px;
+  padding: 18px 20px;
   border: 1px solid rgba(67, 43, 19, 0.1);
   border-radius: 28px;
   background:
@@ -28,22 +26,22 @@
 
 .brandLink {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   min-width: 0;
-  flex: 1 1 auto;
+  width: fit-content;
 }
 
 .brandMark {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
 }
 
 .brandIcon {
-  width: 52px;
-  height: 52px;
-  border-radius: 18px;
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
   display: grid;
   place-items: center;
   background:
@@ -56,12 +54,12 @@
 
 .brandCopy {
   display: grid;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
 }
 
 .brandName {
-  font-size: 1.08rem;
+  font-size: clamp(1.2rem, 2vw, 1.42rem);
   font-weight: 700;
   color: #29150d;
   letter-spacing: -0.03em;
@@ -69,29 +67,29 @@
 
 .brandTag {
   color: rgba(67, 41, 24, 0.72);
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   line-height: 1.4;
 }
 
-.headerAside {
+.menuRow {
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
-  flex: 0 1 auto;
+  justify-content: space-between;
+  flex-wrap: nowrap;
 }
 
-.nav {
+.menuNav {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
 }
 
-.navLink,
-.headerAction {
+.navLink {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -101,6 +99,8 @@
   font-weight: 600;
   border: 1px solid rgba(72, 43, 22, 0.1);
   white-space: nowrap;
+  background: rgba(255, 251, 242, 0.72);
+  color: #473021;
   transition:
     transform 180ms ease,
     background-color 180ms ease,
@@ -108,15 +108,68 @@
     border-color 180ms ease;
 }
 
-.navLink {
-  background: rgba(255, 251, 242, 0.68);
-  color: #473021;
+.navLink[data-active="true"] {
+  background: rgba(255, 244, 219, 0.96);
+  border-color: rgba(72, 43, 22, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
 }
 
-.headerAction {
-  background: linear-gradient(135deg, #8f5128, #2d5d45);
+.iconRail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.iconButton {
+  position: relative;
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(72, 43, 22, 0.12);
+  background: rgba(255, 251, 242, 0.84);
+  color: #473021;
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.iconButton svg {
+  width: 19px;
+  height: 19px;
+}
+
+.iconBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #97572a, #2f5f45);
   color: #fff8ef;
-  box-shadow: 0 12px 28px rgba(69, 39, 20, 0.16);
+  font-size: 0.68rem;
+  font-weight: 700;
+  box-shadow: 0 10px 18px rgba(69, 39, 20, 0.18);
+}
+
+.iconIndicator {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 2px solid #fff8ef;
+  background: #2f5f45;
 }
 
 .languageMenu {
@@ -127,9 +180,10 @@
 .languageTrigger {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-height: 42px;
-  padding: 0 12px;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
   border-radius: 999px;
   border: 1px solid rgba(72, 43, 22, 0.12);
   background: rgba(255, 251, 242, 0.84);
@@ -147,6 +201,13 @@
 .languageTrigger::-webkit-details-marker {
   display: none;
   content: "";
+}
+
+.languageTrigger[data-compact="false"] {
+  gap: 10px;
+  width: auto;
+  min-height: 42px;
+  padding: 0 12px;
 }
 
 .languageMenu[open] .languageTrigger {
@@ -354,7 +415,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .navLink:hover,
-  .headerAction:hover,
+  .iconButton:hover,
   .languageTrigger:hover,
   .languageOption:hover {
     transform: translateY(-2px);
@@ -365,8 +426,9 @@
     border-color: rgba(72, 43, 22, 0.16);
   }
 
-  .headerAction:hover {
-    box-shadow: 0 16px 34px rgba(69, 39, 20, 0.24);
+  .iconButton:hover {
+    background: rgba(255, 245, 223, 0.96);
+    box-shadow: 0 12px 24px rgba(69, 39, 20, 0.12);
   }
 
   .languageOption:hover {
@@ -375,18 +437,8 @@
 }
 
 @media (max-width: 860px) {
-  .headerCard {
-    align-items: flex-start;
+  .footerTop {
     flex-direction: column;
-  }
-
-  .brandLink,
-  .headerAside {
-    width: 100%;
-  }
-
-  .headerAside {
-    justify-content: space-between;
   }
 }
 
@@ -401,38 +453,63 @@
     border-radius: 22px;
   }
 
+  .brandIcon {
+    width: 50px;
+    height: 50px;
+    border-radius: 18px;
+  }
+
+  .brandName {
+    font-size: 1.14rem;
+  }
+
   .brandTag {
-    font-size: 0.8rem;
+    font-size: 0.76rem;
   }
 
-  .headerAside,
-  .nav {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .nav {
+  .menuRow {
     gap: 8px;
   }
 
-  .navLink,
-  .headerAction {
-    min-height: 40px;
-    padding: 0 14px;
+  .menuNav {
+    gap: 6px;
   }
 
-  .headerAction {
-    width: 100%;
+  .navLink {
+    min-height: 38px;
+    padding: 0 12px;
+    font-size: 0.88rem;
+  }
+
+  .iconButton,
+  .languageTrigger,
+  .languageTrigger[data-compact="false"] {
+    width: 38px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0;
   }
 
   .languagePopover {
-    left: 0;
-    right: auto;
+    right: 0;
+    left: auto;
     width: min(240px, calc(100vw - 32px));
     max-width: calc(100vw - 32px);
   }
 
   .footerWrap {
     padding: 14px 12px 22px;
+  }
+}
+
+@media (max-width: 380px) {
+  .menuRow,
+  .iconRail {
+    gap: 6px;
+  }
+
+  .navLink {
+    padding: 0 10px;
+    font-size: 0.84rem;
   }
 }

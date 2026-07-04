@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useStorefront } from "@/components/storefront-provider";
 import type { SiteCopy } from "@/lib/site-data";
 import type {
   PiAuthResult,
@@ -15,6 +16,7 @@ type CommercePanelProps = {
   serverConfigured: boolean;
   copy: SiteCopy["piPanel"];
   compact?: boolean;
+  onPaymentCompleted?: (product: Product) => void;
 };
 
 type MessageState =
@@ -58,11 +60,12 @@ export function PiCommercePanel({
   serverConfigured,
   copy,
   compact = false,
+  onPaymentCompleted,
 }: CommercePanelProps) {
+  const { hydrated, recordOrder, setViewer, viewer } = useStorefront();
   const [sdkReady, setSdkReady] = useState(false);
   const [authBusy, setAuthBusy] = useState(false);
   const [purchaseBusy, setPurchaseBusy] = useState<string | null>(null);
-  const [viewer, setViewer] = useState<PiVerifiedUser | null>(null);
   const [message, setMessage] = useState<MessageState>(null);
   const [timeline, setTimeline] = useState<string[]>([copy.initialTimeline]);
 
@@ -170,6 +173,7 @@ export function PiCommercePanel({
   useEffect(() => {
     if (
       !autoAuthenticateEnabled ||
+      !hydrated ||
       !sdkReady ||
       viewer ||
       authBusy ||
@@ -178,7 +182,7 @@ export function PiCommercePanel({
       return;
     }
 
-    autoAuthStartedRef.current = true;
+      autoAuthStartedRef.current = true;
 
     const autoAuthTimer = setTimeout(() => {
       runAutoAuthenticate();
@@ -187,7 +191,7 @@ export function PiCommercePanel({
     return () => {
       clearTimeout(autoAuthTimer);
     };
-  }, [authBusy, sdkReady, viewer]);
+  }, [authBusy, hydrated, sdkReady, viewer]);
 
   const handlePurchase = (product: Product) => {
     if (!window.Pi) {
@@ -272,7 +276,17 @@ export function PiCommercePanel({
               kind: "success",
               text: `${product.name} ${copy.completionSuccessSuffix}`,
             });
+            recordOrder({
+              paymentId,
+              productId: product.sourceProductId ?? product.id,
+              productName: product.name,
+              quantity: product.quantity ?? 1,
+              totalPi: product.pricePi,
+              txid,
+              username: viewer?.username,
+            });
             appendTimeline(`[${paymentId}] ${copy.completionDone}`);
+            onPaymentCompleted?.(product);
             setPurchaseBusy(null);
           } catch (error) {
             setPurchaseBusy(null);

@@ -144,6 +144,11 @@
   font-size: 0.9rem;
 }
 
+.cardActions {
+  display: flex;
+  margin-top: auto;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .catalogCard:hover {
     transform: translateY(-2px);

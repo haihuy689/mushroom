@@ -1,0 +1,33 @@
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #97572a, #2f5f45);
+  color: #fff8ef;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
+  box-shadow: 0 12px 24px rgba(71, 44, 22, 0.16);
+}
+
+.addButton[data-full="true"] {
+  width: 100%;
+}
+
+.addButton[data-added="true"] {
+  background: linear-gradient(135deg, #2f5f45, #5d7c3f);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .addButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 30px rgba(71, 44, 22, 0.2);
+  }
+}

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
+import { AddToCartButton } from "@/components/add-to-cart-button";
 import { PiCommercePanel } from "@/components/pi-commerce-panel";
 import { getRequestLocale } from "@/lib/request-locale";
+import { getStorefrontCopy } from "@/lib/storefront-copy";
 import { getProducts, getSiteCopy } from "@/lib/site-data";
 import styles from "./page.module.css";
 
@@ -18,6 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ShopPage() {
   const locale = await getRequestLocale();
   const siteCopy = getSiteCopy(locale);
+  const storefrontCopy = getStorefrontCopy(locale);
   const products = getProducts(locale);
   const serverConfigured = Boolean(process.env.PI_API_KEY);
 
@@ -55,6 +58,14 @@ export default async function ShopPage() {
                 <span>{product.category}</span>
                 <span>{product.format}</span>
                 <span>{product.pricePi} Pi</span>
+              </div>
+              <div className={styles.cardActions}>
+                <AddToCartButton
+                  productId={product.id}
+                  addLabel={storefrontCopy.addToCart}
+                  addedLabel={storefrontCopy.addedToCart}
+                  fullWidth
+                />
               </div>
             </article>
           ))}

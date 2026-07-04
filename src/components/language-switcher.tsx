@@ -1,13 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import type { SiteLocale } from "@/lib/i18n";
 import { localeOptions } from "@/lib/i18n";
 import styles from "./site-chrome.module.css";
 
 type LanguageSwitcherProps = {
   currentLocale: SiteLocale;
+  compact?: boolean;
+  ariaLabel?: string;
 };
 
 function FlagChip({ locale }: { locale: SiteLocale }) {
@@ -20,8 +21,11 @@ function FlagChip({ locale }: { locale: SiteLocale }) {
   );
 }
 
-export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
-  const router = useRouter();
+export function LanguageSwitcher({
+  currentLocale,
+  compact = false,
+  ariaLabel,
+}: LanguageSwitcherProps) {
   const [pendingLocale, setPendingLocale] = useState<SiteLocale | null>(null);
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
 
@@ -38,7 +42,7 @@ export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
     setPendingLocale(locale);
 
     try {
-      await fetch("/api/preferences/locale", {
+      const response = await fetch("/api/preferences/locale", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,8 +50,14 @@ export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
         body: JSON.stringify({ locale }),
       });
 
+      if (!response.ok) {
+        throw new Error("Unable to update locale.");
+      }
+
       detailsRef.current?.removeAttribute("open");
-      router.refresh();
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
     } finally {
       setPendingLocale(null);
     }
@@ -57,12 +67,17 @@ export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
     <details ref={detailsRef} className={styles.languageMenu}>
       <summary
         className={styles.languageTrigger}
-        aria-label={`Current language: ${currentOption.nativeLabel}`}
+        data-compact={compact}
+        aria-label={
+          ariaLabel ?? `Current language: ${currentOption.nativeLabel}`
+        }
       >
         <FlagChip locale={currentOption.code} />
-        <span className={styles.languageCode}>
-          {currentOption.code.toUpperCase()}
-        </span>
+        {compact ? null : (
+          <span className={styles.languageCode}>
+            {currentOption.code.toUpperCase()}
+          </span>
+        )}
       </summary>
 
       <div className={styles.languagePopover}>

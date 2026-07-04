@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getRequestLocale } from "@/lib/request-locale";
 import { getNavigationLinks, getSiteCopy } from "@/lib/site-data";
+import { BRAND_SLOGAN } from "@/lib/storefront-copy";
 import { BrandMark } from "./brand-mark";
 import styles from "./site-chrome.module.css";
 
@@ -15,7 +16,7 @@ export async function SiteFooter() {
         <div className={styles.footerCard}>
           <div className={styles.footerTop}>
             <div>
-              <BrandMark tagline={siteCopy.brandTagline} />
+              <BrandMark tagline={BRAND_SLOGAN} />
               <p className={styles.footerCopy}>{siteCopy.footerCopy}</p>
             </div>
 

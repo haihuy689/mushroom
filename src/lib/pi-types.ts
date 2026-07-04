@@ -57,6 +57,8 @@ export interface PiVerifiedUser {
 
 export interface Product {
   id: string;
+  sourceProductId?: string;
+  quantity?: number;
   slug: string;
   name: string;
   tagline: string;

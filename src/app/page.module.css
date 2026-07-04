@@ -279,6 +279,11 @@
   font-size: 0.9rem;
 }
 
+.productActions {
+  display: flex;
+  margin-top: auto;
+}
+
 .commerceSection {
   display: grid;
   grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);

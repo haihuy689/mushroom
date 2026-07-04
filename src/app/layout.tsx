@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Cormorant_Garamond, Space_Grotesk } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { StorefrontProvider } from "@/components/storefront-provider";
 import { getRequestLocale } from "@/lib/request-locale";
 import { getSiteCopy } from "@/lib/site-data";
 import "./globals.css";
@@ -47,11 +48,13 @@ export default async function RootLayout({
           src="https://sdk.minepi.com/pi-sdk.js"
           strategy="beforeInteractive"
         />
-        <div className="site-shell">
-          <SiteHeader />
-          <main className="site-main">{children}</main>
-          <SiteFooter />
-        </div>
+        <StorefrontProvider>
+          <div className="site-shell">
+            <SiteHeader />
+            <main className="site-main">{children}</main>
+            <SiteFooter />
+          </div>
+        </StorefrontProvider>
       </body>
     </html>
   );
