@@ -35,7 +35,13 @@ function withOperationalDefaults(product: Product): Product {
     inventoryCount:
       typeof product.inventoryCount === "number" ? product.inventoryCount : 24,
     isActive: product.isActive !== false,
+    isFeatured: product.isFeatured === true,
+    lowStockThreshold:
+      typeof product.lowStockThreshold === "number"
+        ? product.lowStockThreshold
+        : 5,
     packaging: product.packaging ?? "",
+    sku: product.sku ?? "",
     weightUnit: product.weightUnit ?? undefined,
     weightValue: product.weightValue ?? undefined,
   };
@@ -77,11 +83,17 @@ export async function getStorefrontProducts(locale: SiteLocale) {
         ...staticProduct,
         accent: productRecord.accent || staticProduct.accent,
         badge: productRecord.badge || staticProduct.badge,
+        compareAtPi: productRecord.compareAtPi ?? staticProduct.compareAtPi,
+        costPi: productRecord.costPi ?? staticProduct.costPi,
+        imageUrl: productRecord.imageUrl || staticProduct.imageUrl,
         inventoryCount: productRecord.inventoryCount,
         isActive: productRecord.isActive,
+        isFeatured: productRecord.isFeatured,
+        lowStockThreshold: productRecord.lowStockThreshold,
         packaging: productRecord.packaging || undefined,
         pricePi: productRecord.pricePi,
         sourceProductId: productRecord.sourceProductId ?? staticProduct.id,
+        sku: productRecord.sku || staticProduct.sku,
         weightUnit: productRecord.weightUnit ?? undefined,
         weightValue: productRecord.weightValue ?? undefined,
       });

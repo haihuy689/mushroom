@@ -23,6 +23,7 @@ export type StorefrontAdminRole = "guest" | "staff" | "owner";
 export type StorefrontAdminAccess = {
   canAccessAdmin: boolean;
   canManageOrders: boolean;
+  canManageProducts: boolean;
   canManageStaff: boolean;
   role: StorefrontAdminRole;
   username: string | null;
@@ -31,8 +32,15 @@ export type StorefrontAdminAccess = {
 export type StorefrontStaffMember = {
   addedAt: string;
   addedBy: string;
+  canManageOrders: boolean;
+  canManageProducts: boolean;
+  canManageStaff: boolean;
+  fullName: string;
   identity: string;
   identityKey: string;
+  isActive: boolean;
+  note: string;
+  role: string;
 };
 
 export function normalizeUsernameKey(value: string | undefined | null) {
@@ -59,15 +67,21 @@ export function guestAdminAccess(): StorefrontAdminAccess {
   return {
     canAccessAdmin: false,
     canManageOrders: false,
+    canManageProducts: false,
     canManageStaff: false,
     role: "guest",
     username: null,
   };
 }
 
+type StaffPermissionSnapshot = Pick<
+  StorefrontStaffMember,
+  "canManageOrders" | "canManageProducts" | "canManageStaff" | "isActive"
+>;
+
 export function buildStorefrontAdminAccess(
   user: PiVerifiedUser | null,
-  isStaff: boolean,
+  staffPermissions: StaffPermissionSnapshot | null,
 ): StorefrontAdminAccess {
   if (!user?.username && !user?.uid) {
     return guestAdminAccess();
@@ -77,17 +91,19 @@ export function buildStorefrontAdminAccess(
     return {
       canAccessAdmin: true,
       canManageOrders: true,
+      canManageProducts: true,
       canManageStaff: true,
       role: "owner",
       username: user.username ?? user.uid,
     };
   }
 
-  if (isStaff) {
+  if (staffPermissions?.isActive) {
     return {
       canAccessAdmin: true,
-      canManageOrders: true,
-      canManageStaff: false,
+      canManageOrders: staffPermissions.canManageOrders,
+      canManageProducts: staffPermissions.canManageProducts,
+      canManageStaff: staffPermissions.canManageStaff,
       role: "staff",
       username: user.username ?? user.uid,
     };
@@ -96,6 +112,7 @@ export function buildStorefrontAdminAccess(
   return {
     canAccessAdmin: false,
     canManageOrders: false,
+    canManageProducts: false,
     canManageStaff: false,
     role: "guest",
     username: user.username ?? user.uid,

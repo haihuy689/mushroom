@@ -4,6 +4,7 @@ import type { StorefrontStaffMember } from "@/lib/admin-access";
 import { isOrderStatus } from "@/lib/order-status";
 import type { StorefrontProductRecord } from "@/lib/storefront-product";
 import type { StorefrontOrder } from "@/lib/storefront-state";
+import { ensureStorefrontSchema } from "@/lib/storefront-db";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 
 const ADMIN_DASHBOARD_TIMEOUT_MS = 5000;
@@ -12,26 +13,39 @@ export const preferredRegion = "sin1";
 
 type StaffRow = {
   added_by: string;
+  can_manage_orders: boolean;
+  can_manage_products: boolean;
+  can_manage_staff: boolean;
   created_at: string;
   display_identity: string;
+  full_name: string;
   identity_key: string;
+  is_active: boolean;
+  note: string;
+  role: string;
 };
 
 type ProductRow = {
   accent: string;
   badge: string;
   category: string;
+  compare_at_pi: string | number | null;
+  cost_pi: string | number | null;
   created_at: string;
   description: string;
   format: string;
   id: string;
+  image_url: string;
   inventory_count: number;
   is_active: boolean;
+  is_featured: boolean;
+  low_stock_threshold: number;
   name: string;
   packaging: string;
   price_pi: string | number;
   slug: string;
   source_product_id: string | null;
+  sku: string;
   tagline: string;
   updated_at: string;
   weight_unit: string | null;
@@ -39,6 +53,7 @@ type ProductRow = {
 };
 
 type OrderRow = {
+  admin_note: string | null;
   id: string;
   product_id: string;
   product_name: string;
@@ -49,8 +64,10 @@ type OrderRow = {
   payment_id: string | null;
   pi_uid: string;
   fulfillment_status: string | null;
+  shipping_carrier: string | null;
   status_updated_at: string | null;
   status_updated_by: string | null;
+  tracking_code: string | null;
   username: string | null;
   shipping_full_name: string | null;
   shipping_phone: string | null;
@@ -102,8 +119,15 @@ function mapStaffRows(rows: StaffRow[]): StorefrontStaffMember[] {
   return rows.map((row) => ({
     addedAt: row.created_at,
     addedBy: row.added_by,
+    canManageOrders: row.can_manage_orders,
+    canManageProducts: row.can_manage_products,
+    canManageStaff: row.can_manage_staff,
+    fullName: row.full_name,
     identity: row.display_identity,
     identityKey: row.identity_key,
+    isActive: row.is_active,
+    note: row.note,
+    role: row.role,
   }));
 }
 
@@ -112,17 +136,24 @@ function mapProductRows(rows: ProductRow[]): StorefrontProductRecord[] {
     accent: row.accent,
     badge: row.badge,
     category: row.category,
+    compareAtPi:
+      row.compare_at_pi === null ? null : Number(row.compare_at_pi),
+    costPi: row.cost_pi === null ? null : Number(row.cost_pi),
     createdAt: row.created_at,
     description: row.description,
     format: row.format,
     id: row.id,
+    imageUrl: row.image_url,
     inventoryCount: row.inventory_count,
     isActive: row.is_active,
+    isFeatured: row.is_featured,
+    lowStockThreshold: row.low_stock_threshold,
     name: row.name,
     packaging: row.packaging,
     pricePi: Number(row.price_pi),
     slug: row.slug,
     sourceProductId: row.source_product_id,
+    sku: row.sku,
     tagline: row.tagline,
     updatedAt: row.updated_at,
     weightUnit: row.weight_unit,
@@ -151,6 +182,7 @@ function mapOrderRows(
   }
 
   return orderRows.map((row) => ({
+    adminNote: row.admin_note ?? undefined,
     id: row.id,
     productId: row.product_id,
     productName: row.product_name,
@@ -160,11 +192,13 @@ function mapOrderRows(
     shopperUid: row.pi_uid,
     txid: row.txid ?? undefined,
     paymentId: row.payment_id ?? undefined,
+    shippingCarrier: row.shipping_carrier ?? undefined,
     status: isOrderStatus(row.fulfillment_status)
       ? row.fulfillment_status
       : undefined,
     statusUpdatedAt: row.status_updated_at ?? undefined,
     statusUpdatedBy: row.status_updated_by ?? undefined,
+    trackingCode: row.tracking_code ?? undefined,
     username: row.username ?? undefined,
     items: itemsByOrderId.get(row.id) ?? [],
     shippingAddress: row.shipping_full_name
@@ -205,6 +239,8 @@ export async function GET() {
     });
   }
 
+  await ensureStorefrontSchema();
+
   const sql = postgres(databaseUrl, {
     connect_timeout: 5,
     idle_timeout: 5,
@@ -218,6 +254,7 @@ export async function GET() {
         Promise.all([
           sql<OrderRow[]>`
             select
+              admin_note,
               id,
               pi_uid,
               product_id,
@@ -228,8 +265,10 @@ export async function GET() {
               txid,
               payment_id,
               fulfillment_status,
+              shipping_carrier,
               status_updated_at::text,
               status_updated_by,
+              tracking_code,
               username,
               shipping_full_name,
               shipping_phone,
@@ -261,31 +300,43 @@ export async function GET() {
                   username_key as identity_key,
                   display_username as display_identity,
                   added_by,
-                  created_at::text
+                  created_at::text,
+                  full_name,
+                  note,
+                  role,
+                  is_active,
+                  can_manage_orders,
+                  can_manage_products,
+                  can_manage_staff
                 from storefront_staff_members
-                where is_active = true
-                order by created_at desc
+                order by is_active desc, created_at desc
               `
             : Promise.resolve([]),
-          access.canManageStaff
+          access.canManageProducts
             ? sql<ProductRow[]>`
                 select
                   id,
                   source_product_id,
                   slug,
                   name,
+                  sku,
                   tagline,
                   description,
                   category,
                   format,
                   price_pi,
+                  compare_at_pi,
+                  cost_pi,
                   badge,
                   accent,
                   packaging,
+                  image_url,
                   weight_value,
                   weight_unit,
                   inventory_count,
+                  low_stock_threshold,
                   is_active,
+                  is_featured,
                   created_at::text,
                   updated_at::text
                 from storefront_products

@@ -46,6 +46,7 @@ export default async function ShopPage() {
             >
               <ProductThumbnail
                 accent={product.accent}
+                imageUrl={product.imageUrl}
                 name={product.name}
                 productId={product.id}
               />

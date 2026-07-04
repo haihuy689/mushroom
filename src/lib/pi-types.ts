@@ -61,16 +61,22 @@ export interface Product {
   quantity?: number;
   slug: string;
   name: string;
+  sku?: string;
   tagline: string;
   description: string;
   category: string;
   format: string;
   pricePi: number;
+  compareAtPi?: number;
+  costPi?: number;
   badge: string;
   accent: string;
   inventoryCount?: number;
   isActive?: boolean;
+  isFeatured?: boolean;
+  lowStockThreshold?: number;
   packaging?: string;
+  imageUrl?: string;
   weightValue?: number;
   weightUnit?: string;
 }

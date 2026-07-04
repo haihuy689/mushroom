@@ -17,6 +17,7 @@ export async function getStorefrontAdminContext() {
       access: {
         canAccessAdmin: true,
         canManageOrders: true,
+        canManageProducts: true,
         canManageStaff: true,
         role: "owner" as const,
         username: credentialSession.username,

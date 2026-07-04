@@ -1,14 +1,8 @@
 import type { SiteLocale } from "@/lib/i18n";
 
 export type AdminCenterCopy = {
-  addProduct: string;
-  addProductButton: string;
-  addStaff: string;
-  addStaffButton: string;
-  dashboardLoading: string;
-  dashboardRetry: string;
-  dashboardSlowError: string;
   adminLead: string;
+  allClearLabel: string;
   adminLoginButton: string;
   adminLoginLead: string;
   adminLoginPasswordLabel: string;
@@ -20,26 +14,47 @@ export type AdminCenterCopy = {
   adminTitle: string;
   catalogManagerLead: string;
   catalogManagerTitle: string;
-  createProductButton: string;
+  catalogValueLabel: string;
+  comparePriceLabel: string;
+  costPriceLabel: string;
   customerLabel: string;
-  customProductLead: string;
-  customProductTitle: string;
+  dashboardLoading: string;
+  dashboardRetry: string;
+  dashboardSlowError: string;
+  editProductTitle: string;
+  editStaffTitle: string;
   emptyOrders: string;
   emptyProducts: string;
   emptyStaff: string;
-  hiddenProductsLabel: string;
+  featuredProductLabel: string;
+  featuredProductsLabel: string;
+  imageUrlLabel: string;
+  inactiveStaffLabel: string;
   inventoryLabel: string;
+  internalNoteLabel: string;
   latestSync: string;
-  liveProductsLabel: string;
+  lowStockLabel: string;
+  lowStockThresholdLabel: string;
+  newProductButton: string;
+  newProductTitle: string;
+  newStaffButton: string;
+  newStaffTitle: string;
+  noHiddenProductsLabel: string;
   noAccessBody: string;
-  noAccessTitle: string;
-  notes: string;
+  openOrdersLabel: string;
+  operationsLead: string;
+  operationsTab: string;
+  operationsTitle: string;
   orderAddress: string;
+  orderCodeLabel: string;
   orderItems: string;
+  orderManagerLead: string;
   orderManagerTitle: string;
+  ordersTab: string;
+  overviewTab: string;
   ownerPanel: string;
-  outOfStockProductsLabel: string;
   packagingLabel: string;
+  paymentIdLabel: string;
   priceLabel: string;
   productAccentLabel: string;
   productActiveLabel: string;
@@ -54,79 +69,113 @@ export type AdminCenterCopy = {
   productNameLabel: string;
   productOutOfStockStatus: string;
   productSlugLabel: string;
-  productSourceLabel: string;
   productSystemLabel: string;
   productTaglineLabel: string;
   productsRefresh: string;
+  productsTab: string;
+  reactivateStaff: string;
+  recentOrdersTitle: string;
   refreshOrders: string;
   removeStaff: string;
   saveError: string;
+  saveOrderButton: string;
   saveProductButton: string;
+  saveStaffButton: string;
   saveSuccess: string;
-  savingProductButton: string;
+  savingLabel: string;
+  selectOrderPrompt: string;
+  selectProductPrompt: string;
+  selectStaffPrompt: string;
+  shippingCarrierLabel: string;
+  skuLabel: string;
+  staffActiveLabel: string;
   staffAddedBy: string;
+  staffFullNameLabel: string;
   staffIdentityLabel: string;
+  staffManageOrdersLabel: string;
+  staffManageProductsLabel: string;
+  staffManageStaffLabel: string;
   staffManagerLead: string;
   staffManagerTitle: string;
-  staffPanel: string;
-  staffUsernameLabel: string;
+  staffNoteLabel: string;
+  staffPermissionsLabel: string;
+  staffRoleLabel: string;
+  staffTab: string;
   statusLabel: string;
-  updateStatus: string;
+  teamOverviewTitle: string;
+  totalSalesLabel: string;
+  trackingCodeLabel: string;
+  txidLabel: string;
   weightUnitLabel: string;
   weightValueLabel: string;
 };
 
 const en: AdminCenterCopy = {
-  addProduct: "Add product",
-  addProductButton: "Save product",
-  addStaff: "Add staff",
-  addStaffButton: "Save employee",
-  dashboardLoading: "Loading admin data...",
-  dashboardRetry: "Reload data",
-  dashboardSlowError:
-    "Admin data is responding slowly right now. Please try reloading.",
   adminLead:
-    "Manage employees, product inventory, and customer orders from one browser-based control panel.",
+    "Run Mushroom.Pi from one operational dashboard with real controls for products, inventory, team, and order handling.",
+  allClearLabel: "Everything is within the current stock target.",
   adminLoginButton: "Sign in to admin",
   adminLoginLead:
-    "Use the admin username and password to open the management dashboard directly.",
+    "Use the admin username and password to open the management workspace directly.",
   adminLoginPasswordLabel: "Password",
   adminLoginTitle: "Admin sign-in",
   adminLoginUsernameLabel: "Username",
   adminLogoutButton: "Sign out admin",
   adminPageDescription:
-    "System admin area for Mushroom.Pi staff, products, inventory, and orders.",
+    "Operational admin area for Mushroom.Pi products, inventory, employees, and orders.",
   adminPageTitle: "Admin | Mushroom.Pi",
-  adminTitle: "Admin center",
+  adminTitle: "Operations dashboard",
   catalogManagerLead:
-    "Update price, stock, packaging, weight, and active status for the products already live in your storefront.",
-  catalogManagerTitle: "Product catalog",
-  createProductButton: "Create product",
+    "Create products, control visibility, maintain pricing, and keep inventory data ready for real fulfillment.",
+  catalogManagerTitle: "Product management",
+  catalogValueLabel: "Catalog value",
+  comparePriceLabel: "Compare price (Pi)",
+  costPriceLabel: "Cost price (Pi)",
   customerLabel: "Customer",
-  customProductLead:
-    "Create a brand new product that should appear directly in the shop alongside your existing catalog.",
-  customProductTitle: "New product",
+  dashboardLoading: "Loading admin data...",
+  dashboardRetry: "Reload data",
+  dashboardSlowError:
+    "Admin data is responding slowly right now. Please try reloading.",
+  editProductTitle: "Edit product",
+  editStaffTitle: "Edit employee",
   emptyOrders: "No orders yet.",
   emptyProducts: "No products available yet.",
   emptyStaff: "No employees added yet.",
-  hiddenProductsLabel: "Hidden products",
+  featuredProductLabel: "Featured product",
+  featuredProductsLabel: "Featured",
+  imageUrlLabel: "Image URL",
+  inactiveStaffLabel: "Inactive staff",
   inventoryLabel: "Inventory",
+  internalNoteLabel: "Internal note",
   latestSync: "Latest sync",
-  liveProductsLabel: "Visible products",
+  lowStockLabel: "Low stock",
+  lowStockThresholdLabel: "Low-stock alert",
+  newProductButton: "New product",
+  newProductTitle: "New product",
+  newStaffButton: "New employee",
+  newStaffTitle: "New employee",
+  noHiddenProductsLabel: "No products are hidden right now.",
   noAccessBody:
     "Use the admin username and password to open the Mushroom.Pi management system.",
-  noAccessTitle: "Admin access required",
-  notes:
-    "Use this area to maintain employee records, product availability, and order processing in one place.",
+  openOrdersLabel: "Open orders",
+  operationsLead:
+    "Watch the health of the store at a glance: backlog, low stock, hidden products, and team readiness.",
+  operationsTab: "Operations",
+  operationsTitle: "Operational view",
   orderAddress: "Delivery address",
+  orderCodeLabel: "Order code",
   orderItems: "Items",
-  orderManagerTitle: "Order manager",
+  orderManagerLead:
+    "Track each order with status, shipping carrier, tracking code, and internal notes for fulfillment.",
+  orderManagerTitle: "Order management",
+  ordersTab: "Orders",
+  overviewTab: "Overview",
   ownerPanel: "System admin",
-  outOfStockProductsLabel: "Out of stock",
   packagingLabel: "Packaging",
+  paymentIdLabel: "Payment ID",
   priceLabel: "Price (Pi)",
-  productAccentLabel: "Accent color",
-  productActiveLabel: "Live in storefront",
+  productAccentLabel: "Accent background",
+  productActiveLabel: "Visible in storefront",
   productBadgeLabel: "Badge",
   productCategoryLabel: "Category",
   productCustomLabel: "Custom product",
@@ -134,114 +183,170 @@ const en: AdminCenterCopy = {
   productFormatLabel: "Format",
   productHiddenStatus: "Hidden",
   productInStockStatus: "In stock",
-  productLiveStatus: "Showing",
+  productLiveStatus: "Live",
   productNameLabel: "Product name",
   productOutOfStockStatus: "Out of stock",
   productSlugLabel: "Slug",
-  productSourceLabel: "Linked to system catalog",
-  productSystemLabel: "System catalog",
+  productSystemLabel: "System product",
   productTaglineLabel: "Short tagline",
   productsRefresh: "Refresh products",
+  productsTab: "Products",
+  reactivateStaff: "Reactivate",
+  recentOrdersTitle: "Recent orders",
   refreshOrders: "Refresh orders",
-  removeStaff: "Remove",
+  removeStaff: "Deactivate",
   saveError: "Unable to save changes right now.",
-  saveProductButton: "Save changes",
+  saveOrderButton: "Save order",
+  saveProductButton: "Save product",
+  saveStaffButton: "Save employee",
   saveSuccess: "Saved.",
-  savingProductButton: "Saving...",
+  savingLabel: "Saving...",
+  selectOrderPrompt: "Select an order from the list to edit shipping and fulfillment details.",
+  selectProductPrompt: "Select a product from the list or start a new one to edit the catalog.",
+  selectStaffPrompt: "Select an employee from the list or create a new one to manage permissions.",
+  shippingCarrierLabel: "Shipping carrier",
+  skuLabel: "SKU",
+  staffActiveLabel: "Active employee",
   staffAddedBy: "Added by",
-  staffIdentityLabel: "Employee login or code",
+  staffFullNameLabel: "Full name",
+  staffIdentityLabel: "Pi username or ID",
+  staffManageOrdersLabel: "Manage orders",
+  staffManageProductsLabel: "Manage products",
+  staffManageStaffLabel: "Manage staff",
   staffManagerLead:
-    "Add the employee login, name, or internal code you want stored in the admin roster.",
-  staffManagerTitle: "Employee manager",
-  staffPanel: "Staff panel",
-  staffUsernameLabel: "Employee login or code",
+    "Keep a clean employee roster with clear permissions for products, orders, and future operations.",
+  staffManagerTitle: "Employee management",
+  staffNoteLabel: "Internal note",
+  staffPermissionsLabel: "Permissions",
+  staffRoleLabel: "Role",
+  staffTab: "Staff",
   statusLabel: "Status",
-  updateStatus: "Update status",
+  teamOverviewTitle: "Team overview",
+  totalSalesLabel: "Total Pi",
+  trackingCodeLabel: "Tracking code",
+  txidLabel: "Transaction ID",
   weightUnitLabel: "Weight unit",
   weightValueLabel: "Weight value",
 };
 
 const vi: AdminCenterCopy = {
-  addProduct: "Them san pham",
-  addProductButton: "Luu san pham",
-  addStaff: "Them nhan vien",
-  addStaffButton: "Luu nhan vien",
-  dashboardLoading: "Dang tai du lieu quan tri...",
-  dashboardRetry: "Tai lai du lieu",
-  dashboardSlowError:
-    "Du lieu quan tri dang phan hoi cham. Ban vui long tai lai sau it giay.",
   adminLead:
-    "Quan ly nhan vien, hang hoa va don hang cua Mushroom.Pi trong mot trang dieu khien tren web.",
+    "Van hanh Mushroom.Pi trong mot bang dieu khien co cau truc ro rang cho san pham, ton kho, nhan vien va don hang.",
+  allClearLabel: "Tat ca san pham hien dang nam trong nguong ton kho an toan.",
   adminLoginButton: "Dang nhap quan tri",
   adminLoginLead:
-    "Dung tai khoan va mat khau quan tri de vao dashboard quan ly truc tiep.",
+    "Dung tai khoan va mat khau quan tri de vao khu dieu hanh truc tiep.",
   adminLoginPasswordLabel: "Mat khau",
   adminLoginTitle: "Dang nhap quan tri",
   adminLoginUsernameLabel: "Tai khoan",
   adminLogoutButton: "Dang xuat quan tri",
   adminPageDescription:
-    "Khu quan tri he thong cho nhan vien, hang hoa, ton kho va don hang cua Mushroom.Pi.",
+    "Khu quan tri van hanh cho san pham, ton kho, nhan vien va don hang cua Mushroom.Pi.",
   adminPageTitle: "Quan tri | Mushroom.Pi",
-  adminTitle: "Trung tam quan tri",
+  adminTitle: "Bang dieu hanh",
   catalogManagerLead:
-    "Cap nhat gia, ton kho, bao bi, khoi luong va trang thai dang ban cho catalog hien tai.",
+    "Tao san pham, dieu khien hien thi, cap nhat gia ban va giu du lieu ton kho san sang cho van hanh that.",
   catalogManagerTitle: "Quan ly san pham",
-  createProductButton: "Tao san pham",
+  catalogValueLabel: "Gia tri ton kho",
+  comparePriceLabel: "Gia so sanh (Pi)",
+  costPriceLabel: "Gia von (Pi)",
   customerLabel: "Khach hang",
-  customProductLead:
-    "Tao san pham moi de hien truc tiep trong shop cung voi catalog hien co.",
-  customProductTitle: "San pham moi",
+  dashboardLoading: "Dang tai du lieu quan tri...",
+  dashboardRetry: "Tai lai du lieu",
+  dashboardSlowError:
+    "Du lieu quan tri dang phan hoi cham. Ban vui long tai lai sau it giay.",
+  editProductTitle: "Sua san pham",
+  editStaffTitle: "Sua nhan vien",
   emptyOrders: "Chua co don hang nao.",
   emptyProducts: "Chua co san pham nao.",
-  emptyStaff: "Chua them nhan vien nao.",
-  hiddenProductsLabel: "San pham dang an",
+  emptyStaff: "Chua co nhan vien nao.",
+  featuredProductLabel: "San pham noi bat",
+  featuredProductsLabel: "Noi bat",
+  imageUrlLabel: "Duong dan hinh anh",
+  inactiveStaffLabel: "Nhan vien tam dung",
   inventoryLabel: "Ton kho",
+  internalNoteLabel: "Ghi chu noi bo",
   latestSync: "Lan dong bo gan nhat",
-  liveProductsLabel: "San pham dang hien",
+  lowStockLabel: "Sap het hang",
+  lowStockThresholdLabel: "Moc canh bao ton kho",
+  newProductButton: "San pham moi",
+  newProductTitle: "Tao san pham moi",
+  newStaffButton: "Nhan vien moi",
+  newStaffTitle: "Tao nhan vien moi",
+  noHiddenProductsLabel: "Hien khong co san pham nao dang an.",
   noAccessBody:
     "Dung tai khoan va mat khau quan tri de vao he thong quan tri Mushroom.Pi.",
-  noAccessTitle: "Can quyen quan tri",
-  notes:
-    "Tai day ban co the quan ly danh sach nhan vien, ton kho, thong tin san pham va trang thai don hang.",
+  openOrdersLabel: "Don dang mo",
+  operationsLead:
+    "Theo doi nhanh suc khoe van hanh: don dang xu ly, ton kho sap can, san pham dang an va tinh trang doi ngu.",
+  operationsTab: "Van hanh",
+  operationsTitle: "Goc nhin van hanh",
   orderAddress: "Dia chi nhan hang",
+  orderCodeLabel: "Ma don",
   orderItems: "San pham",
+  orderManagerLead:
+    "Theo doi don hang voi trang thai, don vi giao hang, ma van don va ghi chu noi bo cho khau giao nhan.",
   orderManagerTitle: "Quan ly don hang",
+  ordersTab: "Don hang",
+  overviewTab: "Tong quan",
   ownerPanel: "Quan tri he thong",
-  outOfStockProductsLabel: "San pham het hang",
   packagingLabel: "Bao bi",
-  priceLabel: "Gia (Pi)",
-  productAccentLabel: "Mau nhan",
-  productActiveLabel: "Dang ban tren shop",
+  paymentIdLabel: "Ma payment",
+  priceLabel: "Gia ban (Pi)",
+  productAccentLabel: "Nen nhan dien",
+  productActiveLabel: "Dang hien tren shop",
   productBadgeLabel: "Nhan",
   productCategoryLabel: "Danh muc",
-  productCustomLabel: "San pham tu them",
+  productCustomLabel: "San pham tu tao",
   productDescriptionLabel: "Mo ta",
   productFormatLabel: "Quy cach",
   productHiddenStatus: "Dang an",
   productInStockStatus: "Con hang",
-  productLiveStatus: "Dang hien",
+  productLiveStatus: "Dang ban",
   productNameLabel: "Ten san pham",
   productOutOfStockStatus: "Het hang",
   productSlugLabel: "Slug",
-  productSourceLabel: "Lien ket catalog he thong",
-  productSystemLabel: "Catalog he thong",
+  productSystemLabel: "San pham he thong",
   productTaglineLabel: "Mo ta ngan",
   productsRefresh: "Tai lai san pham",
+  productsTab: "San pham",
+  reactivateStaff: "Kich hoat lai",
+  recentOrdersTitle: "Don gan day",
   refreshOrders: "Tai lai don",
-  removeStaff: "Xoa",
+  removeStaff: "Tam dung",
   saveError: "Hien chua luu duoc thay doi.",
-  saveProductButton: "Luu thay doi",
+  saveOrderButton: "Luu don hang",
+  saveProductButton: "Luu san pham",
+  saveStaffButton: "Luu nhan vien",
   saveSuccess: "Da luu.",
-  savingProductButton: "Dang luu...",
+  savingLabel: "Dang luu...",
+  selectOrderPrompt:
+    "Chon mot don hang trong danh sach de cap nhat giao hang va xu ly don.",
+  selectProductPrompt:
+    "Chon mot san pham trong danh sach hoac tao san pham moi de sua catalog.",
+  selectStaffPrompt:
+    "Chon mot nhan vien trong danh sach hoac tao moi de quan ly quyen.",
+  shippingCarrierLabel: "Don vi giao hang",
+  skuLabel: "SKU",
+  staffActiveLabel: "Dang hoat dong",
   staffAddedBy: "Them boi",
-  staffIdentityLabel: "Ten dang nhap hoac ma nhan vien",
+  staffFullNameLabel: "Ho ten",
+  staffIdentityLabel: "Pi username hoac user id",
+  staffManageOrdersLabel: "Quan ly don hang",
+  staffManageProductsLabel: "Quan ly san pham",
+  staffManageStaffLabel: "Quan ly nhan vien",
   staffManagerLead:
-    "Nhap ten dang nhap, ten goi hoac ma noi bo cua tung nhan vien de luu trong he thong quan tri.",
+    "Luu danh sach nhan vien gon gang, co ghi ro quyen cho san pham, don hang va van hanh ve sau.",
   staffManagerTitle: "Quan ly nhan vien",
-  staffPanel: "Bang nhan vien",
-  staffUsernameLabel: "Ten dang nhap hoac ma nhan vien",
+  staffNoteLabel: "Ghi chu noi bo",
+  staffPermissionsLabel: "Quyen han",
+  staffRoleLabel: "Vai tro",
+  staffTab: "Nhan vien",
   statusLabel: "Trang thai",
-  updateStatus: "Cap nhat trang thai",
+  teamOverviewTitle: "Tong quan doi ngu",
+  totalSalesLabel: "Tong Pi",
+  trackingCodeLabel: "Ma van don",
+  txidLabel: "Ma giao dich",
   weightUnitLabel: "Don vi khoi luong",
   weightValueLabel: "Khoi luong",
 };

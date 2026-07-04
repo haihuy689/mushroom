@@ -236,6 +236,7 @@ export function CartPageClient({
                       <ProductThumbnail
                         accent={product.accent}
                         compact
+                        imageUrl={product.imageUrl}
                         name={product.name}
                         productId={product.id}
                       />

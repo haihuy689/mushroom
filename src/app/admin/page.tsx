@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getAdminCenterCopy } from "@/lib/admin-center-copy";
 import { getOrderCenterCopy } from "@/lib/order-center-copy";
 import { getRequestLocale } from "@/lib/request-locale";
+import { ensureStorefrontSchema } from "@/lib/storefront-db";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 import { AdminPageClient } from "./page-client";
 
@@ -23,11 +24,15 @@ export default async function AdminPage() {
   const orderCopy = getOrderCenterCopy(locale);
   const adminContext = await getStorefrontAdminContext();
 
+  if (adminContext.access.canAccessAdmin) {
+    await ensureStorefrontSchema();
+  }
+
   return (
     <AdminPageClient
       copy={copy}
       initialAccess={adminContext.access}
-      initialCredentialSessionActive={adminContext.authMode === "credentials"}
+      initialCredentialSessionActive={adminContext.user !== null}
       initialOrders={null}
       initialProducts={null}
       initialStaff={null}

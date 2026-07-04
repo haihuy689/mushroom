@@ -2,6 +2,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import type { StorefrontProductInput } from "@/lib/storefront-product";
 import {
+  ensureStorefrontSchema,
   listStorefrontProductRecords,
   saveStorefrontProduct,
 } from "@/lib/storefront-db";
@@ -26,15 +27,17 @@ export async function GET() {
     return forbiddenResponse();
   }
 
+  await ensureStorefrontSchema();
+
   return NextResponse.json({
-    items: access.canManageStaff ? await listStorefrontProductRecords() : [],
+    items: access.canManageProducts ? await listStorefrontProductRecords() : [],
   });
 }
 
 export async function POST(request: Request) {
   const { access } = await getStorefrontAdminContext();
 
-  if (!access.canManageStaff) {
+  if (!access.canManageProducts) {
     return forbiddenResponse();
   }
 

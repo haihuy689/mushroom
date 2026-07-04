@@ -49,6 +49,7 @@ type AddressRow = {
 };
 
 type OrderRow = {
+  admin_note: string | null;
   id: string;
   product_id: string;
   product_name: string;
@@ -59,8 +60,10 @@ type OrderRow = {
   payment_id: string | null;
   pi_uid: string;
   fulfillment_status: string | null;
+  shipping_carrier: string | null;
   status_updated_at: string | null;
   status_updated_by: string | null;
+  tracking_code: string | null;
   username: string | null;
   shipping_full_name: string | null;
   shipping_phone: string | null;
@@ -83,30 +86,54 @@ type OrderItemRow = {
 
 type StaffRow = {
   added_by: string;
+  can_manage_orders: boolean;
+  can_manage_products: boolean;
+  can_manage_staff: boolean;
   created_at: string;
   display_identity: string;
+  full_name: string;
   identity_key: string;
+  is_active: boolean;
+  note: string;
+  role: string;
 };
 
 type StorefrontUserRow = {
   username: string | null;
 };
 
+type StorefrontStaffInput = {
+  canManageOrders?: boolean;
+  canManageProducts?: boolean;
+  canManageStaff?: boolean;
+  fullName?: string | null;
+  identity: string;
+  isActive?: boolean;
+  note?: string | null;
+  role?: string | null;
+};
+
 type ProductRow = {
   accent: string;
   badge: string;
   category: string;
+  compare_at_pi: string | number | null;
+  cost_pi: string | number | null;
   created_at: string;
   description: string;
   format: string;
   id: string;
+  image_url: string;
   inventory_count: number;
   is_active: boolean;
+  is_featured: boolean;
+  low_stock_threshold: number;
   name: string;
   packaging: string;
   price_pi: string | number;
   slug: string;
   source_product_id: string | null;
+  sku: string;
   tagline: string;
   updated_at: string;
   weight_unit: string | null;
@@ -127,6 +154,29 @@ const STOREFRONT_REQUIRED_TABLES = [
   "storefront_order_items",
   "storefront_staff_members",
   "storefront_products",
+] as const;
+
+const STOREFRONT_REQUIRED_COLUMNS = [
+  { table: "storefront_orders", column: "fulfillment_status" },
+  { table: "storefront_orders", column: "status_updated_at" },
+  { table: "storefront_orders", column: "status_updated_by" },
+  { table: "storefront_orders", column: "shipping_carrier" },
+  { table: "storefront_orders", column: "tracking_code" },
+  { table: "storefront_orders", column: "admin_note" },
+  { table: "storefront_staff_members", column: "updated_at" },
+  { table: "storefront_staff_members", column: "is_active" },
+  { table: "storefront_staff_members", column: "role" },
+  { table: "storefront_staff_members", column: "full_name" },
+  { table: "storefront_staff_members", column: "note" },
+  { table: "storefront_staff_members", column: "can_manage_products" },
+  { table: "storefront_staff_members", column: "can_manage_orders" },
+  { table: "storefront_staff_members", column: "can_manage_staff" },
+  { table: "storefront_products", column: "sku" },
+  { table: "storefront_products", column: "compare_at_pi" },
+  { table: "storefront_products", column: "cost_pi" },
+  { table: "storefront_products", column: "image_url" },
+  { table: "storefront_products", column: "is_featured" },
+  { table: "storefront_products", column: "low_stock_threshold" },
 ] as const;
 
 function withStorefrontTimeout<T>(promise: Promise<T>, label: string) {
@@ -150,14 +200,35 @@ function withStorefrontTimeout<T>(promise: Promise<T>, label: string) {
 
 async function hasStorefrontCoreSchema(sql: NonNullable<ReturnType<typeof getSql>>) {
   try {
-    const rows = await sql<{ table_name: string }[]>`
-      select table_name
-      from information_schema.tables
-      where table_schema = 'public'
-        and table_name in ${sql(STOREFRONT_REQUIRED_TABLES)}
-    `;
+    const [tableRows, columnRows] = await Promise.all([
+      sql<{ table_name: string }[]>`
+        select table_name
+        from information_schema.tables
+        where table_schema = 'public'
+          and table_name in ${sql(STOREFRONT_REQUIRED_TABLES)}
+      `,
+      sql<{ table_name: string; column_name: string }[]>`
+        select table_name, column_name
+        from information_schema.columns
+        where table_schema = 'public'
+          and table_name in ${sql(
+            Array.from(
+              new Set(STOREFRONT_REQUIRED_COLUMNS.map((entry) => entry.table)),
+            ),
+          )}
+      `,
+    ]);
 
-    return rows.length === STOREFRONT_REQUIRED_TABLES.length;
+    const columnSet = new Set(
+      columnRows.map((row) => `${row.table_name}:${row.column_name}`),
+    );
+
+    return (
+      tableRows.length === STOREFRONT_REQUIRED_TABLES.length &&
+      STOREFRONT_REQUIRED_COLUMNS.every((entry) =>
+        columnSet.has(`${entry.table}:${entry.column}`),
+      )
+    );
   } catch {
     return false;
   }
@@ -179,7 +250,7 @@ async function hasStorefrontSeedProducts(sql: NonNullable<ReturnType<typeof getS
   }
 }
 
-async function ensureStorefrontSchema() {
+export async function ensureStorefrontSchema() {
   if (!isDatabaseConfigured()) {
     return false;
   }
@@ -271,6 +342,18 @@ async function ensureStorefrontSchema() {
             add column if not exists status_updated_by text
           `;
           await transaction`
+            alter table storefront_orders
+            add column if not exists shipping_carrier text
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists tracking_code text
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists admin_note text
+          `;
+          await transaction`
             create table if not exists storefront_order_items (
               order_id text not null references storefront_orders (id) on delete cascade,
               product_id text not null,
@@ -295,26 +378,80 @@ async function ensureStorefrontSchema() {
             )
           `;
           await transaction`
+            alter table storefront_staff_members
+            add column if not exists role text not null default 'staff'
+          `;
+          await transaction`
+            alter table storefront_staff_members
+            add column if not exists full_name text not null default ''
+          `;
+          await transaction`
+            alter table storefront_staff_members
+            add column if not exists note text not null default ''
+          `;
+          await transaction`
+            alter table storefront_staff_members
+            add column if not exists can_manage_products boolean not null default false
+          `;
+          await transaction`
+            alter table storefront_staff_members
+            add column if not exists can_manage_orders boolean not null default true
+          `;
+          await transaction`
+            alter table storefront_staff_members
+            add column if not exists can_manage_staff boolean not null default false
+          `;
+          await transaction`
             create table if not exists storefront_products (
               id text primary key,
               source_product_id text unique,
               slug text not null,
               name text not null,
+              sku text not null default '',
               tagline text not null default '',
               description text not null default '',
               category text not null default '',
               format text not null default '',
               price_pi numeric(18, 4) not null,
+              compare_at_pi numeric(18, 4),
+              cost_pi numeric(18, 4),
               badge text not null default '',
               accent text not null default '#c38a33',
               packaging text not null default '',
+              image_url text not null default '',
               weight_value numeric(10, 2),
               weight_unit text,
               inventory_count integer not null default 0,
+              low_stock_threshold integer not null default 5,
               is_active boolean not null default true,
+              is_featured boolean not null default false,
               created_at timestamptz not null default now(),
               updated_at timestamptz not null default now()
             )
+          `;
+          await transaction`
+            alter table storefront_products
+            add column if not exists sku text not null default ''
+          `;
+          await transaction`
+            alter table storefront_products
+            add column if not exists compare_at_pi numeric(18, 4)
+          `;
+          await transaction`
+            alter table storefront_products
+            add column if not exists cost_pi numeric(18, 4)
+          `;
+          await transaction`
+            alter table storefront_products
+            add column if not exists image_url text not null default ''
+          `;
+          await transaction`
+            alter table storefront_products
+            add column if not exists low_stock_threshold integer not null default 5
+          `;
+          await transaction`
+            alter table storefront_products
+            add column if not exists is_featured boolean not null default false
           `;
           await transaction`
             create index if not exists storefront_products_active_updated_idx
@@ -342,22 +479,45 @@ function mapProductRow(row: ProductRow): StorefrontProductRecord {
     accent: row.accent,
     badge: row.badge,
     category: row.category,
+    compareAtPi:
+      row.compare_at_pi === null ? null : Number(row.compare_at_pi),
+    costPi: row.cost_pi === null ? null : Number(row.cost_pi),
     createdAt: row.created_at,
     description: row.description,
     format: row.format,
     id: row.id,
+    imageUrl: row.image_url,
     inventoryCount: row.inventory_count,
     isActive: row.is_active,
+    isFeatured: row.is_featured,
+    lowStockThreshold: row.low_stock_threshold,
     name: row.name,
     packaging: row.packaging,
     pricePi: Number(row.price_pi),
     slug: row.slug,
     sourceProductId: row.source_product_id,
+    sku: row.sku,
     tagline: row.tagline,
     updatedAt: row.updated_at,
     weightUnit: row.weight_unit,
     weightValue:
       row.weight_value === null ? null : Number(row.weight_value),
+  };
+}
+
+function mapStaffRow(row: StaffRow): StorefrontStaffMember {
+  return {
+    addedAt: row.created_at,
+    addedBy: row.added_by,
+    canManageOrders: row.can_manage_orders,
+    canManageProducts: row.can_manage_products,
+    canManageStaff: row.can_manage_staff,
+    fullName: row.full_name,
+    identity: row.display_identity,
+    identityKey: row.identity_key,
+    isActive: row.is_active,
+    note: row.note,
+    role: row.role,
   };
 }
 
@@ -369,17 +529,23 @@ function getFallbackStorefrontProductRecords() {
       accent: product.accent,
       badge: product.badge,
       category: product.category,
+      compareAtPi: product.compareAtPi ?? null,
+      costPi: product.costPi ?? null,
       description: product.description,
       format: product.format,
       id: product.id,
+      imageUrl: product.imageUrl ?? "",
       inventoryCount:
         typeof product.inventoryCount === "number" ? product.inventoryCount : 24,
       isActive: product.isActive !== false,
+      isFeatured: product.isFeatured === true,
+      lowStockThreshold: product.lowStockThreshold ?? 5,
       name: product.name,
       packaging: product.packaging ?? product.format,
       pricePi: product.pricePi,
       slug: product.slug,
       sourceProductId: product.id,
+      sku: product.sku ?? "",
       tagline: product.tagline,
       weightUnit: product.weightUnit ?? "g",
       weightValue: product.weightValue ?? null,
@@ -410,17 +576,23 @@ async function ensureDefaultStorefrontProductsSeeded() {
         accent: product.accent,
         badge: product.badge,
         category: product.category,
+        compareAtPi: product.compareAtPi ?? null,
+        costPi: product.costPi ?? null,
         description: product.description,
         format: product.format,
         id: product.id,
+        imageUrl: product.imageUrl ?? "",
         inventoryCount:
           typeof product.inventoryCount === "number" ? product.inventoryCount : 24,
         isActive: product.isActive !== false,
+        isFeatured: product.isFeatured === true,
+        lowStockThreshold: product.lowStockThreshold ?? 5,
         name: product.name,
         packaging: product.packaging ?? product.format,
         pricePi: product.pricePi,
         slug: product.slug,
         sourceProductId: product.id,
+        sku: product.sku ?? "",
         tagline: product.tagline,
         weightUnit: product.weightUnit ?? "g",
         weightValue: product.weightValue ?? null,
@@ -441,18 +613,24 @@ async function ensureDefaultStorefrontProductsSeeded() {
                 source_product_id,
                 slug,
                 name,
+                sku,
                 tagline,
                 description,
                 category,
                 format,
                 price_pi,
+                compare_at_pi,
+                cost_pi,
                 badge,
                 accent,
                 packaging,
+                image_url,
                 weight_value,
                 weight_unit,
                 inventory_count,
+                low_stock_threshold,
                 is_active,
+                is_featured,
                 created_at,
                 updated_at
               )
@@ -461,18 +639,24 @@ async function ensureDefaultStorefrontProductsSeeded() {
                 ${product.sourceProductId},
                 ${product.slug},
                 ${product.name},
+                ${product.sku},
                 ${product.tagline},
                 ${product.description},
                 ${product.category},
                 ${product.format},
                 ${product.pricePi},
+                ${product.compareAtPi},
+                ${product.costPi},
                 ${product.badge},
                 ${product.accent},
                 ${product.packaging},
+                ${product.imageUrl},
                 ${product.weightValue},
                 ${product.weightUnit},
                 ${product.inventoryCount},
+                ${product.lowStockThreshold},
                 ${product.isActive},
+                ${product.isFeatured},
                 now(),
                 now()
               )
@@ -591,6 +775,7 @@ async function readStorefrontState(piUid: string) {
     `,
     sql<OrderRow[]>`
       select
+        admin_note,
         id,
         pi_uid,
         product_id,
@@ -601,8 +786,10 @@ async function readStorefrontState(piUid: string) {
         txid,
         payment_id,
         fulfillment_status,
+        shipping_carrier,
         status_updated_at::text,
         status_updated_by,
+        tracking_code,
         username,
         shipping_full_name,
         shipping_phone,
@@ -765,8 +952,11 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
         txid,
         payment_id,
         fulfillment_status,
+        shipping_carrier,
         status_updated_at,
         status_updated_by,
+        tracking_code,
+        admin_note,
         username,
         shipping_full_name,
         shipping_phone,
@@ -789,8 +979,11 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
         ${order.txid ?? null},
         ${order.paymentId ?? null},
         ${order.status ?? null},
+        ${order.shippingCarrier ?? null},
         ${order.statusUpdatedAt ?? null},
         ${order.statusUpdatedBy ?? null},
+        ${order.trackingCode ?? null},
+        ${order.adminNote ?? null},
         ${order.username ?? null},
         ${order.shippingAddress?.fullName ?? null},
         ${order.shippingAddress?.phone ?? null},
@@ -812,8 +1005,11 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
         txid = excluded.txid,
         payment_id = excluded.payment_id,
         fulfillment_status = excluded.fulfillment_status,
+        shipping_carrier = coalesce(storefront_orders.shipping_carrier, excluded.shipping_carrier),
         status_updated_at = excluded.status_updated_at,
         status_updated_by = excluded.status_updated_by,
+        tracking_code = coalesce(storefront_orders.tracking_code, excluded.tracking_code),
+        admin_note = coalesce(storefront_orders.admin_note, excluded.admin_note),
         username = excluded.username,
         shipping_full_name = excluded.shipping_full_name,
         shipping_phone = excluded.shipping_phone,
@@ -882,6 +1078,7 @@ function mapOrderRows(
 
   return normalizeOrders(
     orderRows.map((row) => ({
+      adminNote: row.admin_note ?? undefined,
       id: row.id,
       productId: row.product_id,
       productName: row.product_name,
@@ -891,11 +1088,13 @@ function mapOrderRows(
       shopperUid: row.pi_uid,
       txid: row.txid ?? undefined,
       paymentId: row.payment_id ?? undefined,
+      shippingCarrier: row.shipping_carrier ?? undefined,
       status: isOrderStatus(row.fulfillment_status)
         ? row.fulfillment_status
         : undefined,
       statusUpdatedAt: row.status_updated_at ?? undefined,
       statusUpdatedBy: row.status_updated_by ?? undefined,
+      trackingCode: row.tracking_code ?? undefined,
       username: row.username ?? undefined,
       items: itemsByOrderId.get(row.id) ?? [],
       shippingAddress: row.shipping_full_name
@@ -927,6 +1126,7 @@ async function readAllStorefrontOrders() {
     const [orderRows, orderItemRows] = await Promise.all([
       sql<OrderRow[]>`
         select
+          admin_note,
           id,
           pi_uid,
           product_id,
@@ -937,8 +1137,10 @@ async function readAllStorefrontOrders() {
           txid,
           payment_id,
           fulfillment_status,
+          shipping_carrier,
           status_updated_at::text,
           status_updated_by,
+          tracking_code,
           username,
           shipping_full_name,
           shipping_phone,
@@ -977,35 +1179,45 @@ async function isStorefrontStaff(user: PiVerifiedUser | null) {
   const sql = getSql();
 
   if (!sql || identityKeys.length === 0) {
-    return false;
+    return null;
   }
 
-  const rows = await sql<{ username_key: string }[]>`
-    select username_key
+  const rows = await sql<StaffRow[]>`
+    select username_key as identity_key
+      , display_username as display_identity
+      , added_by
+      , created_at::text
+      , full_name
+      , note
+      , role
+      , is_active
+      , can_manage_orders
+      , can_manage_products
+      , can_manage_staff
     from storefront_staff_members
     where username_key in ${sql(identityKeys)}
       and is_active = true
     limit 1
   `;
 
-  return rows.length > 0;
+  return rows[0] ? mapStaffRow(rows[0]) : null;
 }
 
 export async function getStorefrontAdminAccess(
   user: PiVerifiedUser | null,
 ): Promise<StorefrontAdminAccess> {
   if (!user?.username && !user?.uid) {
-    return buildStorefrontAdminAccess(null, false);
+    return buildStorefrontAdminAccess(null, null);
   }
 
   const resolvedUser = await hydrateStorefrontUserIdentity(user);
 
   if (isStorefrontOwner(resolvedUser)) {
-    return buildStorefrontAdminAccess(resolvedUser, false);
+    return buildStorefrontAdminAccess(resolvedUser, null);
   }
 
   if (!(await ensureStorefrontSchema())) {
-    return buildStorefrontAdminAccess(resolvedUser, false);
+    return buildStorefrontAdminAccess(resolvedUser, null);
   }
 
   return buildStorefrontAdminAccess(
@@ -1027,33 +1239,34 @@ export async function listStorefrontStaffMembers() {
         username_key as identity_key,
         display_username as display_identity,
         added_by,
-        created_at::text
+        created_at::text,
+        full_name,
+        note,
+        role,
+        is_active,
+        can_manage_orders,
+        can_manage_products,
+        can_manage_staff
       from storefront_staff_members
-      where is_active = true
-      order by created_at desc
+      order by is_active desc, created_at desc
     `;
 
-    return rows.map((row) => ({
-      addedAt: row.created_at,
-      addedBy: row.added_by,
-      identity: row.display_identity,
-      identityKey: row.identity_key,
-    }));
+    return rows.map(mapStaffRow);
   } catch {
     return [] as StorefrontStaffMember[];
   }
 }
 
-export async function addStorefrontStaffMember(
+export async function saveStorefrontStaffMember(
   owner: PiVerifiedUser,
-  identity: string,
+  input: StorefrontStaffInput,
 ) {
   if (!(await ensureStorefrontSchema())) {
     throw new Error("Database is not configured.");
   }
 
-  const identityKey = normalizeUsernameKey(identity);
-  const displayIdentity = identity.trim();
+  const identityKey = normalizeUsernameKey(input.identity);
+  const displayIdentity = input.identity.trim();
 
   if (!identityKey || !displayIdentity) {
     throw new Error("Staff identity is required.");
@@ -1070,6 +1283,12 @@ export async function addStorefrontStaffMember(
       username_key,
       display_username,
       added_by,
+      role,
+      full_name,
+      note,
+      can_manage_products,
+      can_manage_orders,
+      can_manage_staff,
       created_at,
       updated_at,
       is_active
@@ -1078,16 +1297,28 @@ export async function addStorefrontStaffMember(
       ${identityKey},
       ${displayIdentity},
       ${owner.username ?? owner.uid},
+      ${input.role?.trim() || "staff"},
+      ${input.fullName?.trim() || ""},
+      ${input.note?.trim() || ""},
+      ${input.canManageProducts === true},
+      ${input.canManageOrders !== false},
+      ${input.canManageStaff === true},
       now(),
       now(),
-      true
+      ${input.isActive !== false}
     )
     on conflict (username_key) do update
     set
       display_username = excluded.display_username,
       added_by = excluded.added_by,
+      role = excluded.role,
+      full_name = excluded.full_name,
+      note = excluded.note,
+      can_manage_products = excluded.can_manage_products,
+      can_manage_orders = excluded.can_manage_orders,
+      can_manage_staff = excluded.can_manage_staff,
       updated_at = now(),
-      is_active = true
+      is_active = excluded.is_active
   `;
 
   return listStorefrontStaffMembers();
@@ -1106,7 +1337,10 @@ export async function removeStorefrontStaffMember(username: string) {
   }
 
   await sql`
-    delete from storefront_staff_members
+    update storefront_staff_members
+    set
+      is_active = false,
+      updated_at = now()
     where username_key = ${usernameKey}
   `;
 
@@ -1127,18 +1361,24 @@ export async function listStorefrontProductRecords() {
         source_product_id,
         slug,
         name,
+        sku,
         tagline,
         description,
         category,
         format,
         price_pi,
+        compare_at_pi,
+        cost_pi,
         badge,
         accent,
         packaging,
+        image_url,
         weight_value,
         weight_unit,
         inventory_count,
+        low_stock_threshold,
         is_active,
+        is_featured,
         created_at::text,
         updated_at::text
       from storefront_products
@@ -1174,18 +1414,24 @@ export async function saveStorefrontProduct(input: Partial<StorefrontProductInpu
       source_product_id,
       slug,
       name,
+      sku,
       tagline,
       description,
       category,
       format,
       price_pi,
+      compare_at_pi,
+      cost_pi,
       badge,
       accent,
       packaging,
+      image_url,
       weight_value,
       weight_unit,
       inventory_count,
+      low_stock_threshold,
       is_active,
+      is_featured,
       created_at,
       updated_at
     )
@@ -1194,18 +1440,24 @@ export async function saveStorefrontProduct(input: Partial<StorefrontProductInpu
       ${product.sourceProductId},
       ${product.slug},
       ${product.name},
+      ${product.sku},
       ${product.tagline},
       ${product.description},
       ${product.category},
       ${product.format},
       ${product.pricePi},
+      ${product.compareAtPi},
+      ${product.costPi},
       ${product.badge},
       ${product.accent},
       ${product.packaging},
+      ${product.imageUrl},
       ${product.weightValue},
       ${product.weightUnit},
       ${product.inventoryCount},
+      ${product.lowStockThreshold},
       ${product.isActive},
+      ${product.isFeatured},
       now(),
       now()
     )
@@ -1214,36 +1466,48 @@ export async function saveStorefrontProduct(input: Partial<StorefrontProductInpu
       source_product_id = excluded.source_product_id,
       slug = excluded.slug,
       name = excluded.name,
+      sku = excluded.sku,
       tagline = excluded.tagline,
       description = excluded.description,
       category = excluded.category,
       format = excluded.format,
       price_pi = excluded.price_pi,
+      compare_at_pi = excluded.compare_at_pi,
+      cost_pi = excluded.cost_pi,
       badge = excluded.badge,
       accent = excluded.accent,
       packaging = excluded.packaging,
+      image_url = excluded.image_url,
       weight_value = excluded.weight_value,
       weight_unit = excluded.weight_unit,
       inventory_count = excluded.inventory_count,
+      low_stock_threshold = excluded.low_stock_threshold,
       is_active = excluded.is_active,
+      is_featured = excluded.is_featured,
       updated_at = now()
     returning
       id,
       source_product_id,
       slug,
       name,
+      sku,
       tagline,
       description,
       category,
       format,
       price_pi,
+      compare_at_pi,
+      cost_pi,
       badge,
       accent,
       packaging,
+      image_url,
       weight_value,
       weight_unit,
       inventory_count,
+      low_stock_threshold,
       is_active,
+      is_featured,
       created_at::text,
       updated_at::text
   `;
@@ -1255,9 +1519,16 @@ export async function listStorefrontOrdersForAdmin() {
   return readAllStorefrontOrders();
 }
 
-export async function updateStorefrontOrderStatus(
+type StorefrontOrderAdminUpdate = {
+  adminNote?: string | null;
+  shippingCarrier?: string | null;
+  status?: OrderStatus;
+  trackingCode?: string | null;
+};
+
+export async function updateStorefrontOrderRecord(
   orderId: string,
-  status: OrderStatus,
+  update: StorefrontOrderAdminUpdate,
   actorUsername: string,
 ) {
   if (!(await ensureStorefrontSchema())) {
@@ -1273,11 +1544,15 @@ export async function updateStorefrontOrderStatus(
   const updatedRows = await sql<OrderRow[]>`
     update storefront_orders
     set
-      fulfillment_status = ${status},
+      fulfillment_status = ${update.status ?? null},
+      shipping_carrier = ${update.shippingCarrier?.trim() || null},
       status_updated_at = now(),
-      status_updated_by = ${actorUsername}
+      status_updated_by = ${actorUsername},
+      tracking_code = ${update.trackingCode?.trim() || null},
+      admin_note = ${update.adminNote?.trim() || null}
     where id = ${orderId}
     returning
+      admin_note,
       id,
       pi_uid,
       product_id,
@@ -1288,8 +1563,10 @@ export async function updateStorefrontOrderStatus(
       txid,
       payment_id,
       fulfillment_status,
+      shipping_carrier,
       status_updated_at::text,
       status_updated_by,
+      tracking_code,
       username,
       shipping_full_name,
       shipping_phone,

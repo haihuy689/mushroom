@@ -35,6 +35,7 @@ export type StorefrontOrderLine = {
 };
 
 export type StorefrontOrder = {
+  adminNote?: string;
   id: string;
   productId: string;
   productName: string;
@@ -44,9 +45,11 @@ export type StorefrontOrder = {
   shopperUid?: string;
   txid?: string;
   paymentId?: string;
+  shippingCarrier?: string;
   status?: OrderStatus;
   statusUpdatedAt?: string;
   statusUpdatedBy?: string;
+  trackingCode?: string;
   username?: string;
   items?: StorefrontOrderLine[];
   shippingAddress?: StorefrontShippingAddress;
@@ -201,6 +204,12 @@ export function isStorefrontOrder(value: unknown): value is StorefrontOrder {
       typeof candidate.statusUpdatedAt === "string") &&
     (candidate.statusUpdatedBy === undefined ||
       typeof candidate.statusUpdatedBy === "string") &&
+    (candidate.shippingCarrier === undefined ||
+      typeof candidate.shippingCarrier === "string") &&
+    (candidate.trackingCode === undefined ||
+      typeof candidate.trackingCode === "string") &&
+    (candidate.adminNote === undefined ||
+      typeof candidate.adminNote === "string") &&
     hasValidItems &&
     hasValidShippingAddress
   );
@@ -380,11 +389,14 @@ export function normalizeOrders(
       shopperUid: normalizeText(order.shopperUid) || undefined,
       txid: normalizeText(order.txid) || undefined,
       paymentId: normalizeText(order.paymentId) || undefined,
+      shippingCarrier: normalizeText(order.shippingCarrier) || undefined,
       status: order.status,
       statusUpdatedAt: order.statusUpdatedAt
         ? toIsoDate(order.statusUpdatedAt)
         : undefined,
       statusUpdatedBy: normalizeText(order.statusUpdatedBy) || undefined,
+      trackingCode: normalizeText(order.trackingCode) || undefined,
+      adminNote: normalizeText(order.adminNote) || undefined,
       username: normalizeText(order.username) || undefined,
       items: normalizeOrderLines(order),
       shippingAddress: normalizeShippingAddress(order.shippingAddress),
@@ -456,9 +468,12 @@ export function createStorefrontOrder(
       shopperUid: normalizeText(input.shopperUid) || undefined,
       txid: normalizeText(input.txid) || undefined,
       paymentId: normalizeText(input.paymentId) || undefined,
+      shippingCarrier: normalizeText(input.shippingCarrier) || undefined,
       status: input.status,
       statusUpdatedAt: input.statusUpdatedAt,
       statusUpdatedBy: normalizeText(input.statusUpdatedBy) || undefined,
+      trackingCode: normalizeText(input.trackingCode) || undefined,
+      adminNote: normalizeText(input.adminNote) || undefined,
       username: normalizeText(input.username) || undefined,
       items: input.items,
       shippingAddress: input.shippingAddress,

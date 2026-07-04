@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isOrderStatus } from "@/lib/order-status";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
-import { updateStorefrontOrderStatus } from "@/lib/storefront-db";
+import { updateStorefrontOrderRecord } from "@/lib/storefront-db";
 
 export const preferredRegion = "sin1";
 
@@ -20,7 +20,12 @@ export async function PATCH(
     );
   }
 
-  const body = (await request.json()) as { status?: string };
+  const body = (await request.json()) as {
+    adminNote?: string;
+    shippingCarrier?: string;
+    status?: string;
+    trackingCode?: string;
+  };
 
   if (!isOrderStatus(body.status)) {
     return NextResponse.json(
@@ -34,9 +39,14 @@ export async function PATCH(
   const { orderId } = await context.params;
 
   try {
-    const order = await updateStorefrontOrderStatus(
+    const order = await updateStorefrontOrderRecord(
       orderId,
-      body.status,
+      {
+        adminNote: body.adminNote,
+        shippingCarrier: body.shippingCarrier,
+        status: body.status,
+        trackingCode: body.trackingCode,
+      },
       user.username ?? user.uid,
     );
 

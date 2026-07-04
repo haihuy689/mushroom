@@ -6,6 +6,7 @@ import styles from "./product-thumbnail.module.css";
 type ProductThumbnailProps = {
   accent: string;
   compact?: boolean;
+  imageUrl?: string;
   name: string;
   productId: string;
 };
@@ -41,6 +42,7 @@ function getPalette(productId: string) {
 export function ProductThumbnail({
   accent,
   compact = false,
+  imageUrl,
   name,
   productId,
 }: ProductThumbnailProps) {
@@ -65,6 +67,14 @@ export function ProductThumbnail({
       }
       aria-hidden="true"
     >
+      {imageUrl ? (
+        <img
+          alt=""
+          className={styles.photo}
+          loading="lazy"
+          src={imageUrl}
+        />
+      ) : null}
       <span className={styles.piPill}>Pi</span>
       <span className={styles.glow} />
       <span className={styles.ring} />

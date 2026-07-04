@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import {
-  addStorefrontStaffMember,
+  ensureStorefrontSchema,
   listStorefrontStaffMembers,
   removeStorefrontStaffMember,
+  saveStorefrontStaffMember,
 } from "@/lib/storefront-db";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 
@@ -24,6 +25,8 @@ export async function GET() {
     return forbiddenResponse();
   }
 
+  await ensureStorefrontSchema();
+
   return NextResponse.json({
     items: access.canManageStaff ? await listStorefrontStaffMembers() : [],
   });
@@ -36,7 +39,17 @@ export async function POST(request: Request) {
     return forbiddenResponse();
   }
 
-  const body = (await request.json()) as { identity?: string; username?: string };
+  const body = (await request.json()) as {
+    canManageOrders?: boolean;
+    canManageProducts?: boolean;
+    canManageStaff?: boolean;
+    fullName?: string;
+    identity?: string;
+    isActive?: boolean;
+    note?: string;
+    role?: string;
+    username?: string;
+  };
   const identity = body.identity?.trim() || body.username?.trim();
 
   if (!identity) {
@@ -49,7 +62,16 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({
-    items: await addStorefrontStaffMember(user, identity),
+    items: await saveStorefrontStaffMember(user, {
+      canManageOrders: body.canManageOrders,
+      canManageProducts: body.canManageProducts,
+      canManageStaff: body.canManageStaff,
+      fullName: body.fullName,
+      identity,
+      isActive: body.isActive,
+      note: body.note,
+      role: body.role,
+    }),
   });
 }
 
