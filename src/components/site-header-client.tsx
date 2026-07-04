@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRef } from "react";
 import type { SiteLocale } from "@/lib/i18n";
+import type { OrderCenterCopy } from "@/lib/order-center-copy";
+import { getOrderStatusCounts } from "@/lib/order-tracking";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
 import { LanguageSwitcher } from "./language-switcher";
 import { BrandMark } from "./brand-mark";
@@ -14,34 +17,64 @@ type HeaderLink = {
   label: string;
 };
 
+type HeaderCopy = Pick<
+  StorefrontCopy,
+  | "account"
+  | "accountAria"
+  | "brandSlogan"
+  | "cart"
+  | "cartAria"
+  | "guestLabel"
+  | "languageAria"
+  | "signedInLabel"
+> &
+  Pick<
+    OrderCenterCopy,
+    | "delivered"
+    | "latestOrdersTitle"
+    | "menuGuestHint"
+    | "menuNoOrders"
+    | "menuSignedInHint"
+    | "orders"
+    | "ordersAria"
+    | "processing"
+    | "shipping"
+    | "statusSummaryTitle"
+    | "viewAllOrders"
+  >;
+
 type SiteHeaderClientProps = {
   locale: SiteLocale;
   navigationLinks: HeaderLink[];
-  copy: Pick<
-    StorefrontCopy,
-    | "account"
-    | "accountAria"
-    | "brandSlogan"
-    | "cart"
-    | "cartAria"
-    | "guestLabel"
-    | "languageAria"
-    | "signedInLabel"
-  >;
+  copy: HeaderCopy;
+};
+
+type AccountMenuProps = {
+  accountStatus: string;
+  cartCount: number;
+  copy: HeaderCopy;
+  hydrated: boolean;
+  orderCount: number;
+  orders: Array<{ id: string; createdAt: string }>;
+  viewerName: string | null;
 };
 
 function CartIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
-        d="M4 5.5H6.2L7.3 10.1C7.53 11.05 8.38 11.72 9.36 11.72H17.4C18.34 11.72 19.16 11.11 19.43 10.21L20.45 6.8C20.82 5.57 19.9 4.35 18.62 4.35H8.15"
+        d="M7.2 8.1V7.3C7.2 4.93 9.13 3 11.5 3C13.87 3 15.8 4.93 15.8 7.3V8.1"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="10.1" cy="18.1" r="1.4" fill="currentColor" />
-      <circle cx="17.1" cy="18.1" r="1.4" fill="currentColor" />
+      <path
+        d="M5.6 8.1H17.4C18.17 8.1 18.81 8.69 18.86 9.45L19.43 17.95C19.49 18.81 18.81 19.55 17.95 19.55H5.05C4.19 19.55 3.51 18.81 3.57 17.95L4.14 9.45C4.19 8.69 4.83 8.1 5.6 8.1Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -64,15 +97,126 @@ function AccountIcon() {
   );
 }
 
+function AccountMenu({
+  accountStatus,
+  cartCount,
+  copy,
+  hydrated,
+  orderCount,
+  orders,
+  viewerName,
+}: AccountMenuProps) {
+  const detailsRef = useRef<HTMLDetailsElement | null>(null);
+  const orderCounts = hydrated
+    ? getOrderStatusCounts(orders)
+    : {
+        processing: 0,
+        shipping: 0,
+        delivered: 0,
+      };
+  const avatarLabel = viewerName?.trim().slice(0, 1).toUpperCase() || "Pi";
+  const statusHint = hydrated && viewerName ? copy.menuSignedInHint : copy.menuGuestHint;
+
+  const closeMenu = () => {
+    detailsRef.current?.removeAttribute("open");
+  };
+
+  return (
+    <details ref={detailsRef} className={styles.accountMenu}>
+      <summary
+        className={`${styles.iconButton} ${styles.accountSummary}`}
+        aria-label={`${copy.accountAria}: ${accountStatus}`}
+        title={copy.account}
+      >
+        <AccountIcon />
+        {hydrated && (viewerName || orderCount > 0) ? (
+          <span className={styles.iconIndicator} />
+        ) : null}
+      </summary>
+
+      <div className={styles.accountPopover}>
+        <div className={styles.accountCard}>
+          <div className={styles.accountHeader}>
+            <span className={styles.accountAvatar}>{avatarLabel}</span>
+            <div className={styles.accountIntro}>
+              <strong>{accountStatus}</strong>
+              <span>{statusHint}</span>
+            </div>
+          </div>
+
+          <div className={styles.accountStatusBlock}>
+            <span className={styles.accountSectionLabel}>
+              {copy.statusSummaryTitle}
+            </span>
+            <div className={styles.accountStatusGrid}>
+              <article className={styles.accountStatCard}>
+                <strong>{orderCounts.processing}</strong>
+                <span>{copy.processing}</span>
+              </article>
+              <article className={styles.accountStatCard}>
+                <strong>{orderCounts.shipping}</strong>
+                <span>{copy.shipping}</span>
+              </article>
+              <article className={styles.accountStatCard}>
+                <strong>{orderCounts.delivered}</strong>
+                <span>{copy.delivered}</span>
+              </article>
+            </div>
+          </div>
+
+          <div className={styles.accountLinkList}>
+            <Link
+              href="/account"
+              className={styles.accountLinkRow}
+              onClick={closeMenu}
+            >
+              <span>{copy.account}</span>
+              <span className={styles.accountLinkMeta}>
+                {hydrated && viewerName ? copy.signedInLabel : copy.guestLabel}
+              </span>
+            </Link>
+            <Link
+              href="/orders"
+              className={styles.accountLinkRow}
+              onClick={closeMenu}
+            >
+              <span>{copy.orders}</span>
+              <span className={styles.accountLinkMeta}>{orderCount}</span>
+            </Link>
+            <Link
+              href="/cart"
+              className={styles.accountLinkRow}
+              onClick={closeMenu}
+            >
+              <span>{copy.cart}</span>
+              <span className={styles.accountLinkMeta}>{cartCount}</span>
+            </Link>
+          </div>
+
+          <div className={styles.accountFooterRow}>
+            <span>
+              {orderCount > 0 ? copy.latestOrdersTitle : copy.menuNoOrders}
+            </span>
+            <Link href="/orders" onClick={closeMenu}>
+              {copy.viewAllOrders}
+            </Link>
+          </div>
+        </div>
+      </div>
+    </details>
+  );
+}
+
 export function SiteHeaderClient({
   locale,
   navigationLinks,
   copy,
 }: SiteHeaderClientProps) {
   const pathname = usePathname();
-  const { cartCount, hydrated, viewer } = useStorefront();
+  const { cartCount, hydrated, orders, viewer } = useStorefront();
 
   const visibleCartCount = hydrated ? cartCount : 0;
+  const visibleOrderCount = hydrated ? orders.length : 0;
   const accountStatus =
     hydrated && viewer ? viewer.username ?? copy.guestLabel : copy.guestLabel;
 
@@ -123,19 +267,15 @@ export function SiteHeaderClient({
                 ariaLabel={`${copy.languageAria}: ${locale.toUpperCase()}`}
               />
 
-              <Link
-                href="/account"
-                className={styles.iconButton}
-                aria-label={`${copy.accountAria}: ${accountStatus}`}
-                title={
-                  hydrated && viewer
-                    ? `${copy.signedInLabel}: ${accountStatus}`
-                    : copy.account
-                }
-              >
-                <AccountIcon />
-                {hydrated && viewer ? <span className={styles.iconIndicator} /> : null}
-              </Link>
+              <AccountMenu
+                accountStatus={accountStatus}
+                cartCount={visibleCartCount}
+                copy={copy}
+                hydrated={hydrated}
+                orderCount={visibleOrderCount}
+                orders={orders}
+                viewerName={viewer?.username ?? null}
+              />
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { SiteLocale } from "@/lib/i18n";
-import { localeOptions } from "@/lib/i18n";
+import { getLocaleOption, localeOptions } from "@/lib/i18n";
 import styles from "./site-chrome.module.css";
 
 type LanguageSwitcherProps = {
@@ -12,12 +12,12 @@ type LanguageSwitcherProps = {
 };
 
 function FlagChip({ locale }: { locale: SiteLocale }) {
+  const option = getLocaleOption(locale);
+
   return (
-    <span
-      className={styles.languageFlag}
-      data-locale={locale}
-      aria-hidden="true"
-    />
+    <span className={styles.flagEmoji} aria-hidden="true">
+      {option.flag}
+    </span>
   );
 }
 
@@ -33,34 +33,22 @@ export function LanguageSwitcher({
     localeOptions.find((option) => option.code === currentLocale) ??
     localeOptions[0];
 
-  const selectLocale = async (locale: SiteLocale) => {
+  const selectLocale = (locale: SiteLocale) => {
     if (locale === currentLocale) {
       detailsRef.current?.removeAttribute("open");
       return;
     }
 
     setPendingLocale(locale);
+    detailsRef.current?.removeAttribute("open");
 
-    try {
-      const response = await fetch("/api/preferences/locale", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ locale }),
-      });
+    const returnTo = `${window.location.pathname}${window.location.search}`;
+    const searchParams = new URLSearchParams({
+      locale,
+      returnTo,
+    });
 
-      if (!response.ok) {
-        throw new Error("Unable to update locale.");
-      }
-
-      detailsRef.current?.removeAttribute("open");
-      window.location.reload();
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setPendingLocale(null);
-    }
+    window.location.assign(`/api/preferences/locale?${searchParams.toString()}`);
   };
 
   return (
