@@ -1,8 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
-import { useStorefront } from "@/components/storefront-provider";
-import type { StorefrontStaffMember } from "@/lib/admin-access";
+import type {
+  StorefrontAdminAccess,
+  StorefrontStaffMember,
+} from "@/lib/admin-access";
 import type { AdminCenterCopy } from "@/lib/admin-center-copy";
 import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
@@ -19,6 +22,8 @@ import styles from "./page.module.css";
 
 type AdminPageClientProps = {
   copy: AdminCenterCopy;
+  initialAccess: StorefrontAdminAccess;
+  initialCredentialSessionActive: boolean;
   locale: SiteLocale;
   orderCopy: OrderCenterCopy;
 };
@@ -52,13 +57,11 @@ async function readJson<T>(path: string, init?: RequestInit) {
 function getAdminUiText(locale: SiteLocale) {
   if (locale === "vi") {
     return {
-      checkingAccess: "Dang dong bo quyen quan tri...",
       loadingData: "Dang tai du lieu quan tri...",
     };
   }
 
   return {
-    checkingAccess: "Syncing admin access...",
     loadingData: "Loading admin data...",
   };
 }
@@ -75,35 +78,39 @@ function updateProductValue(
 
 export function AdminPageClient({
   copy,
+  initialAccess,
+  initialCredentialSessionActive,
   locale,
   orderCopy,
 }: AdminPageClientProps) {
-  const {
-    adminAccess,
-    adminAccessReady,
-    authBusy,
-    hydrated,
-    sessionChecked,
-    viewer,
-  } = useStorefront();
+  const router = useRouter();
   const [orders, setOrders] = useState<StorefrontOrder[]>([]);
   const [products, setProducts] = useState<StorefrontProductRecord[]>([]);
   const [staff, setStaff] = useState<StorefrontStaffMember[]>([]);
   const [staffIdentity, setStaffIdentity] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminUsername, setAdminUsername] = useState("admin");
   const [productDraft, setProductDraft] = useState<StorefrontProductInput>(
     createEmptyStorefrontProductInput(),
   );
+  const [credentialAuthOverride, setCredentialAuthOverride] = useState<boolean | null>(
+    null,
+  );
   const [busyOrderId, setBusyOrderId] = useState<string | null>(null);
   const [creatingProduct, setCreatingProduct] = useState(false);
+  const [loggingInAdmin, setLoggingInAdmin] = useState(false);
+  const [loggingOutAdmin, setLoggingOutAdmin] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
   const [refreshingOrders, setRefreshingOrders] = useState(false);
   const [refreshingProducts, setRefreshingProducts] = useState(false);
   const [savingProductId, setSavingProductId] = useState<string | null>(null);
   const [savingStaff, setSavingStaff] = useState(false);
-  const [loadingData, setLoadingData] = useState(false);
+  const [loadingData, setLoadingData] = useState(initialAccess.canAccessAdmin);
 
-  const canAccessAdmin = adminAccess.canAccessAdmin;
-  const canManageStaff = adminAccess.canManageStaff;
+  const canAccessAdmin = initialAccess.canAccessAdmin;
+  const canManageStaff = initialAccess.canManageStaff;
+  const credentialAuthActive =
+    credentialAuthOverride ?? initialCredentialSessionActive;
   const orderCounts = getOrderStatusCounts(orders);
   const productCounts = useMemo(
     () => ({
@@ -130,14 +137,8 @@ export function AdminPageClient({
     shipping: orderCopy.shipping,
   };
 
-  const panelLabel = adminAccess.role === "owner" ? copy.ownerPanel : copy.staffPanel;
-  const resolvingAccess =
-    !hydrated ||
-    !sessionChecked ||
-    authBusy ||
-    (Boolean(viewer) && !adminAccessReady);
-  const showLoadingState =
-    resolvingAccess || (canAccessAdmin && loadingData);
+  const panelLabel = initialAccess.role === "owner" ? copy.ownerPanel : copy.staffPanel;
+  const showLoadingState = canAccessAdmin && loadingData;
 
   useEffect(() => {
     if (!canAccessAdmin) {
@@ -219,6 +220,54 @@ export function AdminPageClient({
       });
     } finally {
       setRefreshingProducts(false);
+    }
+  };
+
+  const handleAdminLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoggingInAdmin(true);
+    setMessage(null);
+
+    try {
+      await readJson("/api/admin/session", {
+        method: "POST",
+        body: JSON.stringify({
+          password: adminPassword,
+          username: adminUsername,
+        }),
+      });
+
+      setCredentialAuthOverride(true);
+      setAdminPassword("");
+      router.refresh();
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setLoggingInAdmin(false);
+    }
+  };
+
+  const handleAdminLogout = async () => {
+    setLoggingOutAdmin(true);
+    setMessage(null);
+
+    try {
+      await readJson("/api/admin/session", {
+        method: "DELETE",
+      });
+
+      setCredentialAuthOverride(false);
+      router.refresh();
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setLoggingOutAdmin(false);
     }
   };
 
@@ -433,11 +482,7 @@ export function AdminPageClient({
         <section className={styles.layout}>
           <article className={`${styles.card} ${styles.accessCard}`}>
             <h2>{copy.adminTitle}</h2>
-            <p>
-              {resolvingAccess
-                ? uiText.checkingAccess
-                : uiText.loadingData}
-            </p>
+            <p>{uiText.loadingData}</p>
           </article>
         </section>
       ) : null}
@@ -445,7 +490,39 @@ export function AdminPageClient({
       {!showLoadingState && !canAccessAdmin ? (
         <section className={styles.layout}>
           <article className={`${styles.card} ${styles.accessCard}`}>
-            <h2>{copy.noAccessTitle}</h2>
+            <h2>{copy.adminLoginTitle}</h2>
+            <p>{copy.adminLoginLead}</p>
+
+            <form className={styles.credentialForm} onSubmit={handleAdminLogin}>
+              <label className={styles.field}>
+                <span>{copy.adminLoginUsernameLabel}</span>
+                <input
+                  value={adminUsername}
+                  onChange={(event) => setAdminUsername(event.target.value)}
+                  autoComplete="username"
+                  required
+                />
+              </label>
+              <label className={styles.field}>
+                <span>{copy.adminLoginPasswordLabel}</span>
+                <input
+                  type="password"
+                  value={adminPassword}
+                  onChange={(event) => setAdminPassword(event.target.value)}
+                  autoComplete="current-password"
+                  required
+                />
+              </label>
+
+              <button
+                type="submit"
+                className={styles.primaryButton}
+                disabled={loggingInAdmin}
+              >
+                {loggingInAdmin ? copy.savingProductButton : copy.adminLoginButton}
+              </button>
+            </form>
+
             <p>{copy.noAccessBody}</p>
           </article>
         </section>
@@ -459,6 +536,22 @@ export function AdminPageClient({
               <h1>{copy.adminTitle}</h1>
               <p className={styles.lead}>{copy.adminLead}</p>
               <p className={styles.notes}>{copy.notes}</p>
+              {credentialAuthActive ? (
+                <div className={styles.accessActions}>
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    disabled={loggingOutAdmin}
+                    onClick={() => {
+                      void handleAdminLogout();
+                    }}
+                  >
+                    {loggingOutAdmin
+                      ? copy.savingProductButton
+                      : copy.adminLogoutButton}
+                  </button>
+                </div>
+              ) : null}
             </div>
 
             <div className={styles.statsGrid}>

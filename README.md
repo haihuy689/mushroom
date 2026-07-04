@@ -41,6 +41,10 @@ Environment variables:
   Recommended. Used to sign the secure storefront session cookie after Pi authentication. In development, the app falls back to a local dev secret. In production, set this explicitly unless you want to reuse `PI_API_KEY` as the signing secret.
 - `STOREFRONT_OWNER_IDENTITIES`
   Optional comma-separated list of Pi usernames or ids that should be treated as the store owner. Example: `haihuygame123`.
+- `ADMIN_PORTAL_USERNAME`
+  Optional admin username for direct `/admin` credential sign-in. Defaults to `admin`.
+- `ADMIN_PORTAL_PASSWORD`
+  Optional admin password for direct `/admin` credential sign-in. Defaults to `123456788`.
 - `DATABASE_URL`
   Recommended connection string for a Postgres database. For Supabase on Vercel, use the `Transaction pooler` / `Supavisor` connection string (serverless-safe, usually port `6543`). If this is missing, the storefront falls back to browser `localStorage`.
 - `POSTGRES_URL`

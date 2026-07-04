@@ -6,6 +6,12 @@ export type AdminCenterCopy = {
   addStaff: string;
   addStaffButton: string;
   adminLead: string;
+  adminLoginButton: string;
+  adminLoginLead: string;
+  adminLoginPasswordLabel: string;
+  adminLoginTitle: string;
+  adminLoginUsernameLabel: string;
+  adminLogoutButton: string;
   adminPageDescription: string;
   adminPageTitle: string;
   adminTitle: string;
@@ -74,6 +80,13 @@ const en: AdminCenterCopy = {
   addStaffButton: "Save staff access",
   adminLead:
     "Manage Mushroom.Pi staff access, keep your product catalog accurate, and move customer orders through your real delivery flow.",
+  adminLoginButton: "Sign in to admin",
+  adminLoginLead:
+    "Use the admin username and password to open the management dashboard directly.",
+  adminLoginPasswordLabel: "Password",
+  adminLoginTitle: "Admin sign-in",
+  adminLoginUsernameLabel: "Username",
+  adminLogoutButton: "Sign out admin",
   adminPageDescription:
     "Owner and staff operations for Mushroom.Pi orders, catalog, and employee access.",
   adminPageTitle: "Admin | Mushroom.Pi",
@@ -148,6 +161,13 @@ const vi: AdminCenterCopy = {
   addStaffButton: "Luu quyen nhan vien",
   adminLead:
     "Quan ly quyen nhan vien cua Mushroom.Pi, cap nhat san pham va dieu phoi don hang theo luong van hanh thuc te.",
+  adminLoginButton: "Dang nhap quan tri",
+  adminLoginLead:
+    "Dung tai khoan va mat khau quan tri de vao dashboard quan ly truc tiep.",
+  adminLoginPasswordLabel: "Mat khau",
+  adminLoginTitle: "Dang nhap quan tri",
+  adminLoginUsernameLabel: "Tai khoan",
+  adminLogoutButton: "Dang xuat quan tri",
   adminPageDescription:
     "Khu quan tri cho chu shop va nhan vien cua Mushroom.Pi.",
   adminPageTitle: "Quan tri | Mushroom.Pi",

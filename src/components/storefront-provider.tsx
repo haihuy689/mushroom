@@ -453,7 +453,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   }, [ownerUid, viewer, viewerUid]);
 
   useEffect(() => {
-    if (!viewerUid) {
+    if (!hydrated || !sessionChecked) {
       return;
     }
 
@@ -481,7 +481,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [viewer, viewerUid]);
+  }, [hydrated, sessionChecked, viewer, viewerUid]);
 
   const applyViewerChange = useCallback(
     (nextViewer: PiVerifiedUser | null) => {

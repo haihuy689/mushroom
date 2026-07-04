@@ -165,10 +165,15 @@
   align-items: end;
 }
 
+.credentialForm,
 .productForm,
 .productList {
   display: grid;
   gap: 1rem;
+}
+
+.credentialForm {
+  width: min(100%, 28rem);
 }
 
 .productGrid {
@@ -487,6 +492,10 @@
 
   .staffForm {
     grid-template-columns: 1fr;
+  }
+
+  .credentialForm {
+    width: 100%;
   }
 
   .productGrid {
