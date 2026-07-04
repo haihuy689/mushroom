@@ -4,14 +4,14 @@
   width: 112px;
   min-width: 112px;
   height: 112px;
-  border-radius: 28px;
+  border-radius: 22px;
   background:
     radial-gradient(circle at 18% 16%, rgba(255, 248, 234, 0.72), transparent 30%),
     radial-gradient(circle at 80% 82%, rgba(39, 74, 57, 0.22), transparent 32%),
     var(--thumb-accent);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 18px 32px rgba(67, 40, 20, 0.14);
+    0 14px 26px rgba(67, 40, 20, 0.12);
 }
 
 .photo {
@@ -45,8 +45,8 @@
   left: 10px;
   min-height: 24px;
   padding: 0 10px;
-  background: rgba(255, 248, 234, 0.84);
-  color: #5d341d;
+  background: rgba(255, 253, 247, 0.9);
+  color: var(--accent-pi);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
 }

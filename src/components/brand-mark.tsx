@@ -29,7 +29,7 @@ export function BrandMark({ tagline }: BrandMarkProps) {
         </svg>
       </span>
       <span className={styles.brandCopy}>
-        <span className={styles.brandName}>Mushroom.Pi</span>
+        <span className={styles.brandName}>mushroom.pi</span>
         <span className={styles.brandTag}>{tagline}</span>
       </span>
     </span>

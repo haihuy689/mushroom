@@ -23,11 +23,11 @@
 .panel,
 .message,
 .authCard {
-  border: 1px solid rgba(92, 71, 39, 0.12);
+  border: 1px solid var(--line-soft);
   border-radius: 1.5rem;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 247, 240, 0.98));
-  box-shadow: 0 22px 50px rgba(84, 60, 28, 0.08);
+    linear-gradient(180deg, rgba(255, 253, 247, 0.98), rgba(248, 243, 232, 0.96));
+  box-shadow: 0 18px 42px rgba(55, 44, 27, 0.1);
 }
 
 .sidebarCard,
@@ -45,7 +45,7 @@
   letter-spacing: 0.12em;
   font-size: 0.74rem;
   font-weight: 800;
-  color: #9a7641;
+  color: #5f7b35;
 }
 
 .sidebarCard h1,
@@ -115,7 +115,8 @@
   gap: 1rem;
   padding: 0.95rem 1rem;
   border-radius: 1rem;
-  background: rgba(132, 105, 64, 0.08);
+  background: rgba(255, 253, 247, 0.72);
+  border: 1px solid rgba(70, 64, 40, 0.12);
   color: #392416;
   font-weight: 700;
 }
@@ -129,9 +130,9 @@
 }
 
 .navButton[data-active="true"] {
-  background: linear-gradient(135deg, #362113, #805429);
+  background: linear-gradient(135deg, var(--accent-pi), #405f27);
   color: white;
-  box-shadow: 0 14px 28px rgba(74, 45, 21, 0.18);
+  box-shadow: 0 14px 28px rgba(109, 25, 142, 0.18);
 }
 
 .navButton[data-active="true"] strong {
@@ -202,8 +203,8 @@
 .metricCard {
   padding: 1rem;
   border-radius: 1.2rem;
-  background: linear-gradient(135deg, #fff8ec, #f6efe1);
-  border: 1px solid rgba(178, 139, 72, 0.2);
+  background: linear-gradient(135deg, #fffdf8, #edf4e2);
+  border: 1px solid rgba(95, 127, 53, 0.16);
   display: grid;
   gap: 0.3rem;
 }
@@ -284,8 +285,8 @@
   width: 100%;
   padding: 0.9rem;
   border-radius: 1.2rem;
-  background: #fffdf9;
-  border: 1px solid rgba(105, 85, 59, 0.12);
+  background: #fffdf8;
+  border: 1px solid rgba(70, 64, 40, 0.12);
   display: grid;
   gap: 0.85rem;
   align-items: center;
@@ -297,8 +298,8 @@
 }
 
 .selectionRow[data-active="true"] {
-  border-color: rgba(131, 88, 38, 0.42);
-  box-shadow: 0 16px 26px rgba(100, 73, 44, 0.08);
+  border-color: rgba(109, 25, 142, 0.3);
+  box-shadow: 0 16px 26px rgba(109, 25, 142, 0.08);
 }
 
 .selectionCopy,
@@ -355,8 +356,8 @@
 }
 
 .statusChip[data-tone="accent"] {
-  background: rgba(156, 108, 37, 0.14);
-  color: #805429;
+  background: rgba(109, 25, 142, 0.12);
+  color: var(--accent-pi);
 }
 
 .statusChip[data-tone="neutral"] {
@@ -391,8 +392,8 @@
   gap: 1rem;
   padding: 1rem;
   border-radius: 1.2rem;
-  background: linear-gradient(135deg, #fff8ec, #f9f1e5);
-  border: 1px solid rgba(186, 147, 85, 0.22);
+  background: linear-gradient(135deg, #fffdf8, #edf4e2);
+  border: 1px solid rgba(95, 127, 53, 0.16);
 }
 
 .previewCard strong {
@@ -429,8 +430,8 @@
   width: 100%;
   min-width: 0;
   border-radius: 1rem;
-  border: 1px solid rgba(114, 96, 70, 0.2);
-  background: white;
+  border: 1px solid rgba(70, 64, 40, 0.16);
+  background: #fffdf8;
   padding: 0.88rem 0.95rem;
   font: inherit;
   color: #26150c;
@@ -465,8 +466,8 @@
   gap: 0.7rem;
   padding: 1rem;
   border-radius: 1.2rem;
-  background: #fcfaf4;
-  border: 1px solid rgba(137, 115, 84, 0.14);
+  background: rgba(255, 253, 247, 0.86);
+  border: 1px solid rgba(70, 64, 40, 0.12);
 }
 
 .permissionTitle {
@@ -495,8 +496,8 @@
 .infoBlock {
   padding: 1rem;
   border-radius: 1.15rem;
-  background: #fcfaf4;
-  border: 1px solid rgba(137, 115, 84, 0.14);
+  background: rgba(255, 253, 247, 0.86);
+  border: 1px solid rgba(70, 64, 40, 0.12);
 }
 
 .infoBlock strong {
@@ -519,8 +520,8 @@
 .teamMetric {
   padding: 0.95rem 1rem;
   border-radius: 1.15rem;
-  background: #fffdf9;
-  border: 1px solid rgba(105, 85, 59, 0.12);
+  background: #fffdf8;
+  border: 1px solid rgba(70, 64, 40, 0.12);
   display: grid;
   gap: 0.3rem;
 }
@@ -538,13 +539,14 @@
 }
 
 .primaryButton {
-  background: linear-gradient(135deg, #3b2414, #98632e);
+  background: linear-gradient(135deg, var(--accent-pi), #8c2ab0);
   color: white;
 }
 
 .secondaryButton {
-  background: rgba(132, 105, 64, 0.08);
-  color: #4f341e;
+  background: rgba(255, 253, 247, 0.82);
+  border: 1px solid rgba(70, 64, 40, 0.12);
+  color: #405b24;
 }
 
 .primaryButton:disabled,

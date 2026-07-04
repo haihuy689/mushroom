@@ -83,6 +83,19 @@ function CartIcon() {
   );
 }
 
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 6.5H20M4 12H20M4 17.5H20"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function AccountIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -98,6 +111,46 @@ function AccountIcon() {
         strokeLinecap="round"
       />
     </svg>
+  );
+}
+
+function HeaderNavMenu({
+  navigationLinks,
+  pathname,
+}: {
+  navigationLinks: HeaderLink[];
+  pathname: string;
+}) {
+  const detailsRef = useRef<HTMLDetailsElement | null>(null);
+
+  const closeMenu = () => {
+    detailsRef.current?.removeAttribute("open");
+  };
+
+  return (
+    <details ref={detailsRef} className={styles.navMenu}>
+      <summary className={styles.menuButton} aria-label="Menu">
+        <MenuIcon />
+      </summary>
+
+      <nav className={styles.menuPopover} aria-label="Primary">
+        {navigationLinks.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={styles.navLink}
+            data-active={
+              link.href === "/"
+                ? pathname === link.href
+                : pathname.startsWith(link.href)
+            }
+            onClick={closeMenu}
+          >
+            {link.label}
+          </Link>
+        ))}
+      </nav>
+    </details>
   );
 }
 
@@ -256,27 +309,15 @@ export function SiteHeaderClient({
     <header className={styles.headerWrap}>
       <div className={styles.headerInner}>
         <div className={styles.headerCard}>
-          <Link href="/" className={styles.brandLink}>
-            <BrandMark tagline={copy.brandSlogan} />
-          </Link>
+          <div className={styles.topBar}>
+            <HeaderNavMenu
+              navigationLinks={navigationLinks}
+              pathname={pathname}
+            />
 
-          <div className={styles.menuRow}>
-            <nav className={styles.menuNav} aria-label="Primary">
-              {navigationLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={styles.navLink}
-                  data-active={
-                    link.href === "/"
-                      ? pathname === link.href
-                      : pathname.startsWith(link.href)
-                  }
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
+            <Link href="/" className={styles.brandLink}>
+              <BrandMark tagline={copy.brandSlogan} />
+            </Link>
 
             <div className={styles.iconRail}>
               <Link

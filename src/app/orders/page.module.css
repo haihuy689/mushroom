@@ -1,10 +1,10 @@
 .page {
   width: 100%;
-  max-width: 1200px;
+  max-width: 980px;
   margin: 0 auto;
-  padding: 32px 20px 64px;
+  padding: 14px 14px 44px;
   display: grid;
-  gap: 24px;
+  gap: 16px;
 }
 
 .hero,
@@ -12,12 +12,12 @@
 .emptyState {
   position: relative;
   overflow: clip;
-  border-radius: 34px;
+  border-radius: 24px;
   border: 1px solid var(--line-soft);
   background:
-    linear-gradient(180deg, rgba(255, 251, 243, 0.88), rgba(250, 240, 216, 0.74));
+    linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(248, 243, 232, 0.9));
   box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(14px);
 }
 
 .hero::before,
@@ -27,8 +27,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at top right, rgba(213, 168, 82, 0.16), transparent 28%),
-    radial-gradient(circle at 10% 10%, rgba(111, 152, 109, 0.09), transparent 24%);
+    radial-gradient(circle at top right, rgba(109, 25, 142, 0.08), transparent 28%),
+    radial-gradient(circle at 10% 10%, rgba(95, 127, 53, 0.12), transparent 24%);
   pointer-events: none;
 }
 
@@ -57,7 +57,8 @@
   font-size: 0.78rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #8b5935;
+  color: #5f7b35;
+  font-weight: 900;
 }
 
 .heroCopy h1,
@@ -67,6 +68,7 @@
   font-size: clamp(2.8rem, 6vw, 4.6rem);
   line-height: 0.92;
   letter-spacing: -0.04em;
+  color: #2b160d;
 }
 
 .lead,
@@ -81,9 +83,9 @@
   display: grid;
   gap: 14px;
   padding: 22px;
-  border-radius: 26px;
-  background: rgba(255, 251, 243, 0.86);
-  border: 1px solid rgba(83, 50, 27, 0.08);
+  border-radius: 20px;
+  background: #fffdf8;
+  border: 1px solid rgba(70, 64, 40, 0.12);
   align-content: start;
 }
 
@@ -125,8 +127,8 @@
   padding: 0 16px;
   border-radius: 999px;
   border: 1px solid rgba(83, 50, 27, 0.12);
-  background: rgba(255, 251, 243, 0.88);
-  color: #4a2e1d;
+  background: #fffdf8;
+  color: #425225;
   cursor: pointer;
   font-weight: 700;
   transition:
@@ -136,8 +138,8 @@
 }
 
 .filterChip[data-active="true"] {
-  background: linear-gradient(135deg, #97572a, #2f5f45);
-  color: #fff8ef;
+  background: linear-gradient(135deg, var(--accent-pi), #8c2ab0);
+  color: white;
   box-shadow: 0 14px 28px rgba(71, 44, 22, 0.16);
 }
 
@@ -151,8 +153,8 @@
   gap: 14px;
   padding: 22px;
   border-radius: 26px;
-  background: rgba(255, 251, 243, 0.88);
-  border: 1px solid rgba(83, 50, 27, 0.08);
+  background: #fffdf8;
+  border: 1px solid rgba(70, 64, 40, 0.12);
 }
 
 .orderTop {
@@ -171,7 +173,7 @@
 }
 
 .orderCode {
-  color: #8b5935;
+  color: #5f7b35;
   font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -271,7 +273,7 @@
 }
 
 .progressStep[data-active="true"] .progressDot {
-  background: linear-gradient(135deg, #97572a, #2f5f45);
+  background: linear-gradient(135deg, var(--accent-pi), #8c2ab0);
 }
 
 .emptyState {
@@ -299,8 +301,8 @@
 }
 
 .primaryLink {
-  background: linear-gradient(135deg, #97572a, #2f5f45);
-  color: #fff8ef;
+  background: linear-gradient(135deg, var(--accent-pi), #8c2ab0);
+  color: white;
 }
 
 .secondaryLink {
@@ -338,8 +340,8 @@
 
 @media (max-width: 640px) {
   .page {
-    padding: 20px 14px 44px;
-    gap: 18px;
+    padding: 0 10px 34px;
+    gap: 12px;
   }
 
   .hero,

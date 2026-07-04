@@ -1,143 +1,380 @@
-import type { CSSProperties } from "react";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/add-to-cart-button";
+import { ProductThumbnail } from "@/components/product-thumbnail";
 import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
 import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import { getStorefrontCopy } from "@/lib/storefront-copy";
-import { getBlogPosts } from "@/lib/site-data";
+import type { SiteLocale } from "@/lib/i18n";
 import styles from "./page.module.css";
+
+type HomeThemeCopy = {
+  bannerAction: string;
+  bannerLead: string;
+  bannerTitle: string;
+  benefits: Array<{ label: string; tone: "green" | "pi" }>;
+  featuredViewAll: string;
+  heroEyebrow: string;
+  heroLead: string;
+  heroTitle: string;
+  primaryAction: string;
+  reasonsLabel: string;
+  secondaryAction: string;
+  steps: Array<{ description: string; title: string }>;
+  stepsTitle: string;
+};
+
+function getHomeThemeCopy(locale: SiteLocale, siteCopy: ReturnType<typeof getPublicSiteCopy>) {
+  const localized: Partial<Record<SiteLocale, HomeThemeCopy>> = {
+    en: {
+      bannerAction: "Open in Pi Browser",
+      bannerLead: "Shop safely and quickly with the Pi community.",
+      bannerTitle: "Smooth experience in Pi Browser",
+      benefits: [
+        { label: "100% natural", tone: "green" },
+        { label: "Fast delivery", tone: "green" },
+        { label: "Pay with Pi", tone: "pi" },
+        { label: "Food safety", tone: "green" },
+      ],
+      featuredViewAll: "View all",
+      heroEyebrow: "Mushroom.Pi",
+      heroLead:
+        "Fresh mushrooms, dried mushrooms, and mushroom products that are tasty, nutritious, and safe for your health.",
+      heroTitle: "Clean mushrooms paid with Pi",
+      primaryAction: "Buy with Pi",
+      reasonsLabel: "Why choose Mushroom.Pi",
+      secondaryAction: "View products",
+      steps: [
+        { title: "Choose products", description: "Add items to your cart" },
+        { title: "Pay with Pi", description: "Confirm and pay with Pi" },
+        { title: "Confirm order", description: "We pack and deliver to you" },
+      ],
+      stepsTitle: "3 steps to pay with Pi",
+    },
+    vi: {
+      bannerAction: "Mở trong Pi Browser",
+      bannerLead: "Mua sắm an toàn, nhanh chóng với cộng đồng Pi.",
+      bannerTitle: "Trải nghiệm mượt mà trên Pi Browser",
+      benefits: [
+        { label: "100% tự nhiên", tone: "green" },
+        { label: "Giao hàng nhanh", tone: "green" },
+        { label: "Thanh toán bằng Pi", tone: "pi" },
+        { label: "An toàn thực phẩm", tone: "green" },
+      ],
+      featuredViewAll: "Xem tất cả",
+      heroEyebrow: "Mushroom.Pi",
+      heroLead:
+        "Cung cấp nấm tươi, nấm khô và sản phẩm từ nấm - tươi ngon, dinh dưỡng, an toàn cho sức khỏe.",
+      heroTitle: "Nấm sạch thanh toán bằng Pi",
+      primaryAction: "Mua bằng Pi",
+      reasonsLabel: "Vì sao chọn Mushroom.Pi",
+      secondaryAction: "Xem sản phẩm",
+      steps: [
+        { title: "Chọn sản phẩm", description: "Thêm vào giỏ hàng" },
+        { title: "Thanh toán bằng Pi", description: "Xác nhận và thanh toán bằng Pi" },
+        { title: "Xác nhận đơn hàng", description: "Chúng tôi đóng gói và giao hàng đến bạn" },
+      ],
+      stepsTitle: "3 bước thanh toán bằng Pi",
+    },
+    es: {
+      bannerAction: "Abrir en Pi Browser",
+      bannerLead: "Compra de forma segura y rapida con la comunidad Pi.",
+      bannerTitle: "Experiencia fluida en Pi Browser",
+      benefits: [
+        { label: "100% natural", tone: "green" },
+        { label: "Entrega rapida", tone: "green" },
+        { label: "Pago con Pi", tone: "pi" },
+        { label: "Seguridad alimentaria", tone: "green" },
+      ],
+      featuredViewAll: "Ver todo",
+      heroEyebrow: "Mushroom.Pi",
+      heroLead:
+        "Hongos frescos, hongos secos y productos de hongos: sabrosos, nutritivos y seguros para tu salud.",
+      heroTitle: "Hongos limpios pagados con Pi",
+      primaryAction: "Comprar con Pi",
+      reasonsLabel: "Por que elegir Mushroom.Pi",
+      secondaryAction: "Ver productos",
+      steps: [
+        { title: "Elige productos", description: "Agrega al carrito" },
+        { title: "Paga con Pi", description: "Confirma y paga con Pi" },
+        { title: "Confirma el pedido", description: "Empacamos y entregamos" },
+      ],
+      stepsTitle: "3 pasos para pagar con Pi",
+    },
+    fr: {
+      bannerAction: "Ouvrir dans Pi Browser",
+      bannerLead: "Achetez vite et en securite avec la communaute Pi.",
+      bannerTitle: "Experience fluide dans Pi Browser",
+      benefits: [
+        { label: "100% naturel", tone: "green" },
+        { label: "Livraison rapide", tone: "green" },
+        { label: "Paiement en Pi", tone: "pi" },
+        { label: "Securite alimentaire", tone: "green" },
+      ],
+      featuredViewAll: "Voir tout",
+      heroEyebrow: "Mushroom.Pi",
+      heroLead:
+        "Champignons frais, champignons secs et produits a base de champignons: bons, nutritifs et surs pour votre sante.",
+      heroTitle: "Champignons propres payes en Pi",
+      primaryAction: "Acheter avec Pi",
+      reasonsLabel: "Pourquoi choisir Mushroom.Pi",
+      secondaryAction: "Voir les produits",
+      steps: [
+        { title: "Choisir les produits", description: "Ajouter au panier" },
+        { title: "Payer en Pi", description: "Confirmer et payer en Pi" },
+        { title: "Confirmer la commande", description: "Nous preparons et livrons" },
+      ],
+      stepsTitle: "3 etapes pour payer en Pi",
+    },
+    zh: {
+      bannerAction: "在 Pi Browser 打开",
+      bannerLead: "为 Pi 社区提供安全、快捷的购物体验。",
+      bannerTitle: "在 Pi Browser 中顺畅购物",
+      benefits: [
+        { label: "100% 天然", tone: "green" },
+        { label: "快速配送", tone: "green" },
+        { label: "使用 Pi 支付", tone: "pi" },
+        { label: "食品安全", tone: "green" },
+      ],
+      featuredViewAll: "查看全部",
+      heroEyebrow: "Mushroom.Pi",
+      heroLead:
+        "提供鲜菇、干菇和蘑菇制品，口感新鲜、营养丰富，也更安心。",
+      heroTitle: "干净蘑菇 使用 Pi 支付",
+      primaryAction: "用 Pi 购买",
+      reasonsLabel: "为什么选择 Mushroom.Pi",
+      secondaryAction: "查看产品",
+      steps: [
+        { title: "选择产品", description: "加入购物车" },
+        { title: "使用 Pi 支付", description: "确认并用 Pi 支付" },
+        { title: "确认订单", description: "我们打包并配送给你" },
+      ],
+      stepsTitle: "使用 Pi 支付的 3 个步骤",
+    },
+  };
+
+  return (
+    localized[locale] ?? {
+      bannerAction: siteCopy.home.bannerAction ?? "Open in Pi Browser",
+      bannerLead:
+        siteCopy.home.bannerLead ??
+        "A smoother shopping flow for Pi community members.",
+      bannerTitle:
+        siteCopy.home.bannerTitle ?? "Smooth experience in Pi Browser",
+      benefits:
+        siteCopy.home.benefits ??
+        [
+          { label: "100% natural", tone: "green" },
+          { label: "Fast delivery", tone: "green" },
+          { label: "Pay with Pi", tone: "pi" },
+          { label: "Food safety", tone: "green" },
+        ],
+      featuredViewAll: siteCopy.home.featuredViewAll ?? "View all",
+      heroEyebrow: siteCopy.home.heroEyebrow,
+      heroLead: siteCopy.home.heroLead,
+      heroTitle: siteCopy.home.heroTitle,
+      primaryAction: siteCopy.home.primaryAction,
+      reasonsLabel: siteCopy.home.pillarsLabel,
+      secondaryAction: siteCopy.home.secondaryAction,
+      steps:
+        siteCopy.home.steps ??
+        [
+          { title: "Choose products", description: "Add items to cart" },
+          { title: "Pay with Pi", description: "Confirm and pay with Pi" },
+          { title: "Confirm order", description: "We prepare and deliver" },
+        ],
+      stepsTitle: "3 steps to pay with Pi",
+    }
+  );
+}
+
+function renderPiTitle(title: string) {
+  const piIndex = title.lastIndexOf("Pi");
+
+  if (piIndex < 0) {
+    return title;
+  }
+
+  return (
+    <>
+      {title.slice(0, piIndex)}
+      <strong>{title.slice(piIndex, piIndex + 2)}</strong>
+      {title.slice(piIndex + 2)}
+    </>
+  );
+}
+
+function FeatureIcon({ index, tone }: { index: number; tone: "green" | "pi" }) {
+  const icons = [
+    "M4 12.5C8.2 12.2 11.2 9.2 12 4C13 9.9 10.2 15.4 5 17.8M5 17.8C6.8 14.8 9.2 12.8 12.3 11.8",
+    "M3.5 14.5H15.5V7H3.5V14.5ZM15.5 10H19L21 12.5V14.5H15.5V10ZM6 17.5C7 17.5 7.8 16.7 7.8 15.7C7.8 14.7 7 13.9 6 13.9C5 13.9 4.2 14.7 4.2 15.7C4.2 16.7 5 17.5 6 17.5ZM17.8 17.5C18.8 17.5 19.6 16.7 19.6 15.7C19.6 14.7 18.8 13.9 17.8 13.9C16.8 13.9 16 14.7 16 15.7C16 16.7 16.8 17.5 17.8 17.5Z",
+    "M12 4V20M8.2 7.2H15.8M8.2 10.8H15.8M9.4 4H14.6",
+    "M12 3.5L19 6.5V11.7C19 15.8 16.2 19 12 20.5C7.8 19 5 15.8 5 11.7V6.5L12 3.5ZM9.2 12L11.2 14L15.3 9.8",
+  ];
+
+  return (
+    <span className={styles.featureIcon} data-tone={tone} aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path
+          d={icons[index % icons.length]}
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
 
 export default async function Home() {
   const locale = await getRequestLocale();
   const siteCopy = getPublicSiteCopy(locale);
   const storefrontCopy = getStorefrontCopy(locale);
   const products = await getStorefrontProducts(locale);
-  const blogPosts = getBlogPosts(locale);
-  const featuredProducts = products.slice(0, 3);
-  const featuredStories = blogPosts.slice(0, 3);
+  const featuredProducts = products.slice(0, 4);
+  const homeCopy = getHomeThemeCopy(locale, siteCopy);
 
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>{siteCopy.home.heroEyebrow}</p>
-          <h1>{siteCopy.home.heroTitle}</h1>
-          <p className={styles.lead}>{siteCopy.home.heroLead}</p>
+          <p className={styles.eyebrow}>{homeCopy.heroEyebrow}</p>
+          <h1>{renderPiTitle(homeCopy.heroTitle)}</h1>
+          <p className={styles.lead}>{homeCopy.heroLead}</p>
 
           <div className={styles.actions}>
             <Link href="/shop" className={styles.primaryAction}>
-              {siteCopy.home.primaryAction}
+              <span className={styles.piCoin}>Pi</span>
+              {homeCopy.primaryAction}
             </Link>
-            <Link href="/blog" className={styles.secondaryAction}>
-              {siteCopy.home.secondaryAction}
+            <Link href="/shop" className={styles.secondaryAction}>
+              {homeCopy.secondaryAction}
             </Link>
           </div>
         </div>
 
-        <div className={styles.heroRail}>
-          <div className={styles.heroCard}>
-            <span className={styles.cardLabel}>
-              {siteCopy.home.overviewLabel}
-            </span>
-            <ul className={styles.statList}>
-              {siteCopy.home.stats.map((stat) => (
-                <li key={stat.label}>
-                  <strong>{stat.value}</strong>
-                  <span>{stat.label}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className={styles.domainCard}>
-            <span className={styles.cardLabel}>
-              {siteCopy.home.brandCardLabel}
-            </span>
-            <h2>{siteCopy.home.brandCardTitle}</h2>
-            <p>{siteCopy.home.brandCardDescription}</p>
-          </div>
+        <div className={styles.mushroomScene} aria-hidden="true">
+          <span className={styles.sceneGlow} />
+          <span className={styles.basket} />
+          <span className={styles.capOne} />
+          <span className={styles.capTwo} />
+          <span className={styles.capThree} />
+          <span className={styles.capFour} />
+          <span className={styles.stemOne} />
+          <span className={styles.stemTwo} />
+          <span className={styles.stemThree} />
+          <span className={styles.logShape} />
         </div>
+      </section>
+
+      <section className={styles.benefitStrip} aria-label={siteCopy.home.overviewLabel}>
+        {homeCopy.benefits.map((benefit, index) => (
+          <article key={benefit.label} className={styles.benefitItem}>
+            <FeatureIcon index={index} tone={benefit.tone} />
+            <strong>{benefit.label}</strong>
+          </article>
+        ))}
       </section>
 
       <section className={styles.section}>
         <div className={styles.sectionHeading}>
-          <p className={styles.sectionLabel}>{siteCopy.home.storefrontLabel}</p>
-          <h2>{siteCopy.home.storefrontTitle}</h2>
+          <div>
+            <p className={styles.sectionLabel}>{siteCopy.home.storefrontLabel}</p>
+            <h2>{siteCopy.home.storefrontTitle}</h2>
+          </div>
+          <Link href="/shop" className={styles.viewAllLink}>
+            {homeCopy.featuredViewAll}
+          </Link>
         </div>
 
         <div className={styles.productGrid}>
           {featuredProducts.map((product) => (
-            <article
-              key={product.id}
-              className={styles.productCard}
-              style={{ "--card-accent": product.accent } as CSSProperties}
-            >
-              <span className={styles.productBadge}>{product.badge}</span>
-              <h3>{product.name}</h3>
-              <p>{product.tagline}</p>
-              <div className={styles.productMeta}>
-                <span>{product.category}</span>
-                <span>{product.format}</span>
-                <span>{product.pricePi} Pi</span>
-              </div>
-              <div className={styles.productActions}>
-                <AddToCartButton
-                  addLabel={storefrontCopy.addToCart}
-                  addedLabel={storefrontCopy.addedToCart}
-                  cancelLabel={storefrontCopy.quantityPickerCancel}
-                  confirmLabel={storefrontCopy.quantityPickerConfirm}
-                  disabled={(product.inventoryCount ?? 0) <= 0}
-                  disabledLabel={storefrontCopy.outOfStock}
-                  fullWidth
-                  lead={storefrontCopy.quantityPickerLead}
-                  maxQuantity={product.inventoryCount ?? 0}
-                  pricePi={product.pricePi}
-                  productId={product.id}
-                  productName={product.name}
-                  quantityLabel={storefrontCopy.quantity}
-                  title={storefrontCopy.quantityPickerTitle}
-                />
+            <article key={product.id} className={styles.productCard}>
+              <ProductThumbnail
+                accent={product.accent}
+                imageUrl={product.imageUrl}
+                name={product.name}
+                productId={product.id}
+              />
+              <div className={styles.productInfo}>
+                <span className={styles.productBadge}>{product.badge}</span>
+                <h3>{product.name}</h3>
+                <p>{product.tagline}</p>
+                <strong>{product.pricePi} Pi</strong>
+                <div className={styles.productActions}>
+                  <AddToCartButton
+                    addLabel={storefrontCopy.addToCart}
+                    addedLabel={storefrontCopy.addedToCart}
+                    cancelLabel={storefrontCopy.quantityPickerCancel}
+                    confirmLabel={storefrontCopy.quantityPickerConfirm}
+                    disabled={(product.inventoryCount ?? 0) <= 0}
+                    disabledLabel={storefrontCopy.outOfStock}
+                    fullWidth
+                    lead={storefrontCopy.quantityPickerLead}
+                    maxQuantity={product.inventoryCount ?? 0}
+                    pricePi={product.pricePi}
+                    productId={product.id}
+                    productName={product.name}
+                    quantityLabel={storefrontCopy.quantity}
+                    title={storefrontCopy.quantityPickerTitle}
+                  />
+                </div>
               </div>
             </article>
           ))}
         </div>
       </section>
 
-      <section className={styles.storySection}>
-        <div className={styles.storyColumn}>
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionLabel}>{siteCopy.home.pillarsLabel}</p>
-            <h2>{siteCopy.home.pillarsTitle}</h2>
-          </div>
-
-          <div className={styles.pillarList}>
-            {siteCopy.brandPillars.map((pillar) => (
-              <article key={pillar.title} className={styles.pillarCard}>
-                <h3>{pillar.title}</h3>
-                <p>{pillar.description}</p>
-              </article>
-            ))}
+      <section className={styles.stepsSection}>
+        <div className={styles.sectionHeading}>
+          <div>
+            <p className={styles.sectionLabel}>Pi</p>
+            <h2>{homeCopy.stepsTitle}</h2>
           </div>
         </div>
 
-        <div className={styles.storyColumn}>
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionLabel}>{siteCopy.home.journalLabel}</p>
-            <h2>{siteCopy.home.journalTitle}</h2>
-          </div>
+        <div className={styles.stepGrid}>
+          {homeCopy.steps.map((step, index) => (
+            <article key={step.title} className={styles.stepCard}>
+              <FeatureIcon index={index + 1} tone={index === 1 ? "pi" : "green"} />
+              <span className={styles.stepNumber}>{index + 1}</span>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
-          <div className={styles.blogList}>
-            {featuredStories.map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className={styles.blogCard}>
-                <span className={styles.blogMeta}>
-                  {post.category} / {post.readTime}
-                </span>
-                <h3>{post.title}</h3>
-                <p>{post.excerpt}</p>
-              </Link>
-            ))}
+      <section className={styles.reasonSection}>
+        <div className={styles.sectionHeading}>
+          <div>
+            <p className={styles.sectionLabel}>{homeCopy.reasonsLabel}</p>
+            <h2>{siteCopy.home.pillarsTitle}</h2>
           </div>
+        </div>
+
+        <div className={styles.reasonGrid}>
+          {siteCopy.brandPillars.map((pillar, index) => (
+            <article key={pillar.title} className={styles.reasonCard}>
+              <FeatureIcon index={index} tone="green" />
+              <h3>{pillar.title}</h3>
+              <p>{pillar.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.browserBanner}>
+        <span className={styles.piAppIcon} aria-hidden="true">
+          Pi
+        </span>
+        <div>
+          <h2>{homeCopy.bannerTitle}</h2>
+          <p>{homeCopy.bannerLead}</p>
+          <Link href="/shop" className={styles.bannerAction}>
+            {homeCopy.bannerAction}
+          </Link>
         </div>
       </section>
     </div>

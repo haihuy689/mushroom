@@ -2,9 +2,9 @@
   display: grid;
   gap: 16px;
   padding: 22px;
-  border-radius: 26px;
-  background: rgba(255, 251, 243, 0.88);
-  border: 1px solid rgba(83, 50, 27, 0.08);
+  border-radius: 20px;
+  background: #fffdf8;
+  border: 1px solid rgba(70, 64, 40, 0.12);
 }
 
 .top,
@@ -21,7 +21,7 @@
 
 .eyebrow {
   margin: 0;
-  color: #8b5935;
+  color: #5f7b35;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -138,8 +138,8 @@
 
 .primaryButton {
   border: 0;
-  background: linear-gradient(135deg, #97572a, #2f5f45);
-  color: #fff8ef;
+  background: linear-gradient(135deg, var(--accent-pi), #8c2ab0);
+  color: white;
   box-shadow: 0 14px 28px rgba(71, 44, 22, 0.16);
 }
 

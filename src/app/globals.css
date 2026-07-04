@@ -1,17 +1,18 @@
 :root {
-  --bg-top: #f8e8c7;
-  --bg-mid: #e7c98d;
-  --bg-bottom: #3f2a1e;
-  --surface: rgba(255, 250, 239, 0.8);
-  --surface-strong: rgba(255, 252, 245, 0.94);
-  --surface-dark: rgba(41, 31, 24, 0.86);
-  --line-soft: rgba(70, 44, 22, 0.1);
-  --line-strong: rgba(70, 44, 22, 0.16);
+  --bg-top: #fffdf7;
+  --bg-mid: #f3ecd9;
+  --bg-bottom: #e7dec4;
+  --surface: rgba(255, 253, 247, 0.88);
+  --surface-strong: rgba(255, 253, 247, 0.97);
+  --surface-dark: rgba(31, 48, 25, 0.9);
+  --line-soft: rgba(63, 77, 38, 0.12);
+  --line-strong: rgba(63, 77, 38, 0.2);
   --text-main: #24150f;
   --text-soft: rgba(51, 31, 20, 0.74);
-  --accent-amber: #d6953a;
-  --accent-forest: #2f5c42;
-  --shadow-soft: 0 24px 64px rgba(57, 36, 22, 0.1);
+  --accent-amber: #b97824;
+  --accent-forest: #5f7f35;
+  --accent-pi: #6d198e;
+  --shadow-soft: 0 18px 42px rgba(55, 44, 27, 0.1);
 }
 
 html {
@@ -27,9 +28,9 @@ body {
   color: var(--text-main);
   font-family: var(--font-body), "Segoe UI", sans-serif;
   background:
-    radial-gradient(circle at 14% 10%, rgba(255, 247, 226, 0.92), transparent 24%),
-    radial-gradient(circle at 85% 12%, rgba(103, 141, 87, 0.28), transparent 20%),
-    radial-gradient(circle at 50% 100%, rgba(60, 41, 27, 0.3), transparent 30%),
+    radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.96), transparent 26%),
+    radial-gradient(circle at 85% 12%, rgba(112, 142, 72, 0.18), transparent 22%),
+    radial-gradient(circle at 50% 100%, rgba(109, 25, 142, 0.08), transparent 30%),
     linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 44%, var(--bg-bottom) 100%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

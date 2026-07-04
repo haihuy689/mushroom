@@ -23,9 +23,14 @@ export type PublicSiteCopy = {
   footerCopy: string;
   footerMeta: string[];
   home: {
+    bannerAction?: string;
+    bannerLead?: string;
+    bannerTitle?: string;
+    benefits?: Array<{ label: string; tone: "green" | "pi" }>;
     brandCardDescription: string;
     brandCardLabel: string;
     brandCardTitle: string;
+    featuredViewAll?: string;
     heroEyebrow: string;
     heroLead: string;
     heroTitle: string;
@@ -36,6 +41,7 @@ export type PublicSiteCopy = {
     pillarsTitle: string;
     primaryAction: string;
     secondaryAction: string;
+    steps?: Array<{ description: string; title: string }>;
     storefrontLabel: string;
     storefrontTitle: string;
     stats: Array<{ label: string; value: string }>;
@@ -103,10 +109,20 @@ const copy: Record<SiteLocale, PublicSiteCopy> = {
       "Mushroom.Pi brings mushroom products, practical mushroom knowledge, saved addresses, order tracking, and Pi checkout into one clean storefront.",
     footerMeta: ["Mushroom products", "Pi checkout", "Blog and product guides"],
     home: {
+      bannerAction: "Open in Pi Browser",
+      bannerLead: "A smoother shopping flow for Pi community members.",
+      bannerTitle: "Smooth experience in Pi Browser",
+      benefits: [
+        { label: "100% natural", tone: "green" },
+        { label: "Fast delivery", tone: "green" },
+        { label: "Pay with Pi", tone: "pi" },
+        { label: "Food safety", tone: "green" },
+      ],
       brandCardDescription:
         "A storefront built around mushroom products, practical education, and orders paid with Pi.",
       brandCardLabel: "Brand",
       brandCardTitle: "Mushroom.Pi",
+      featuredViewAll: "View all",
       heroEyebrow: "Mushroom shop powered by Pi",
       heroLead:
         "Browse mushroom products, add them to your cart, save delivery details, and follow each order from checkout to delivery.",
@@ -119,6 +135,11 @@ const copy: Record<SiteLocale, PublicSiteCopy> = {
       pillarsTitle: "A clean storefront with room to learn before buying.",
       primaryAction: "Shop products",
       secondaryAction: "Read the blog",
+      steps: [
+        { title: "Choose products", description: "Add items to cart" },
+        { title: "Pay with Pi", description: "Confirm and pay with Pi" },
+        { title: "Confirm order", description: "We prepare and deliver" },
+      ],
       storefrontLabel: "Featured products",
       storefrontTitle: "Start with a few mushroom essentials.",
       stats: [

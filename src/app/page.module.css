@@ -1,431 +1,695 @@
 .page {
-  width: 100%;
-  max-width: 1200px;
+  width: min(100%, 980px);
   margin: 0 auto;
-  padding: 32px 20px 64px;
+  padding: 14px 14px 44px;
   display: grid;
-  gap: 24px;
+  gap: 16px;
 }
 
 .hero,
+.benefitStrip,
 .section,
-.commerceSection,
-.storySection {
+.stepsSection,
+.reasonSection,
+.browserBanner {
   position: relative;
   overflow: clip;
-  border: 1px solid var(--line-soft);
-  background:
-    linear-gradient(180deg, rgba(255, 251, 243, 0.86), rgba(250, 240, 216, 0.72));
-  border-radius: 34px;
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(16px);
-}
-
-.hero::before,
-.section::before,
-.commerceSection::before,
-.storySection::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 100%;
-  background:
-    radial-gradient(circle at top right, rgba(213, 168, 82, 0.16), transparent 28%),
-    radial-gradient(circle at 10% 10%, rgba(111, 152, 109, 0.09), transparent 24%);
-  pointer-events: none;
+  border: 1px solid rgba(63, 77, 38, 0.12);
+  background: rgba(255, 253, 247, 0.94);
+  box-shadow: 0 18px 42px rgba(62, 47, 26, 0.1);
 }
 
 .hero {
+  min-height: 470px;
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.95fr);
-  gap: 24px;
-  padding: 28px;
+  grid-template-columns: minmax(0, 0.95fr) minmax(300px, 1.05fr);
+  align-items: center;
+  gap: 10px;
+  padding: clamp(24px, 5vw, 52px);
+  border-radius: 0 0 26px 26px;
+  background:
+    linear-gradient(90deg, rgba(255, 253, 247, 0.96) 0%, rgba(255, 253, 247, 0.82) 43%, rgba(255, 255, 255, 0.08) 100%),
+    radial-gradient(circle at 72% 34%, rgba(255, 241, 199, 0.64), transparent 25%),
+    radial-gradient(circle at 87% 18%, rgba(91, 124, 55, 0.28), transparent 22%),
+    linear-gradient(135deg, #f7efd9 0%, #d9cf9d 48%, #7d8f51 100%);
 }
 
-.hero > *,
-.commerceSection > *,
-.storySection > * {
-  min-width: 0;
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 80% 8%, rgba(255, 255, 255, 0.86), transparent 12%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.25), transparent 54%);
+  pointer-events: none;
 }
 
 .heroCopy {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: grid;
-  align-content: center;
   gap: 18px;
-  min-height: 440px;
-  padding: 12px;
+  max-width: 520px;
 }
 
 .eyebrow,
-.sectionLabel,
-.cardLabel {
+.sectionLabel {
+  margin: 0;
+  color: #5f7b35;
   font-size: 0.78rem;
-  letter-spacing: 0.18em;
+  font-weight: 900;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #8b5935;
 }
 
-.heroCopy h1,
-.sectionHeading h2,
-.commerceIntro h2 {
+.heroCopy h1 {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(3.2rem, 7vw, 5.5rem);
-  line-height: 0.92;
-  letter-spacing: -0.04em;
+  color: #2b160d;
+  font-size: clamp(3.3rem, 8vw, 5.7rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.07em;
   text-wrap: balance;
 }
 
-.lead,
-.commerceIntro p,
-.productCard p,
-.pillarCard p,
-.blogCard p,
-.domainCard p {
-  color: var(--text-soft);
-  line-height: 1.72;
-  font-size: 1rem;
+.heroCopy h1 strong {
+  color: #6d198e;
 }
 
 .lead {
-  max-width: 60ch;
+  max-width: 43ch;
+  margin: 0;
+  color: #2f271f;
+  font-size: clamp(1.04rem, 2vw, 1.24rem);
+  font-weight: 600;
+  line-height: 1.62;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 12px;
   padding-top: 4px;
 }
 
 .primaryAction,
-.secondaryAction {
+.secondaryAction,
+.viewAllLink,
+.bannerAction {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 52px;
-  padding: 0 22px;
-  border-radius: 999px;
-  font-weight: 700;
+  border-radius: 16px;
+  font-weight: 900;
   transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    background-color 180ms ease,
-    border-color 180ms ease;
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.primaryAction,
+.secondaryAction {
+  min-height: 62px;
+  gap: 10px;
+  padding: 0 22px;
+  font-size: 1.02rem;
 }
 
 .primaryAction {
-  background: linear-gradient(135deg, #97572a, #2f5f45);
-  color: #fff8ef;
-  box-shadow: 0 14px 30px rgba(71, 44, 22, 0.18);
+  color: white;
+  background: linear-gradient(135deg, #69168c, #8c2ab0);
+  box-shadow: 0 16px 28px rgba(100, 28, 125, 0.28);
 }
 
 .secondaryAction {
-  border: 1px solid rgba(83, 50, 27, 0.12);
-  background: rgba(255, 252, 245, 0.86);
+  color: #425225;
+  background: rgba(255, 253, 247, 0.9);
+  border: 2px solid rgba(65, 82, 37, 0.72);
 }
 
-.heroRail {
+.piCoin,
+.piAppIcon {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #ffe58d;
+  background: #6d198e;
+  font-weight: 900;
+}
+
+.piCoin {
+  width: 34px;
+  height: 34px;
+  border: 2px solid rgba(255, 229, 141, 0.64);
+}
+
+.mushroomScene {
   position: relative;
   z-index: 1;
-  display: grid;
-  gap: 18px;
-  align-content: stretch;
+  min-height: 360px;
+  align-self: stretch;
 }
 
-.heroCard,
-.domainCard {
-  padding: 24px;
-  border-radius: 28px;
+.sceneGlow,
+.basket,
+.capOne,
+.capTwo,
+.capThree,
+.capFour,
+.stemOne,
+.stemTwo,
+.stemThree,
+.logShape {
+  position: absolute;
+  display: block;
 }
 
-.heroCard {
+.sceneGlow {
+  inset: 8% 2% 8% 4%;
+  border-radius: 45% 55% 40% 60%;
   background:
-    linear-gradient(160deg, rgba(43, 59, 32, 0.98), rgba(28, 31, 24, 0.98)),
-    radial-gradient(circle at top right, rgba(255, 231, 180, 0.18), transparent 34%);
-  color: #fff7ea;
-  box-shadow: 0 18px 38px rgba(31, 24, 18, 0.2);
+    radial-gradient(circle at 54% 28%, rgba(255, 247, 213, 0.95), transparent 18%),
+    radial-gradient(circle at 66% 24%, rgba(151, 110, 50, 0.34), transparent 24%),
+    radial-gradient(circle at 62% 48%, rgba(237, 220, 169, 0.72), transparent 38%),
+    linear-gradient(135deg, rgba(71, 104, 48, 0.2), rgba(126, 93, 42, 0.08));
+  filter: blur(1px);
 }
 
-.statList {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin: 18px 0 0;
-  padding: 0;
+.basket {
+  right: 12%;
+  bottom: 23%;
+  width: 54%;
+  height: 34%;
+  border-radius: 50% 50% 44% 44%;
+  background:
+    repeating-linear-gradient(38deg, rgba(84, 48, 20, 0.26) 0 7px, transparent 7px 16px),
+    repeating-linear-gradient(-38deg, rgba(255, 230, 174, 0.34) 0 7px, transparent 7px 16px),
+    linear-gradient(135deg, #c48c48, #755025);
+  box-shadow: inset 0 -18px 24px rgba(73, 42, 19, 0.28), 0 28px 42px rgba(60, 39, 20, 0.22);
 }
 
-.statList li {
+.capOne,
+.capTwo,
+.capThree,
+.capFour {
+  border-radius: 999px 999px 42% 42%;
+  background:
+    radial-gradient(circle at 34% 30%, #fff1cf 0 5%, transparent 6%),
+    radial-gradient(circle at 58% 26%, #fff1cf 0 4%, transparent 5%),
+    linear-gradient(180deg, #c99556, #815024);
+  box-shadow: inset 0 -12px 18px rgba(55, 27, 11, 0.18), 0 14px 20px rgba(74, 45, 22, 0.16);
+}
+
+.capOne {
+  right: 44%;
+  top: 18%;
+  width: 124px;
+  height: 78px;
+  transform: rotate(-10deg);
+}
+
+.capTwo {
+  right: 24%;
+  top: 22%;
+  width: 150px;
+  height: 86px;
+  transform: rotate(8deg);
+}
+
+.capThree {
+  right: 5%;
+  bottom: 29%;
+  width: 164px;
+  height: 95px;
+  background:
+    radial-gradient(circle at 40% 30%, #fff8df 0 5%, transparent 6%),
+    linear-gradient(180deg, #f4e5c1, #b58651);
+}
+
+.capFour {
+  right: 42%;
+  bottom: 22%;
+  width: 105px;
+  height: 70px;
+  transform: rotate(14deg);
+}
+
+.stemOne,
+.stemTwo,
+.stemThree {
+  border-radius: 999px 999px 40% 40%;
+  background: linear-gradient(180deg, #fff8e9, #e0bb7b);
+  box-shadow: inset 0 -8px 12px rgba(113, 74, 31, 0.16);
+}
+
+.stemOne {
+  right: 50%;
+  top: 33%;
+  width: 32px;
+  height: 112px;
+  transform: rotate(5deg);
+}
+
+.stemTwo {
+  right: 32%;
+  top: 38%;
+  width: 42px;
+  height: 120px;
+  transform: rotate(-8deg);
+}
+
+.stemThree {
+  right: 13%;
+  bottom: 16%;
+  width: 54px;
+  height: 120px;
+  transform: rotate(23deg);
+}
+
+.logShape {
+  right: 2%;
+  bottom: 8%;
+  width: 74%;
+  height: 48px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #8b6134, #d8b274 36%, #6f4825);
+  transform: rotate(-2deg);
+}
+
+.benefitStrip {
   display: grid;
-  gap: 6px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin-top: -38px;
+  z-index: 3;
   padding: 16px;
   border-radius: 22px;
-  background: rgba(255, 247, 226, 0.08);
-  border: 1px solid rgba(255, 241, 216, 0.1);
 }
 
-.statList strong {
-  font-size: 1.7rem;
-  font-family: var(--font-display);
+.benefitItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 12px;
+  color: #20160f;
+  border-right: 1px solid rgba(69, 75, 43, 0.12);
 }
 
-.statList span {
-  color: rgba(255, 243, 222, 0.76);
-  line-height: 1.45;
+.benefitItem:last-child {
+  border-right: 0;
 }
 
-.domainCard {
-  display: grid;
-  align-content: end;
-  gap: 10px;
-  min-height: 180px;
-  background:
-    linear-gradient(180deg, rgba(255, 253, 246, 0.96), rgba(245, 232, 199, 0.88));
-  border: 1px solid rgba(83, 50, 27, 0.08);
+.featureIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  color: #5f7f35;
 }
 
-.domainCard h2 {
-  margin: 0;
-  font-size: 2.6rem;
-  font-family: var(--font-display);
-  letter-spacing: -0.04em;
+.featureIcon[data-tone="pi"] {
+  color: #6d198e;
+}
+
+.featureIcon svg {
+  width: 34px;
+  height: 34px;
+}
+
+.benefitItem strong {
+  font-size: 1rem;
+  line-height: 1.25;
 }
 
 .section,
-.commerceSection,
-.storySection {
-  padding: 28px;
-}
-
-.sectionHeading,
-.commerceIntro {
-  position: relative;
-  z-index: 1;
+.stepsSection,
+.reasonSection {
   display: grid;
-  gap: 12px;
-}
-
-.sectionHeading h2,
-.commerceIntro h2 {
-  font-size: clamp(2.2rem, 5vw, 3.8rem);
-  max-width: 12ch;
-}
-
-.productGrid {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 22px;
-}
-
-.productCard {
-  position: relative;
-  display: grid;
-  gap: 14px;
+  gap: 18px;
   padding: 22px;
-  border-radius: 26px;
-  overflow: clip;
-  background:
-    linear-gradient(180deg, rgba(255, 252, 246, 0.9), rgba(244, 230, 201, 0.7)),
-    var(--card-accent);
-  background-blend-mode: soft-light, normal;
-  border: 1px solid rgba(83, 50, 27, 0.1);
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease;
+  border-radius: 24px;
 }
 
-.productCard::before,
-.pillarCard::before,
-.blogCard::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 0.3rem;
-  background: linear-gradient(90deg, rgba(151, 87, 42, 0.84), rgba(45, 95, 69, 0.86));
-  opacity: 0.92;
-}
-
-.productBadge {
-  justify-self: start;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(255, 251, 243, 0.9);
-  border: 1px solid rgba(83, 50, 27, 0.08);
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-.productCard h3,
-.pillarCard h3,
-.blogCard h3 {
-  margin: 0;
-  font-size: 1.22rem;
-}
-
-.productMeta {
+.sectionHeading {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  color: rgba(58, 36, 24, 0.7);
-  font-size: 0.9rem;
-}
-
-.productActions {
-  display: flex;
-  margin-top: auto;
-}
-
-.commerceSection {
-  display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  gap: 22px;
-  align-items: start;
-}
-
-.storySection {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-}
-
-.storyColumn {
-  position: relative;
-  z-index: 1;
-  display: grid;
+  align-items: center;
+  justify-content: space-between;
   gap: 18px;
 }
 
-.pillarList,
-.blogList {
+.sectionHeading h2 {
+  margin: 4px 0 0;
+  color: #4b2c14;
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  line-height: 1.12;
+}
+
+.viewAllLink {
+  min-height: 42px;
+  padding: 0 14px;
+  color: #425225;
+  white-space: nowrap;
+}
+
+.viewAllLink::after {
+  content: ">";
+  margin-left: 6px;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.productGrid {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
-.pillarCard,
-.blogCard {
-  position: relative;
+.productCard {
   display: grid;
-  gap: 10px;
-  padding: 22px;
-  border-radius: 24px;
-  overflow: clip;
-  background: rgba(255, 251, 243, 0.86);
-  border: 1px solid rgba(83, 50, 27, 0.08);
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(70, 64, 40, 0.12);
+  background: #fffdf8;
+  box-shadow: 0 10px 24px rgba(63, 47, 25, 0.06);
 }
 
-.blogMeta {
-  color: #86502e;
-  font-size: 0.84rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+.productInfo {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.productBadge {
+  color: #6d198e;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.productInfo h3 {
+  margin: 0;
+  color: #2b160d;
+  font-size: 1.06rem;
+  line-height: 1.25;
+}
+
+.productInfo p {
+  margin: 0;
+  color: rgba(43, 22, 13, 0.72);
+  font-size: 0.88rem;
+  line-height: 1.42;
+}
+
+.productInfo strong {
+  color: #6d198e;
+  font-size: 1.06rem;
+}
+
+.productActions {
+  margin-top: 4px;
+}
+
+.stepsSection {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(109, 25, 142, 0.08), transparent 22%),
+    rgba(255, 253, 247, 0.94);
+}
+
+.stepGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.stepCard {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.stepCard:not(:last-child)::after {
+  content: "->";
+  position: absolute;
+  top: 30px;
+  right: -18px;
+  color: rgba(91, 91, 67, 0.28);
+  font-size: 2rem;
+}
+
+.stepNumber {
+  position: absolute;
+  top: 36px;
+  left: calc(50% + 16px);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  color: #2b160d;
+  background: white;
+  border: 1px solid rgba(65, 82, 37, 0.22);
+  font-weight: 900;
+  font-size: 0.78rem;
+}
+
+.stepCard h3,
+.reasonCard h3 {
+  margin: 0;
+  color: #25150d;
+  font-size: 1.04rem;
+}
+
+.stepCard p,
+.reasonCard p,
+.browserBanner p {
+  margin: 0;
+  color: rgba(43, 22, 13, 0.72);
+  line-height: 1.5;
+}
+
+.reasonGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.reasonCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px 12px;
+  align-items: start;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(70, 64, 40, 0.12);
+  background: rgba(255, 253, 247, 0.86);
+}
+
+.reasonCard p {
+  grid-column: 2;
+}
+
+.browserBanner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 24px;
+  border-radius: 22px;
+  color: white;
+  background:
+    radial-gradient(circle at 90% 20%, rgba(255, 238, 190, 0.28), transparent 18%),
+    radial-gradient(circle at 78% 68%, rgba(218, 169, 91, 0.26), transparent 22%),
+    linear-gradient(135deg, rgba(53, 78, 32, 0.96), rgba(26, 49, 25, 0.98));
+}
+
+.piAppIcon {
+  width: 90px;
+  height: 90px;
+  border-radius: 24px;
+  font-size: 1.8rem;
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.18);
+}
+
+.browserBanner h2 {
+  margin: 0 0 6px;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  line-height: 1.1;
+}
+
+.browserBanner p {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.bannerAction {
+  justify-self: start;
+  min-height: 50px;
+  margin-top: 16px;
+  padding: 0 18px;
+  color: white;
+  background: linear-gradient(135deg, #6d198e, #9e33bd);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .primaryAction:hover,
   .secondaryAction:hover,
+  .viewAllLink:hover,
+  .bannerAction:hover,
   .productCard:hover,
-  .pillarCard:hover,
-  .blogCard:hover {
+  .reasonCard:hover {
     transform: translateY(-2px);
   }
 
-  .primaryAction:hover {
-    box-shadow: 0 18px 36px rgba(71, 44, 22, 0.24);
-  }
-
-  .secondaryAction:hover {
-    background: rgba(255, 245, 223, 0.95);
-    border-color: rgba(83, 50, 27, 0.18);
-  }
-
   .productCard:hover,
-  .pillarCard:hover,
-  .blogCard:hover {
-    box-shadow: 0 16px 38px rgba(71, 44, 22, 0.12);
-    border-color: rgba(83, 50, 27, 0.14);
+  .reasonCard:hover {
+    box-shadow: 0 16px 32px rgba(63, 47, 25, 0.12);
   }
 }
 
-@media (max-width: 1080px) {
-  .hero,
-  .commerceSection,
-  .storySection {
+@media (max-width: 860px) {
+  .hero {
     grid-template-columns: 1fr;
-  }
-
-  .heroCopy {
     min-height: auto;
-    padding: 0;
   }
 
-  .sectionHeading h2,
-  .commerceIntro h2 {
-    max-width: 100%;
+  .mushroomScene {
+    min-height: 280px;
   }
-}
 
-@media (max-width: 820px) {
+  .benefitStrip,
   .productGrid,
-  .statList {
-    grid-template-columns: 1fr;
+  .reasonGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .benefitItem:nth-child(2) {
+    border-right: 0;
+  }
+
+  .benefitItem:nth-child(-n + 2) {
+    border-bottom: 1px solid rgba(69, 75, 43, 0.12);
   }
 }
 
 @media (max-width: 640px) {
   .page {
-    padding: 20px 14px 44px;
-    gap: 18px;
+    padding: 0 10px 34px;
+    gap: 12px;
   }
 
-  .hero,
-  .section,
-  .commerceSection,
-  .storySection {
-    padding: 18px;
-    border-radius: 24px;
+  .hero {
+    padding: 28px 18px 22px;
+    border-radius: 0 0 24px 24px;
   }
 
-  .heroCopy h1,
-  .sectionHeading h2,
-  .commerceIntro h2 {
-    font-size: clamp(2.45rem, 13vw, 3.9rem);
-    line-height: 0.94;
-  }
-
-  .heroCard,
-  .domainCard,
-  .productCard,
-  .pillarCard,
-  .blogCard,
-  .statList li {
-    padding: 18px;
-    border-radius: 20px;
+  .heroCopy h1 {
+    font-size: clamp(2.75rem, 13vw, 4.15rem);
   }
 
   .actions {
     display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .primaryAction,
   .secondaryAction {
-    width: 100%;
+    min-height: 56px;
+    padding: 0 14px;
   }
 
-  .domainCard h2 {
-    font-size: 2.15rem;
+  .benefitStrip {
+    margin-top: -18px;
+    padding: 8px;
+    border-radius: 20px;
+  }
+
+  .benefitItem {
+    min-height: 66px;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .featureIcon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .featureIcon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .benefitItem strong {
+    font-size: 0.9rem;
+  }
+
+  .section,
+  .stepsSection,
+  .reasonSection {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .sectionHeading {
+    align-items: flex-start;
+  }
+
+  .productGrid,
+  .reasonGrid,
+  .stepGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .stepCard:not(:last-child)::after {
+    display: none;
+  }
+
+  .stepCard {
+    padding: 10px 0;
+  }
+
+  .reasonCard {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .browserBanner {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .piAppIcon {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 420px) {
+  .actions,
+  .benefitStrip {
+    grid-template-columns: 1fr;
+  }
+
+  .benefitItem {
+    justify-content: flex-start;
+    border-right: 0;
+    border-bottom: 1px solid rgba(69, 75, 43, 0.12);
+  }
+
+  .benefitItem:last-child {
+    border-bottom: 0;
+  }
+
+  .productCard {
+    grid-template-columns: 1fr;
   }
 }

@@ -13,8 +13,8 @@
   min-height: 46px;
   padding: 0 18px;
   border: 0;
-  background: linear-gradient(135deg, #97572a, #2f5f45);
-  color: #fff8ef;
+  background: linear-gradient(135deg, var(--accent-pi), #8c2ab0);
+  color: white;
   cursor: pointer;
   transition:
     transform 180ms ease,
@@ -28,7 +28,7 @@
 }
 
 .addButton[data-added="true"] {
-  background: linear-gradient(135deg, #2f5f45, #5d7c3f);
+  background: linear-gradient(135deg, #4f7a30, #5f7f35);
 }
 
 .addButton:disabled {
@@ -55,8 +55,8 @@
   padding: 22px;
   border-radius: 28px;
   background:
-    linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(245, 233, 210, 0.94));
-  border: 1px solid rgba(83, 50, 27, 0.1);
+    linear-gradient(180deg, rgba(255, 253, 247, 0.98), rgba(248, 243, 232, 0.94));
+  border: 1px solid var(--line-soft);
   box-shadow: 0 24px 54px rgba(43, 24, 12, 0.2);
 }
 
@@ -88,7 +88,7 @@
 
 .modalEyebrow {
   margin: 0;
-  color: #8b5935;
+  color: #5f7b35;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -153,8 +153,8 @@
 
 .primaryButton {
   border: 0;
-  background: linear-gradient(135deg, #97572a, #2f5f45);
-  color: #fff8ef;
+  background: linear-gradient(135deg, var(--accent-pi), #8c2ab0);
+  color: white;
 }
 
 @media (hover: hover) and (pointer: fine) {
