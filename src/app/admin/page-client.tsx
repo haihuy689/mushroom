@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import type {
   StorefrontAdminAccess,
   StorefrontStaffMember,
@@ -24,6 +24,9 @@ type AdminPageClientProps = {
   copy: AdminCenterCopy;
   initialAccess: StorefrontAdminAccess;
   initialCredentialSessionActive: boolean;
+  initialOrders: StorefrontOrder[];
+  initialProducts: StorefrontProductRecord[];
+  initialStaff: StorefrontStaffMember[];
   locale: SiteLocale;
   orderCopy: OrderCenterCopy;
 };
@@ -36,10 +39,13 @@ type MessageState =
 async function readJson<T>(path: string, init?: RequestInit) {
   const response = await fetch(path, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
+    headers:
+      init?.method === "GET" || !init?.method
+        ? init?.headers
+        : {
+            "Content-Type": "application/json",
+            ...(init?.headers ?? {}),
+          },
     cache: "no-store",
   });
 
@@ -52,18 +58,6 @@ async function readJson<T>(path: string, init?: RequestInit) {
   }
 
   return data;
-}
-
-function getAdminUiText(locale: SiteLocale) {
-  if (locale === "vi") {
-    return {
-      loadingData: "Dang tai du lieu quan tri...",
-    };
-  }
-
-  return {
-    loadingData: "Loading admin data...",
-  };
 }
 
 function updateProductValue(
@@ -80,13 +74,16 @@ export function AdminPageClient({
   copy,
   initialAccess,
   initialCredentialSessionActive,
+  initialOrders,
+  initialProducts,
+  initialStaff,
   locale,
   orderCopy,
 }: AdminPageClientProps) {
   const router = useRouter();
-  const [orders, setOrders] = useState<StorefrontOrder[]>([]);
-  const [products, setProducts] = useState<StorefrontProductRecord[]>([]);
-  const [staff, setStaff] = useState<StorefrontStaffMember[]>([]);
+  const [orders, setOrders] = useState<StorefrontOrder[]>(initialOrders);
+  const [products, setProducts] = useState<StorefrontProductRecord[]>(initialProducts);
+  const [staff, setStaff] = useState<StorefrontStaffMember[]>(initialStaff);
   const [staffIdentity, setStaffIdentity] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [adminUsername, setAdminUsername] = useState("admin");
@@ -105,7 +102,6 @@ export function AdminPageClient({
   const [refreshingProducts, setRefreshingProducts] = useState(false);
   const [savingProductId, setSavingProductId] = useState<string | null>(null);
   const [savingStaff, setSavingStaff] = useState(false);
-  const [loadingData, setLoadingData] = useState(initialAccess.canAccessAdmin);
 
   const canAccessAdmin = initialAccess.canAccessAdmin;
   const canManageStaff = initialAccess.canManageStaff;
@@ -120,7 +116,6 @@ export function AdminPageClient({
     }),
     [products],
   );
-  const uiText = getAdminUiText(locale);
 
   const formatter = useMemo(
     () =>
@@ -138,54 +133,6 @@ export function AdminPageClient({
   };
 
   const panelLabel = initialAccess.role === "owner" ? copy.ownerPanel : copy.staffPanel;
-  const showLoadingState = canAccessAdmin && loadingData;
-
-  useEffect(() => {
-    if (!canAccessAdmin) {
-      return;
-    }
-
-    let cancelled = false;
-
-    void (async () => {
-      setLoadingData(true);
-
-      try {
-        const [ordersResponse, staffResponse, productsResponse] = await Promise.all([
-          readJson<{ items: StorefrontOrder[] }>("/api/admin/orders"),
-          canManageStaff
-            ? readJson<{ items: StorefrontStaffMember[] }>("/api/admin/staff")
-            : Promise.resolve({ items: [] as StorefrontStaffMember[] }),
-          canManageStaff
-            ? readJson<{ items: StorefrontProductRecord[] }>("/api/admin/products")
-            : Promise.resolve({ items: [] as StorefrontProductRecord[] }),
-        ]);
-
-        if (cancelled) {
-          return;
-        }
-
-        setOrders(ordersResponse.items);
-        setStaff(staffResponse.items);
-        setProducts(productsResponse.items);
-      } catch (error) {
-        if (!cancelled) {
-          setMessage({
-            kind: "error",
-            text: error instanceof Error ? error.message : copy.saveError,
-          });
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingData(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [canAccessAdmin, canManageStaff, copy.saveError]);
 
   const handleRefreshOrders = async () => {
     setRefreshingOrders(true);
@@ -478,16 +425,7 @@ export function AdminPageClient({
         </div>
       ) : null}
 
-      {showLoadingState ? (
-        <section className={styles.layout}>
-          <article className={`${styles.card} ${styles.accessCard}`}>
-            <h2>{copy.adminTitle}</h2>
-            <p>{uiText.loadingData}</p>
-          </article>
-        </section>
-      ) : null}
-
-      {!showLoadingState && !canAccessAdmin ? (
+      {!canAccessAdmin ? (
         <section className={styles.layout}>
           <article className={`${styles.card} ${styles.accessCard}`}>
             <h2>{copy.adminLoginTitle}</h2>
@@ -528,7 +466,7 @@ export function AdminPageClient({
         </section>
       ) : null}
 
-      {canAccessAdmin && !loadingData ? (
+      {canAccessAdmin ? (
         <>
           <section className={styles.hero}>
             <div className={styles.heroCopy}>
