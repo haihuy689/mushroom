@@ -119,6 +119,15 @@ declare global {
 }
 
 const STOREFRONT_DB_TIMEOUT_MS = 8000;
+const STOREFRONT_REQUIRED_TABLES = [
+  "storefront_users",
+  "storefront_cart_items",
+  "storefront_addresses",
+  "storefront_orders",
+  "storefront_order_items",
+  "storefront_staff_members",
+  "storefront_products",
+] as const;
 
 function withStorefrontTimeout<T>(promise: Promise<T>, label: string) {
   return new Promise<T>((resolve, reject) => {
@@ -139,6 +148,37 @@ function withStorefrontTimeout<T>(promise: Promise<T>, label: string) {
   });
 }
 
+async function hasStorefrontCoreSchema(sql: NonNullable<ReturnType<typeof getSql>>) {
+  try {
+    const rows = await sql<{ table_name: string }[]>`
+      select table_name
+      from information_schema.tables
+      where table_schema = 'public'
+        and table_name in ${sql(STOREFRONT_REQUIRED_TABLES)}
+    `;
+
+    return rows.length === STOREFRONT_REQUIRED_TABLES.length;
+  } catch {
+    return false;
+  }
+}
+
+async function hasStorefrontSeedProducts(sql: NonNullable<ReturnType<typeof getSql>>) {
+  try {
+    const rows = await sql<{ exists: boolean }[]>`
+      select exists (
+        select 1
+        from storefront_products
+        limit 1
+      ) as exists
+    `;
+
+    return rows[0]?.exists === true;
+  } catch {
+    return false;
+  }
+}
+
 async function ensureStorefrontSchema() {
   if (!isDatabaseConfigured()) {
     return false;
@@ -153,6 +193,10 @@ async function ensureStorefrontSchema() {
 
     globalThis.__mushroomStorefrontSchemaPromise = withStorefrontTimeout(
       (async () => {
+        if (await hasStorefrontCoreSchema(sql)) {
+          return true;
+        }
+
         await sql.begin(async (transaction) => {
           await transaction`
             create table if not exists storefront_users (
@@ -385,6 +429,10 @@ async function ensureDefaultStorefrontProductsSeeded() {
 
     globalThis.__mushroomStorefrontProductSeedPromise = withStorefrontTimeout(
       (async () => {
+        if (await hasStorefrontSeedProducts(sql)) {
+          return true;
+        }
+
         await sql.begin(async (transaction) => {
           for (const product of seedProducts) {
             await transaction`
