@@ -1,6 +1,13 @@
 "use client";
 
-import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import type {
   StorefrontAdminAccess,
   StorefrontStaffMember,
@@ -23,9 +30,9 @@ type AdminPageClientProps = {
   copy: AdminCenterCopy;
   initialAccess: StorefrontAdminAccess;
   initialCredentialSessionActive: boolean;
-  initialOrders: StorefrontOrder[];
-  initialProducts: StorefrontProductRecord[];
-  initialStaff: StorefrontStaffMember[];
+  initialOrders: StorefrontOrder[] | null;
+  initialProducts: StorefrontProductRecord[] | null;
+  initialStaff: StorefrontStaffMember[] | null;
   locale: SiteLocale;
   orderCopy: OrderCenterCopy;
 };
@@ -35,28 +42,55 @@ type MessageState =
   | { kind: "success"; text: string }
   | null;
 
-async function readJson<T>(path: string, init?: RequestInit) {
-  const response = await fetch(path, {
-    ...init,
-    headers:
-      init?.method === "GET" || !init?.method
-        ? init?.headers
-        : {
-            "Content-Type": "application/json",
-            ...(init?.headers ?? {}),
-          },
-    cache: "no-store",
-  });
+type DashboardSnapshot = {
+  orders: StorefrontOrder[];
+  products: StorefrontProductRecord[];
+  staff: StorefrontStaffMember[];
+};
 
-  const data = (await response.json()) as T & { error?: string };
+type RequestInitWithTimeout = RequestInit & {
+  timeoutMs?: number;
+};
 
-  if (!response.ok) {
-    throw new Error(
-      typeof data.error === "string" ? data.error : "Request failed.",
-    );
+async function readJson<T>(path: string, init?: RequestInitWithTimeout) {
+  const { timeoutMs = 10000, ...requestInit } = init ?? {};
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  try {
+    const response = await fetch(path, {
+      ...requestInit,
+      headers:
+        requestInit.method === "GET" || !requestInit.method
+          ? requestInit.headers
+          : {
+              "Content-Type": "application/json",
+              ...(requestInit.headers ?? {}),
+            },
+      cache: "no-store",
+      signal: controller.signal,
+    });
+
+    const data = (await response.json()) as T & { error?: string };
+
+    if (!response.ok) {
+      throw new Error(
+        typeof data.error === "string" ? data.error : "Request failed.",
+      );
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("The request took too long. Please try again.");
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timer);
   }
-
-  return data;
 }
 
 function updateProductValue(
@@ -79,9 +113,15 @@ export function AdminPageClient({
   locale,
   orderCopy,
 }: AdminPageClientProps) {
-  const [orders, setOrders] = useState<StorefrontOrder[]>(initialOrders);
-  const [products, setProducts] = useState<StorefrontProductRecord[]>(initialProducts);
-  const [staff, setStaff] = useState<StorefrontStaffMember[]>(initialStaff);
+  const hasInitialDashboardData =
+    initialOrders !== null &&
+    initialProducts !== null &&
+    initialStaff !== null;
+  const [orders, setOrders] = useState<StorefrontOrder[]>(initialOrders ?? []);
+  const [products, setProducts] = useState<StorefrontProductRecord[]>(
+    initialProducts ?? [],
+  );
+  const [staff, setStaff] = useState<StorefrontStaffMember[]>(initialStaff ?? []);
   const [staffIdentity, setStaffIdentity] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [adminUsername, setAdminUsername] = useState("admin");
@@ -96,6 +136,12 @@ export function AdminPageClient({
   const [loggingInAdmin, setLoggingInAdmin] = useState(false);
   const [loggingOutAdmin, setLoggingOutAdmin] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
+  const [dashboardBusy, setDashboardBusy] = useState(false);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [dashboardReady, setDashboardReady] = useState(hasInitialDashboardData);
+  const [dashboardRequested, setDashboardRequested] = useState(
+    hasInitialDashboardData,
+  );
   const [refreshingOrders, setRefreshingOrders] = useState(false);
   const [refreshingProducts, setRefreshingProducts] = useState(false);
   const [savingProductId, setSavingProductId] = useState<string | null>(null);
@@ -132,7 +178,56 @@ export function AdminPageClient({
 
   const panelLabel = copy.ownerPanel;
 
+  const loadDashboardSnapshot = useCallback(async () => {
+    setDashboardRequested(true);
+    setDashboardBusy(true);
+    setDashboardError(null);
+
+    try {
+      const data = await readJson<DashboardSnapshot>("/api/admin/dashboard", {
+        timeoutMs: 12000,
+      });
+
+      setOrders(data.orders);
+      setProducts(data.products);
+      setStaff(data.staff);
+      setDashboardReady(true);
+    } catch (error) {
+      setDashboardError(
+        error instanceof Error ? error.message : copy.dashboardSlowError,
+      );
+    } finally {
+      setDashboardBusy(false);
+    }
+  }, [copy.dashboardSlowError]);
+
+  useEffect(() => {
+    if (
+      !canAccessAdmin ||
+      dashboardReady ||
+      dashboardBusy ||
+      dashboardRequested
+    ) {
+      return;
+    }
+
+    void (async () => {
+      await loadDashboardSnapshot();
+    })();
+  }, [
+    canAccessAdmin,
+    dashboardBusy,
+    dashboardReady,
+    dashboardRequested,
+    loadDashboardSnapshot,
+  ]);
+
   const handleRefreshOrders = async () => {
+    if (!dashboardReady) {
+      await loadDashboardSnapshot();
+      return;
+    }
+
     setRefreshingOrders(true);
     setMessage(null);
 
@@ -150,6 +245,11 @@ export function AdminPageClient({
   };
 
   const handleRefreshProducts = async () => {
+    if (!dashboardReady) {
+      await loadDashboardSnapshot();
+      return;
+    }
+
     setRefreshingProducts(true);
     setMessage(null);
 
@@ -466,6 +566,25 @@ export function AdminPageClient({
 
       {canAccessAdmin ? (
         <>
+          {dashboardBusy ? (
+            <div className={styles.message}>{copy.dashboardLoading}</div>
+          ) : null}
+
+          {dashboardError ? (
+            <div className={`${styles.message} ${styles.inlineActionMessage}`} data-kind="error">
+              <span>{dashboardError}</span>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => {
+                  void loadDashboardSnapshot();
+                }}
+              >
+                {copy.dashboardRetry}
+              </button>
+            </div>
+          ) : null}
+
           <section className={styles.hero}>
             <div className={styles.heroCopy}>
               <p className={styles.eyebrow}>{panelLabel}</p>
@@ -492,33 +611,33 @@ export function AdminPageClient({
 
             <div className={styles.statsGrid}>
               <article className={styles.statCard}>
-                <strong>{orders.length}</strong>
+                <strong>{dashboardReady ? orders.length : "..."}</strong>
                 <span>{orderCopy.orders}</span>
               </article>
               <article className={styles.statCard}>
-                <strong>{orderCounts.processing}</strong>
+                <strong>{dashboardReady ? orderCounts.processing : "..."}</strong>
                 <span>{orderCopy.processing}</span>
               </article>
               {canManageStaff ? (
                 <>
                   <article className={styles.statCard}>
-                    <strong>{products.length}</strong>
+                    <strong>{dashboardReady ? products.length : "..."}</strong>
                     <span>{copy.catalogManagerTitle}</span>
                   </article>
                   <article className={styles.statCard}>
-                    <strong>{productCounts.visible}</strong>
+                    <strong>{dashboardReady ? productCounts.visible : "..."}</strong>
                     <span>{copy.liveProductsLabel}</span>
                   </article>
                   <article className={styles.statCard}>
-                    <strong>{productCounts.hidden}</strong>
+                    <strong>{dashboardReady ? productCounts.hidden : "..."}</strong>
                     <span>{copy.hiddenProductsLabel}</span>
                   </article>
                   <article className={styles.statCard}>
-                    <strong>{productCounts.outOfStock}</strong>
+                    <strong>{dashboardReady ? productCounts.outOfStock : "..."}</strong>
                     <span>{copy.outOfStockProductsLabel}</span>
                   </article>
                   <article className={styles.statCard}>
-                    <strong>{staff.length}</strong>
+                    <strong>{dashboardReady ? staff.length : "..."}</strong>
                     <span>{copy.staffManagerTitle}</span>
                   </article>
                 </>
@@ -559,7 +678,9 @@ export function AdminPageClient({
                   </button>
                 </form>
 
-                {staff.length === 0 ? (
+                {!dashboardReady && dashboardBusy ? (
+                  <p className={styles.emptyState}>{copy.dashboardLoading}</p>
+                ) : staff.length === 0 ? (
                   <p className={styles.emptyState}>{copy.emptyStaff}</p>
                 ) : (
                   <div className={styles.staffList}>
@@ -774,7 +895,9 @@ export function AdminPageClient({
 
                 <p className={styles.cardLead}>{copy.catalogManagerLead}</p>
 
-                {products.length === 0 ? (
+                {!dashboardReady && dashboardBusy ? (
+                  <p className={styles.emptyState}>{copy.dashboardLoading}</p>
+                ) : products.length === 0 ? (
                   <p className={styles.emptyState}>{copy.emptyProducts}</p>
                 ) : (
                   <div className={styles.productList}>
@@ -1080,7 +1203,9 @@ export function AdminPageClient({
               </button>
             </div>
 
-            {orders.length === 0 ? (
+            {!dashboardReady && dashboardBusy ? (
+              <p className={styles.emptyState}>{copy.dashboardLoading}</p>
+            ) : orders.length === 0 ? (
               <p className={styles.emptyState}>{copy.emptyOrders}</p>
             ) : (
               <div className={styles.orderList}>

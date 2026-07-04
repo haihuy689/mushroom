@@ -114,8 +114,29 @@ type ProductRow = {
 };
 
 declare global {
-  var __mushroomStorefrontSchemaPromise: Promise<void> | undefined;
-  var __mushroomStorefrontProductSeedPromise: Promise<void> | undefined;
+  var __mushroomStorefrontSchemaPromise: Promise<boolean> | undefined;
+  var __mushroomStorefrontProductSeedPromise: Promise<boolean> | undefined;
+}
+
+const STOREFRONT_DB_TIMEOUT_MS = 8000;
+
+function withStorefrontTimeout<T>(promise: Promise<T>, label: string) {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${label} timed out.`));
+    }, STOREFRONT_DB_TIMEOUT_MS);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 }
 
 async function ensureStorefrontSchema() {
@@ -130,140 +151,145 @@ async function ensureStorefrontSchema() {
       return false;
     }
 
-    globalThis.__mushroomStorefrontSchemaPromise = (async () => {
-      await sql.begin(async (transaction) => {
-        await transaction`
-          create table if not exists storefront_users (
-            pi_uid text primary key,
-            username text,
-            wallet_address text,
-            scopes jsonb not null default '[]'::jsonb,
-            created_at timestamptz not null default now(),
-            updated_at timestamptz not null default now()
-          )
-        `;
-        await transaction`
-          create table if not exists storefront_cart_items (
-            pi_uid text not null references storefront_users (pi_uid) on delete cascade,
-            product_id text not null,
-            quantity integer not null,
-            updated_at timestamptz not null default now(),
-            primary key (pi_uid, product_id)
-          )
-        `;
-        await transaction`
-          create table if not exists storefront_addresses (
-            id text primary key,
-            pi_uid text not null references storefront_users (pi_uid) on delete cascade,
-            full_name text not null,
-            phone text not null,
-            line1 text not null,
-            line2 text not null default '',
-            ward text not null,
-            district text not null,
-            city text not null,
-            country text not null,
-            note text not null default '',
-            is_default boolean not null default false,
-            created_at timestamptz not null,
-            updated_at timestamptz not null default now()
-          )
-        `;
-        await transaction`
-          create table if not exists storefront_orders (
-            id text primary key,
-            pi_uid text not null references storefront_users (pi_uid) on delete cascade,
-            product_id text not null,
-            product_name text not null,
-            quantity integer not null,
-            total_pi numeric(18, 4) not null,
-            created_at timestamptz not null,
-            txid text,
-            payment_id text,
-            username text,
-            shipping_full_name text,
-            shipping_phone text,
-            shipping_line1 text,
-            shipping_line2 text,
-            shipping_ward text,
-            shipping_district text,
-            shipping_city text,
-            shipping_country text,
-            shipping_note text
-          )
-        `;
-        await transaction`
-          alter table storefront_orders
-          add column if not exists fulfillment_status text
-        `;
-        await transaction`
-          alter table storefront_orders
-          add column if not exists status_updated_at timestamptz
-        `;
-        await transaction`
-          alter table storefront_orders
-          add column if not exists status_updated_by text
-        `;
-        await transaction`
-          create table if not exists storefront_order_items (
-            order_id text not null references storefront_orders (id) on delete cascade,
-            product_id text not null,
-            product_name text not null,
-            quantity integer not null,
-            total_pi numeric(18, 4) not null,
-            primary key (order_id, product_id)
-          )
-        `;
-        await transaction`
-          create index if not exists storefront_orders_pi_uid_created_at_idx
-          on storefront_orders (pi_uid, created_at desc)
-        `;
-        await transaction`
-          create table if not exists storefront_staff_members (
-            username_key text primary key,
-            display_username text not null,
-            added_by text not null,
-            created_at timestamptz not null default now(),
-            updated_at timestamptz not null default now(),
-            is_active boolean not null default true
-          )
-        `;
-        await transaction`
-          create table if not exists storefront_products (
-            id text primary key,
-            source_product_id text unique,
-            slug text not null,
-            name text not null,
-            tagline text not null default '',
-            description text not null default '',
-            category text not null default '',
-            format text not null default '',
-            price_pi numeric(18, 4) not null,
-            badge text not null default '',
-            accent text not null default '#c38a33',
-            packaging text not null default '',
-            weight_value numeric(10, 2),
-            weight_unit text,
-            inventory_count integer not null default 0,
-            is_active boolean not null default true,
-            created_at timestamptz not null default now(),
-            updated_at timestamptz not null default now()
-          )
-        `;
-        await transaction`
-          create index if not exists storefront_products_active_updated_idx
-          on storefront_products (is_active, updated_at desc)
-        `;
-      });
-    })();
+    globalThis.__mushroomStorefrontSchemaPromise = withStorefrontTimeout(
+      (async () => {
+        await sql.begin(async (transaction) => {
+          await transaction`
+            create table if not exists storefront_users (
+              pi_uid text primary key,
+              username text,
+              wallet_address text,
+              scopes jsonb not null default '[]'::jsonb,
+              created_at timestamptz not null default now(),
+              updated_at timestamptz not null default now()
+            )
+          `;
+          await transaction`
+            create table if not exists storefront_cart_items (
+              pi_uid text not null references storefront_users (pi_uid) on delete cascade,
+              product_id text not null,
+              quantity integer not null,
+              updated_at timestamptz not null default now(),
+              primary key (pi_uid, product_id)
+            )
+          `;
+          await transaction`
+            create table if not exists storefront_addresses (
+              id text primary key,
+              pi_uid text not null references storefront_users (pi_uid) on delete cascade,
+              full_name text not null,
+              phone text not null,
+              line1 text not null,
+              line2 text not null default '',
+              ward text not null,
+              district text not null,
+              city text not null,
+              country text not null,
+              note text not null default '',
+              is_default boolean not null default false,
+              created_at timestamptz not null,
+              updated_at timestamptz not null default now()
+            )
+          `;
+          await transaction`
+            create table if not exists storefront_orders (
+              id text primary key,
+              pi_uid text not null references storefront_users (pi_uid) on delete cascade,
+              product_id text not null,
+              product_name text not null,
+              quantity integer not null,
+              total_pi numeric(18, 4) not null,
+              created_at timestamptz not null,
+              txid text,
+              payment_id text,
+              username text,
+              shipping_full_name text,
+              shipping_phone text,
+              shipping_line1 text,
+              shipping_line2 text,
+              shipping_ward text,
+              shipping_district text,
+              shipping_city text,
+              shipping_country text,
+              shipping_note text
+            )
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists fulfillment_status text
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists status_updated_at timestamptz
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists status_updated_by text
+          `;
+          await transaction`
+            create table if not exists storefront_order_items (
+              order_id text not null references storefront_orders (id) on delete cascade,
+              product_id text not null,
+              product_name text not null,
+              quantity integer not null,
+              total_pi numeric(18, 4) not null,
+              primary key (order_id, product_id)
+            )
+          `;
+          await transaction`
+            create index if not exists storefront_orders_pi_uid_created_at_idx
+            on storefront_orders (pi_uid, created_at desc)
+          `;
+          await transaction`
+            create table if not exists storefront_staff_members (
+              username_key text primary key,
+              display_username text not null,
+              added_by text not null,
+              created_at timestamptz not null default now(),
+              updated_at timestamptz not null default now(),
+              is_active boolean not null default true
+            )
+          `;
+          await transaction`
+            create table if not exists storefront_products (
+              id text primary key,
+              source_product_id text unique,
+              slug text not null,
+              name text not null,
+              tagline text not null default '',
+              description text not null default '',
+              category text not null default '',
+              format text not null default '',
+              price_pi numeric(18, 4) not null,
+              badge text not null default '',
+              accent text not null default '#c38a33',
+              packaging text not null default '',
+              weight_value numeric(10, 2),
+              weight_unit text,
+              inventory_count integer not null default 0,
+              is_active boolean not null default true,
+              created_at timestamptz not null default now(),
+              updated_at timestamptz not null default now()
+            )
+          `;
+          await transaction`
+            create index if not exists storefront_products_active_updated_idx
+            on storefront_products (is_active, updated_at desc)
+          `;
+        });
+
+        return true;
+      })(),
+      "Storefront schema initialization",
+    );
   }
 
   try {
     await globalThis.__mushroomStorefrontSchemaPromise;
     return true;
-  } catch (error) {
+  } catch {
     globalThis.__mushroomStorefrontSchemaPromise = undefined;
-    throw error;
+    return false;
   }
 }
 
@@ -325,63 +351,68 @@ async function ensureDefaultStorefrontProductsSeeded() {
       }),
     );
 
-    globalThis.__mushroomStorefrontProductSeedPromise = (async () => {
-      await sql.begin(async (transaction) => {
-        for (const product of seedProducts) {
-          await transaction`
-            insert into storefront_products (
-              id,
-              source_product_id,
-              slug,
-              name,
-              tagline,
-              description,
-              category,
-              format,
-              price_pi,
-              badge,
-              accent,
-              packaging,
-              weight_value,
-              weight_unit,
-              inventory_count,
-              is_active,
-              created_at,
-              updated_at
-            )
-            values (
-              ${product.id},
-              ${product.sourceProductId},
-              ${product.slug},
-              ${product.name},
-              ${product.tagline},
-              ${product.description},
-              ${product.category},
-              ${product.format},
-              ${product.pricePi},
-              ${product.badge},
-              ${product.accent},
-              ${product.packaging},
-              ${product.weightValue},
-              ${product.weightUnit},
-              ${product.inventoryCount},
-              ${product.isActive},
-              now(),
-              now()
-            )
-            on conflict (id) do nothing
-          `;
-        }
-      });
-    })();
+    globalThis.__mushroomStorefrontProductSeedPromise = withStorefrontTimeout(
+      (async () => {
+        await sql.begin(async (transaction) => {
+          for (const product of seedProducts) {
+            await transaction`
+              insert into storefront_products (
+                id,
+                source_product_id,
+                slug,
+                name,
+                tagline,
+                description,
+                category,
+                format,
+                price_pi,
+                badge,
+                accent,
+                packaging,
+                weight_value,
+                weight_unit,
+                inventory_count,
+                is_active,
+                created_at,
+                updated_at
+              )
+              values (
+                ${product.id},
+                ${product.sourceProductId},
+                ${product.slug},
+                ${product.name},
+                ${product.tagline},
+                ${product.description},
+                ${product.category},
+                ${product.format},
+                ${product.pricePi},
+                ${product.badge},
+                ${product.accent},
+                ${product.packaging},
+                ${product.weightValue},
+                ${product.weightUnit},
+                ${product.inventoryCount},
+                ${product.isActive},
+                now(),
+                now()
+              )
+              on conflict (id) do nothing
+            `;
+          }
+        });
+
+        return true;
+      })(),
+      "Storefront product seed",
+    );
   }
 
   try {
     await globalThis.__mushroomStorefrontProductSeedPromise;
     return true;
-  } catch (error) {
+  } catch {
     globalThis.__mushroomStorefrontProductSeedPromise = undefined;
-    throw error;
+    return false;
   }
 }
 

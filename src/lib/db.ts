@@ -21,8 +21,10 @@ export function getSql() {
 
   if (!globalThis.__mushroomSql) {
     globalThis.__mushroomSql = postgres(getDatabaseUrl(), {
+      connect_timeout: 5,
       idle_timeout: 20,
       max: 1,
+      max_lifetime: 60 * 5,
       prepare: false,
     });
   }

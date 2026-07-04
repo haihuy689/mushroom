@@ -96,6 +96,13 @@
   padding: 0.9rem 1rem;
 }
 
+.inlineActionMessage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
 .message[data-kind="success"] {
   border-color: rgba(48, 148, 109, 0.28);
   background: linear-gradient(180deg, #f6fff9, #eefcf3);
@@ -517,6 +524,11 @@
 @media (max-width: 640px) {
   .statsGrid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .inlineActionMessage {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .cardHeading {

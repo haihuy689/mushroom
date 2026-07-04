@@ -5,6 +5,9 @@ export type AdminCenterCopy = {
   addProductButton: string;
   addStaff: string;
   addStaffButton: string;
+  dashboardLoading: string;
+  dashboardRetry: string;
+  dashboardSlowError: string;
   adminLead: string;
   adminLoginButton: string;
   adminLoginLead: string;
@@ -78,6 +81,10 @@ const en: AdminCenterCopy = {
   addProductButton: "Save product",
   addStaff: "Add staff",
   addStaffButton: "Save employee",
+  dashboardLoading: "Loading admin data...",
+  dashboardRetry: "Reload data",
+  dashboardSlowError:
+    "Admin data is responding slowly right now. Please try reloading.",
   adminLead:
     "Manage employees, product inventory, and customer orders from one browser-based control panel.",
   adminLoginButton: "Sign in to admin",
@@ -159,6 +166,10 @@ const vi: AdminCenterCopy = {
   addProductButton: "Luu san pham",
   addStaff: "Them nhan vien",
   addStaffButton: "Luu nhan vien",
+  dashboardLoading: "Dang tai du lieu quan tri...",
+  dashboardRetry: "Tai lai du lieu",
+  dashboardSlowError:
+    "Du lieu quan tri dang phan hoi cham. Ban vui long tai lai sau it giay.",
   adminLead:
     "Quan ly nhan vien, hang hoa va don hang cua Mushroom.Pi trong mot trang dieu khien tren web.",
   adminLoginButton: "Dang nhap quan tri",
