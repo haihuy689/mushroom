@@ -161,6 +161,12 @@ async function postJson<T>(
   return data;
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 function createOrderCode() {
   const now = new Date();
   const datePart = [
@@ -262,7 +268,7 @@ export function CartCheckoutCard({
     }
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!window.Pi) {
       setMessage({
         kind: "error",
@@ -346,7 +352,7 @@ export function CartCheckoutCard({
         (lines.length === 1 ? lines[0].product.name : `Mushroom.Pi ${orderCode}`),
       quantity: totalItems,
       totalPi,
-      createdAt: reusableOrder?.createdAt,
+      createdAt: reusableOrder?.createdAt ?? new Date().toISOString(),
       username: viewer.username,
       shopperUid: viewer.uid,
       items: frozenLines,
@@ -363,24 +369,64 @@ export function CartCheckoutCard({
         note: frozenAddress.note,
       },
     };
-    const recordOrderStatus = (
+    const persistOrderToServer = async (order: StorefrontOrder) => {
+      let lastError: unknown;
+
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          await postJson(
+            "/api/storefront/state",
+            {
+              action: "recordOrder",
+              order,
+            },
+            piCopy.completionFailed,
+          );
+          return;
+        } catch (error) {
+          lastError = error;
+
+          if (attempt === 0) {
+            await wait(450);
+          }
+        }
+      }
+
+      throw lastError instanceof Error
+        ? lastError
+        : new Error(piCopy.completionFailed);
+    };
+    const recordOrderStatus = async (
       status: OrderStatus,
       paymentId?: string,
       txid?: string,
     ) => {
-      recordOrder({
+      const order = {
         ...baseOrder,
         paymentId,
         status,
         statusUpdatedAt: new Date().toISOString(),
         statusUpdatedBy: "Pi Network Testnet",
         txid,
-      });
+      } satisfies StorefrontOrder;
+
+      recordOrder(order);
+      await persistOrderToServer(order);
     };
 
-    recordOrderStatus("pending_payment");
     setPaymentBusy(true);
     setMessage(null);
+
+    try {
+      await recordOrderStatus("pending_payment");
+    } catch (error) {
+      setPaymentBusy(false);
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : piCopy.completionFailed,
+      });
+      return;
+    }
 
     window.Pi.createPayment(
       {
@@ -405,9 +451,11 @@ export function CartCheckoutCard({
               { paymentId },
               piCopy.approvalFailed,
             );
-            recordOrderStatus("pending_payment", paymentId);
+            await recordOrderStatus("pending_payment", paymentId);
           } catch (error) {
-            recordOrderStatus("payment_failed", paymentId);
+            await recordOrderStatus("payment_failed", paymentId).catch(
+              () => undefined,
+            );
             setPaymentBusy(false);
             setMessage({
               kind: "error",
@@ -423,7 +471,7 @@ export function CartCheckoutCard({
               piCopy.completionFailed,
             );
 
-            recordOrderStatus("paid", paymentId, txid);
+            await recordOrderStatus("paid", paymentId, txid);
 
             clearCart();
             setPaymentBusy(false);
@@ -438,11 +486,15 @@ export function CartCheckoutCard({
               kind: "error",
               text: error instanceof Error ? error.message : piCopy.completionFailed,
             });
-            recordOrderStatus("payment_failed", paymentId);
+            await recordOrderStatus("payment_failed", paymentId).catch(
+              () => undefined,
+            );
           }
         },
         onCancel: (paymentId) => {
-          recordOrderStatus("payment_failed", paymentId);
+          void recordOrderStatus("payment_failed", paymentId).catch(
+            () => undefined,
+          );
           setPaymentBusy(false);
           setMessage({
             kind: "error",
@@ -450,7 +502,7 @@ export function CartCheckoutCard({
           });
         },
         onError: (error) => {
-          recordOrderStatus("payment_failed");
+          void recordOrderStatus("payment_failed").catch(() => undefined);
           setPaymentBusy(false);
           setMessage({
             kind: "error",
@@ -647,7 +699,9 @@ export function CartCheckoutCard({
             !serverConfigured ||
             lines.length === 0
           }
-          onClick={handleCheckout}
+          onClick={() => {
+            void handleCheckout();
+          }}
         >
           <PiNetworkIcon className={styles.buttonIcon} />
           {paymentBusy ? copy.placingOrder : copy.placeOrder}
