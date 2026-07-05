@@ -793,6 +793,22 @@
   margin-top: 1rem;
 }
 
+.staticAccount {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(75, 46, 26, 0.14);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.66);
+  color: #6f5a46;
+}
+
+.staticAccount strong {
+  color: #3b2318;
+}
+
 @media (hover: hover) {
   .navButton:hover,
   .primaryButton:hover,

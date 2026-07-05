@@ -96,13 +96,18 @@ function getConfiguredAdminPassword() {
 }
 
 export async function validateAdminCredentials(username: string, password: string) {
-  const configuredUsername = getConfiguredAdminUsername();
+  const normalizedUsername = username.trim().toLowerCase();
+  const normalizedPassword = password.trim();
+  const configuredUsername = getConfiguredAdminUsername().toLowerCase();
 
-  if (username.trim() !== configuredUsername) {
+  if (normalizedUsername !== configuredUsername) {
     return false;
   }
 
-  const storedPasswordIsValid = await verifyStoredAdminPassword(username, password);
+  const storedPasswordIsValid = await verifyStoredAdminPassword(
+    normalizedUsername,
+    normalizedPassword,
+  );
 
   if (storedPasswordIsValid !== null) {
     return storedPasswordIsValid;
@@ -110,7 +115,7 @@ export async function validateAdminCredentials(username: string, password: strin
 
   const configuredPassword = getConfiguredAdminPassword();
 
-  return configuredPassword.length > 0 && password === configuredPassword;
+  return configuredPassword.length > 0 && normalizedPassword === configuredPassword;
 }
 
 export async function getAdminCredentialSession() {

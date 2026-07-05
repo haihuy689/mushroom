@@ -383,7 +383,7 @@ export function AdminPageClient({
   const [staff, setStaff] = useState<StorefrontStaffMember[]>(initialStaff ?? []);
   const [activeView, setActiveView] = useState<AdminView>("overview");
   const [adminPassword, setAdminPassword] = useState("");
-  const [adminUsername, setAdminUsername] = useState("admin");
+  const adminUsername = "admin";
   const [adminPasswordConfirm, setAdminPasswordConfirm] = useState("");
   const [adminPasswordCurrent, setAdminPasswordCurrent] = useState("");
   const [adminPasswordNew, setAdminPasswordNew] = useState("");
@@ -878,8 +878,8 @@ export function AdminPageClient({
       await readJson("/api/admin/session", {
         method: "POST",
         body: JSON.stringify({
-          password: adminPassword,
-          username: adminUsername,
+          password: adminPassword.trim(),
+          username: adminUsername.trim(),
         }),
         timeoutMs: 20000,
       });
@@ -1569,15 +1569,10 @@ export function AdminPageClient({
           <p className={styles.authLead}>{copy.adminLoginLead}</p>
 
           <form className={styles.authForm} onSubmit={handleAdminLogin}>
-            <label className={styles.field}>
+            <div className={styles.staticAccount}>
               <span>{copy.adminLoginUsernameLabel}</span>
-              <input
-                autoComplete="username"
-                required
-                value={adminUsername}
-                onChange={(event) => setAdminUsername(event.target.value)}
-              />
-            </label>
+              <strong>{adminUsername}</strong>
+            </div>
             <label className={styles.field}>
               <span>{copy.adminLoginPasswordLabel}</span>
               <input
