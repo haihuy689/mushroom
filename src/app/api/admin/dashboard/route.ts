@@ -4,11 +4,10 @@ import type { StorefrontStaffMember } from "@/lib/admin-access";
 import { isOrderStatus } from "@/lib/order-status";
 import type { StorefrontProductRecord } from "@/lib/storefront-product";
 import type { StorefrontOrder } from "@/lib/storefront-state";
-import { ensureStorefrontSchema } from "@/lib/storefront-db";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 import { getDatabaseUrl } from "@/lib/db";
 
-const ADMIN_DASHBOARD_TIMEOUT_MS = 20000;
+const ADMIN_DASHBOARD_TIMEOUT_MS = 8000;
 
 export const preferredRegion = "sin1";
 
@@ -128,6 +127,14 @@ function withDashboardTimeout<T>(promise: Promise<T>) {
       },
     );
   });
+}
+
+async function readDashboardPart<T>(promise: Promise<T>, fallback: T) {
+  try {
+    return await withDashboardTimeout(promise);
+  } catch {
+    return fallback;
+  }
 }
 
 function mapStaffRows(rows: StaffRow[]): StorefrontStaffMember[] {
@@ -298,8 +305,6 @@ export async function GET() {
     });
   }
 
-  await ensureStorefrontSchema();
-
   const sql = postgres(databaseUrl, {
     connect_timeout: 5,
     idle_timeout: 5,
@@ -308,127 +313,136 @@ export async function GET() {
   });
 
   try {
-    if (access.canManageProducts) {
-      await withDashboardTimeout(sql`
-        delete from storefront_products
-        where source_product_id is not null
-      `);
-    }
-
     const [orderRows, orderItemRows, staffRows, productRows] =
-      await withDashboardTimeout(
-        Promise.all([
+      await Promise.all([
+        readDashboardPart(
           sql<OrderRow[]>`
-            select
-              admin_note,
-              id,
-              pi_uid,
-              product_id,
-              product_name,
-              quantity,
-              total_pi,
-              created_at::text,
-              delivered_at::text,
-              txid,
-              payment_id,
-              assigned_staff,
-              fulfillment_status,
-              received_by,
-              shipping_carrier,
-              shipper_name,
-              status_updated_at::text,
-              status_updated_by,
-              tracking_code,
-              username,
-              shipping_full_name,
-              shipping_phone,
-              shipping_line1,
-              shipping_line2,
-              shipping_ward,
-              shipping_district,
-              shipping_city,
-              shipping_country,
-              shipping_note,
-              location_status,
-              location_checked_at::text,
-              location_country_code,
-              location_country_name,
-              location_address_country,
-              location_latitude,
-              location_longitude,
-              location_accuracy_meters,
-              location_message
-            from storefront_orders
-            order by created_at desc
-            limit 80
-          `,
+              select
+                admin_note,
+                id,
+                pi_uid,
+                product_id,
+                product_name,
+                quantity,
+                total_pi,
+                created_at::text,
+                delivered_at::text,
+                txid,
+                payment_id,
+                assigned_staff,
+                fulfillment_status,
+                received_by,
+                shipping_carrier,
+                shipper_name,
+                status_updated_at::text,
+                status_updated_by,
+                tracking_code,
+                username,
+                shipping_full_name,
+                shipping_phone,
+                shipping_line1,
+                shipping_line2,
+                shipping_ward,
+                shipping_district,
+                shipping_city,
+                shipping_country,
+                shipping_note,
+                location_status,
+                location_checked_at::text,
+                location_country_code,
+                location_country_name,
+                location_address_country,
+                location_latitude,
+                location_longitude,
+                location_accuracy_meters,
+                location_message
+              from storefront_orders
+              order by created_at desc
+              limit 80
+            `,
+          [] as OrderRow[],
+        ),
+        readDashboardPart(
           sql<OrderItemRow[]>`
-            select
-              item.order_id,
-              item.product_id,
-              item.product_name,
-              item.quantity,
-              item.total_pi
-            from storefront_order_items item
-            inner join storefront_orders parent on parent.id = item.order_id
-            order by parent.created_at desc, item.product_name asc
-          `,
-          access.canManageStaff
-            ? sql<StaffRow[]>`
-                select
-                  username_key as identity_key,
-                  display_username as display_identity,
-                  added_by,
-                  created_at::text,
-                  full_name,
-                  note,
-                  role,
-                  is_active,
-                  can_manage_orders,
-                  can_manage_products,
-                  can_manage_staff
-                from storefront_staff_members
-                order by is_active desc, created_at desc
-              `
-            : Promise.resolve([]),
-          access.canManageProducts
-            ? sql<ProductRow[]>`
-                select
-                  id,
-                  source_product_id,
-                  slug,
-                  name,
-                  sku,
-                  tagline,
-                  description,
-                  category,
-                  format,
-                  price_pi,
-                  compare_at_pi,
-                  cost_pi,
-                  base_sold_count,
-                  actual_sold_count,
-                  badge,
-                  accent,
-                  packaging,
-                  image_url,
-                  gallery_image_urls,
-                  video_url,
-                  media_note,
-                  weight_value,
-                  weight_unit,
-                  inventory_count,
-                  low_stock_threshold,
-                  is_active,
-                  is_featured,
-                  created_at::text,
-                  updated_at::text
-                from storefront_products
-                order by source_product_id nulls first, updated_at desc, name asc
-              `
-            : Promise.resolve([]),
-        ]),
-      );
+              with recent_orders as (
+                select id, created_at
+                from storefront_orders
+                order by created_at desc
+                limit 80
+              )
+              select
+                item.order_id,
+                item.product_id,
+                item.product_name,
+                item.quantity,
+                item.total_pi
+              from storefront_order_items item
+              inner join recent_orders parent on parent.id = item.order_id
+              order by parent.created_at desc, item.product_name asc
+            `,
+          [] as OrderItemRow[],
+        ),
+        access.canManageStaff
+          ? readDashboardPart(
+              sql<StaffRow[]>`
+                  select
+                    username_key as identity_key,
+                    display_username as display_identity,
+                    added_by,
+                    created_at::text,
+                    full_name,
+                    note,
+                    role,
+                    is_active,
+                    can_manage_orders,
+                    can_manage_products,
+                    can_manage_staff
+                  from storefront_staff_members
+                  order by is_active desc, created_at desc
+                `,
+              [] as StaffRow[],
+            )
+          : Promise.resolve([] as StaffRow[]),
+        access.canManageProducts
+          ? readDashboardPart(
+              sql<ProductRow[]>`
+                  select
+                    id,
+                    source_product_id,
+                    slug,
+                    name,
+                    sku,
+                    tagline,
+                    description,
+                    category,
+                    format,
+                    price_pi,
+                    compare_at_pi,
+                    cost_pi,
+                    base_sold_count,
+                    actual_sold_count,
+                    badge,
+                    accent,
+                    packaging,
+                    image_url,
+                    gallery_image_urls,
+                    video_url,
+                    media_note,
+                    weight_value,
+                    weight_unit,
+                    inventory_count,
+                    low_stock_threshold,
+                    is_active,
+                    is_featured,
+                    created_at::text,
+                    updated_at::text
+                  from storefront_products
+                  order by source_product_id nulls first, updated_at desc, name asc
+                `,
+              [] as ProductRow[],
+            )
+          : Promise.resolve([] as ProductRow[]),
+      ]);
 
     return NextResponse.json({
       orders: mapOrderRows(orderRows, orderItemRows),
