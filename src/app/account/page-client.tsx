@@ -64,7 +64,9 @@ export function AccountPageClient({
       refreshInFlightRef.current = true;
 
       try {
-        await refreshStorefrontState();
+        await refreshStorefrontState(undefined, undefined, {
+          allowPiAuthFallback: true,
+        });
       } finally {
         refreshInFlightRef.current = false;
       }

@@ -57,6 +57,7 @@ type StorefrontContextValue = {
   refreshStorefrontState: (
     accessToken?: string,
     user?: PiAuthUser,
+    options?: { allowPiAuthFallback?: boolean },
   ) => Promise<boolean>;
   saveAddress: (address: StorefrontAddressInput) => string;
   setDefaultAddress: (addressId: string) => void;
@@ -286,6 +287,8 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const lastCartSignatureRef = useRef("");
   const lastAddressSignatureRef = useRef("");
   const autoAuthStartedRef = useRef(false);
+  const syncAuthFailureAtRef = useRef(0);
+  const syncAuthInFlightRef = useRef(false);
   const piInitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const piInitializedRef = useRef(false);
 
@@ -822,6 +825,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const refreshStorefrontState = useCallback(async (
     accessToken?: string,
     user?: PiAuthUser,
+    options?: { allowPiAuthFallback?: boolean },
   ) => {
     const targetViewerUid = viewerRef.current?.uid;
 
@@ -829,14 +833,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    try {
-      const response = await postStorefrontState<StorefrontStateResponse>({
-        accessToken,
-        action: "syncSession",
-        ...stateSnapshotRef.current,
-        user,
-      });
-
+    const applySyncedResponse = (response: StorefrontStateResponse) => {
       if (viewerRef.current?.uid !== targetViewerUid) {
         return false;
       }
@@ -851,10 +848,57 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
       setSyncedViewerUid(targetViewerUid);
 
       return true;
+    };
+    const syncWithCredentials = async (
+      nextAccessToken?: string,
+      nextUser?: PiAuthUser,
+    ) => {
+      const response = await postStorefrontState<StorefrontStateResponse>({
+        accessToken: nextAccessToken,
+        action: "syncSession",
+        ...stateSnapshotRef.current,
+        user: nextUser,
+      });
+
+      return applySyncedResponse(response);
+    };
+
+    try {
+      return await syncWithCredentials(accessToken, user);
     } catch {
-      return false;
+      if (
+        accessToken ||
+        !options?.allowPiAuthFallback ||
+        !window.Pi ||
+        syncAuthInFlightRef.current ||
+        Date.now() - syncAuthFailureAtRef.current < 60000
+      ) {
+        return false;
+      }
+
+      syncAuthInFlightRef.current = true;
+
+      try {
+        const authResult: PiAuthResult = await window.Pi.authenticate(
+          [...PI_SCOPES],
+          async () => undefined,
+        );
+
+        syncAuthFailureAtRef.current = 0;
+        clearAutoAuthSkip();
+        setSessionChecked(true);
+        autoAuthStartedRef.current = true;
+        applyViewerChange(authResult.user);
+
+        return await syncWithCredentials(authResult.accessToken, authResult.user);
+      } catch {
+        syncAuthFailureAtRef.current = Date.now();
+        return false;
+      } finally {
+        syncAuthInFlightRef.current = false;
+      }
     }
-  }, []);
+  }, [applyViewerChange]);
 
   const saveAddress = (address: StorefrontAddressInput) => {
     const nextAddress = createStorefrontAddress(address);

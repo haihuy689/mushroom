@@ -243,7 +243,7 @@ export function OrdersPageClient({
         hasServerSession = Boolean(orderAuth?.accessToken);
       }
 
-      if (!hasServerSession) {
+      if (!hasServerSession && !quiet) {
         if (!quiet) {
           setSyncMessage({
             kind: "error",
@@ -259,6 +259,9 @@ export function OrdersPageClient({
       const refreshed = await refreshStorefrontState(
         orderAuth?.accessToken,
         orderAuth?.user,
+        {
+          allowPiAuthFallback: quiet,
+        },
       );
 
       if (!quiet) {
