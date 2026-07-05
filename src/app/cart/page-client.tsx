@@ -195,34 +195,27 @@ export function CartPageClient({
 
                   return (
                     <article key={item.productId} className={styles.lineCard}>
-                      <ProductThumbnail
-                        accent={product.accent}
-                        compact
-                        imageUrl={product.imageUrl}
-                        name={product.name}
-                        productId={product.id}
-                      />
+                      <div className={styles.lineMedia}>
+                        <ProductThumbnail
+                          accent={product.accent}
+                          compact
+                          imageUrl={product.imageUrl}
+                          name={product.name}
+                          productId={product.id}
+                        />
+                      </div>
 
-                      <div className={styles.lineContent}>
-                        <div className={styles.lineHeader}>
-                          <div className={styles.lineTitle}>
-                            <h3>{product.name}</h3>
-                            <p>{product.tagline}</p>
-                          </div>
+                      <div className={styles.lineInfo}>
+                        <h3>{product.name}</h3>
+                        <p>{product.tagline}</p>
 
-                          <button
-                            type="button"
-                            className={styles.removeButton}
-                            onClick={() => removeFromCart(item.productId)}
-                          >
-                            {copy.remove}
-                          </button>
-                        </div>
-
-                        <div className={styles.lineMeta}>
-                          <span>{product.category}</span>
+                        <div className={styles.lineFacts}>
                           <span>{product.packaging || product.format}</span>
-                          {productWeight ? <span>{productWeight}</span> : null}
+                          {productWeight ? (
+                            <span>
+                              {copy.weightLabel}: {productWeight}
+                            </span>
+                          ) : null}
                           <span>{product.pricePi} Pi</span>
                           <span
                             className={styles.stockMeta}
@@ -231,40 +224,49 @@ export function CartPageClient({
                             {stockText}
                           </span>
                         </div>
+                      </div>
 
-                        <div className={styles.lineFooter}>
-                          <div className={styles.stepperWrap}>
-                            <span>{copy.quantity}</span>
-                            <div className={styles.quantityStepper}>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateCartQuantity(item.productId, item.quantity - 1)
-                                }
-                              >
-                                -
-                              </button>
-                              <strong>{item.quantity}</strong>
-                              <button
-                                type="button"
-                                disabled={item.quantity >= availableInventory}
-                                onClick={() =>
-                                  updateCartQuantity(
-                                    item.productId,
-                                    Math.min(availableInventory, item.quantity + 1),
-                                  )
-                                }
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className={styles.priceBlock}>
-                            <span>{copy.lineTotal}</span>
-                            <strong>{lineTotalPi} Pi</strong>
-                          </div>
+                      <div className={styles.lineActions}>
+                        <div className={styles.quantityStepper}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateCartQuantity(item.productId, item.quantity - 1)
+                            }
+                            aria-label={`${copy.quantity}: -1`}
+                          >
+                            -
+                          </button>
+                          <strong aria-label={copy.quantity}>{item.quantity}</strong>
+                          <button
+                            type="button"
+                            disabled={item.quantity >= availableInventory}
+                            onClick={() =>
+                              updateCartQuantity(
+                                item.productId,
+                                Math.min(availableInventory, item.quantity + 1),
+                              )
+                            }
+                            aria-label={`${copy.quantity}: +1`}
+                          >
+                            +
+                          </button>
                         </div>
+
+                        <div className={styles.priceBlock}>
+                          <span>{copy.lineTotal}</span>
+                          <strong>{lineTotalPi} Pi</strong>
+                        </div>
+
+                        <button
+                          type="button"
+                          className={styles.removeIconButton}
+                          aria-label={`${copy.remove} ${product.name}`}
+                          title={copy.remove}
+                          onClick={() => removeFromCart(item.productId)}
+                        >
+                          ×
+                        </button>
                       </div>
                     </article>
                   );
