@@ -79,3 +79,9 @@ svg {
   flex: 1;
   overflow-x: clip;
 }
+
+@media (max-width: 640px) {
+  .site-shell {
+    padding-bottom: 82px;
+  }
+}

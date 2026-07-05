@@ -114,6 +114,46 @@ function AccountIcon() {
   );
 }
 
+function BottomHomeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 11.2 12 4L20 11.2V20C20 20.55 19.55 21 19 21H14V15H10V21H5C4.45 21 4 20.55 4 20V11.2Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function BottomShopIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M5 10H19L18 20H6L5 10ZM7 5H17L19 10H5L7 5Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function BottomCartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 5H6L8 16H17L19 8H7M10 20H10.01M17 20H17.01"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
 function HeaderNavMenu({
   navigationLinks,
   pathname,
@@ -151,6 +191,59 @@ function HeaderNavMenu({
         ))}
       </nav>
     </details>
+  );
+}
+
+function MobileBottomNav({
+  cartCount,
+  copy,
+  navigationLinks,
+  pathname,
+}: {
+  cartCount: number;
+  copy: HeaderCopy;
+  navigationLinks: HeaderLink[];
+  pathname: string;
+}) {
+  if (pathname.startsWith("/admin")) {
+    return null;
+  }
+
+  const homeLink = navigationLinks.find((link) => link.href === "/") ?? {
+    href: "/",
+    label: "Home",
+  };
+  const shopLink = navigationLinks.find((link) => link.href === "/shop") ?? {
+    href: "/shop",
+    label: "Shop",
+  };
+
+  return (
+    <nav className={styles.bottomNav} aria-label="Mobile shortcuts">
+      <Link href={homeLink.href} data-active={pathname === "/"}>
+        <BottomHomeIcon />
+        <span>{homeLink.label}</span>
+      </Link>
+      <Link href={shopLink.href} data-active={pathname.startsWith("/shop")}>
+        <BottomShopIcon />
+        <span>{shopLink.label}</span>
+      </Link>
+      <Link
+        href="/cart"
+        className={styles.bottomCartLink}
+        data-active={pathname.startsWith("/cart")}
+      >
+        <BottomCartIcon />
+        {cartCount > 0 ? (
+          <strong>{cartCount > 99 ? "99+" : cartCount}</strong>
+        ) : null}
+        <span>{copy.cart}</span>
+      </Link>
+      <Link href="/account" data-active={pathname.startsWith("/account")}>
+        <AccountIcon />
+        <span>{copy.account}</span>
+      </Link>
+    </nav>
   );
 }
 
@@ -306,54 +399,62 @@ export function SiteHeaderClient({
       : copy.guestLabel;
 
   return (
-    <header className={styles.headerWrap}>
-      <div className={styles.headerInner}>
-        <div className={styles.headerCard}>
-          <div className={styles.topBar}>
-            <HeaderNavMenu
-              navigationLinks={navigationLinks}
-              pathname={pathname}
-            />
+    <>
+      <header className={styles.headerWrap}>
+        <div className={styles.headerInner}>
+          <div className={styles.headerCard}>
+            <div className={styles.topBar}>
+              <HeaderNavMenu
+                navigationLinks={navigationLinks}
+                pathname={pathname}
+              />
 
-            <Link href="/" className={styles.brandLink}>
-              <BrandMark tagline={copy.brandSlogan} />
-            </Link>
-
-            <div className={styles.iconRail}>
-              <Link
-                href="/cart"
-                className={styles.iconButton}
-                aria-label={`${copy.cartAria}: ${visibleCartCount}`}
-                title={copy.cart}
-              >
-                <CartIcon />
-                {visibleCartCount > 0 ? (
-                  <span className={styles.iconBadge}>
-                    {visibleCartCount > 99 ? "99+" : visibleCartCount}
-                  </span>
-                ) : null}
+              <Link href="/" className={styles.brandLink}>
+                <BrandMark tagline={copy.brandSlogan} />
               </Link>
 
-              <LanguageSwitcher
-                currentLocale={locale}
-                compact
-                ariaLabel={`${copy.languageAria}: ${locale.toUpperCase()}`}
-              />
+              <div className={styles.iconRail}>
+                <Link
+                  href="/cart"
+                  className={styles.iconButton}
+                  aria-label={`${copy.cartAria}: ${visibleCartCount}`}
+                  title={copy.cart}
+                >
+                  <CartIcon />
+                  {visibleCartCount > 0 ? (
+                    <span className={styles.iconBadge}>
+                      {visibleCartCount > 99 ? "99+" : visibleCartCount}
+                    </span>
+                  ) : null}
+                </Link>
 
-              <AccountMenu
-                accountStatus={accountStatus}
-                cartCount={visibleCartCount}
-                copy={copy}
-                hydrated={hydrated}
-                orderCount={visibleOrderCount}
-                orders={orders}
-                viewer={viewer}
-                viewerName={viewer?.username ?? viewer?.uid ?? null}
-              />
+                <LanguageSwitcher
+                  currentLocale={locale}
+                  compact
+                  ariaLabel={`${copy.languageAria}: ${locale.toUpperCase()}`}
+                />
+
+                <AccountMenu
+                  accountStatus={accountStatus}
+                  cartCount={visibleCartCount}
+                  copy={copy}
+                  hydrated={hydrated}
+                  orderCount={visibleOrderCount}
+                  orders={orders}
+                  viewer={viewer}
+                  viewerName={viewer?.username ?? viewer?.uid ?? null}
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+      <MobileBottomNav
+        cartCount={visibleCartCount}
+        copy={copy}
+        navigationLinks={navigationLinks}
+        pathname={pathname}
+      />
+    </>
   );
 }

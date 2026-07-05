@@ -485,6 +485,57 @@
   font-weight: 600;
 }
 
+.bottomNav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 45;
+  display: none;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-height: 72px;
+  padding: 8px 10px max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(70, 64, 40, 0.12);
+  background: rgba(255, 253, 247, 0.97);
+  box-shadow: 0 -18px 32px rgba(43, 22, 13, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.bottomNav a {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: #2b160d;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.bottomNav a[data-active="true"] {
+  color: #4e7b28;
+}
+
+.bottomNav svg {
+  width: 28px;
+  height: 28px;
+}
+
+.bottomCartLink strong {
+  position: absolute;
+  top: -3px;
+  left: calc(50% + 5px);
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #4e7b28;
+  color: white;
+  font-size: 0.68rem;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .navLink:hover,
   .menuButton:hover,
@@ -583,6 +634,10 @@
   .footerCard {
     padding: 16px;
     border-radius: 22px;
+  }
+
+  .bottomNav {
+    display: grid;
   }
 }
 

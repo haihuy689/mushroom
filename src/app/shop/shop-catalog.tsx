@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useDeferredValue, useState } from "react";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { PiNetworkIcon } from "@/components/brand-icons";
-import { useStorefront } from "@/components/storefront-provider";
 import type { SiteLocale } from "@/lib/i18n";
 import type { Product } from "@/lib/pi-types";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
@@ -26,9 +25,6 @@ const labels: Record<
   SiteLocale,
   {
     all: string;
-    bottomAccount: string;
-    bottomHome: string;
-    bottomShop: string;
     combo: string;
     dried: string;
     empty: string;
@@ -47,9 +43,6 @@ const labels: Record<
 > = {
   en: {
     all: "All",
-    bottomAccount: "Account",
-    bottomHome: "Home",
-    bottomShop: "Shop",
     combo: "Combo",
     dried: "Dried",
     empty: "No matching products yet.",
@@ -67,9 +60,6 @@ const labels: Record<
   },
   vi: {
     all: "Tất cả",
-    bottomAccount: "Tài khoản",
-    bottomHome: "Trang chủ",
-    bottomShop: "Cửa hàng",
     combo: "Combo",
     dried: "Nấm khô",
     empty: "Chưa có sản phẩm phù hợp.",
@@ -87,9 +77,6 @@ const labels: Record<
   },
   es: {
     all: "Todo",
-    bottomAccount: "Cuenta",
-    bottomHome: "Inicio",
-    bottomShop: "Tienda",
     combo: "Combo",
     dried: "Secos",
     empty: "No hay productos que coincidan.",
@@ -107,9 +94,6 @@ const labels: Record<
   },
   fr: {
     all: "Tout",
-    bottomAccount: "Compte",
-    bottomHome: "Accueil",
-    bottomShop: "Boutique",
     combo: "Combo",
     dried: "Séchés",
     empty: "Aucun produit correspondant.",
@@ -127,9 +111,6 @@ const labels: Record<
   },
   zh: {
     all: "全部",
-    bottomAccount: "账户",
-    bottomHome: "首页",
-    bottomShop: "商店",
     combo: "组合",
     dried: "干货",
     empty: "没有匹配的商品。",
@@ -314,66 +295,8 @@ function HeartIcon() {
   );
 }
 
-function HomeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M4 11.2 12 4l8 7.2V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.8Z"
-        fill="none"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-}
-
-function ShopIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M5 10h14l-1 10H6L5 10Zm2-5h10l2 5H5l2-5Z"
-        fill="none"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-}
-
-function CartIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M4 5h2l2 11h9l2-8H7m3 12h.01M17 20h.01"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-}
-
-function AccountIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9c1.3-4 3.7-6 7-6s5.7 2 7 6"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-}
-
 export function ShopCatalog({ copy, locale, products }: ShopCatalogProps) {
   const text = labels[locale] ?? labels.en;
-  const { cartCount } = useStorefront();
   const [query, setQuery] = useState("");
   const [activeGroup, setActiveGroup] = useState<ProductGroup>("all");
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -559,25 +482,6 @@ export function ShopCatalog({ copy, locale, products }: ShopCatalogProps) {
         <p className={styles.emptyState}>{text.empty}</p>
       ) : null}
 
-      <nav className={styles.bottomNav} aria-label="Mobile shop shortcuts">
-        <Link href="/">
-          <HomeIcon />
-          <span>{text.bottomHome}</span>
-        </Link>
-        <Link href="/shop" data-active="true">
-          <ShopIcon />
-          <span>{text.bottomShop}</span>
-        </Link>
-        <Link href="/cart" className={styles.bottomCartLink}>
-          <CartIcon />
-          {cartCount > 0 ? <strong>{cartCount}</strong> : null}
-          <span>{copy.cart}</span>
-        </Link>
-        <Link href="/account">
-          <AccountIcon />
-          <span>{text.bottomAccount}</span>
-        </Link>
-      </nav>
     </>
   );
 }
