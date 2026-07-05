@@ -6,8 +6,36 @@ declare global {
   var __mushroomSql: Sql | undefined;
 }
 
-function getDatabaseUrl() {
-  return process.env.DATABASE_URL?.trim() || process.env.POSTGRES_URL?.trim() || "";
+const DATABASE_URL_ENV_KEYS = [
+  "DATABASE_URL",
+  "POSTGRES_URL",
+  "POSTGRES_PRISMA_URL",
+  "POSTGRES_URL_NON_POOLING",
+] as const;
+
+function normalizeDatabaseUrl(value: string | undefined) {
+  const trimmedValue = value?.trim() ?? "";
+
+  if (
+    (trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) ||
+    (trimmedValue.startsWith("'") && trimmedValue.endsWith("'"))
+  ) {
+    return trimmedValue.slice(1, -1).trim();
+  }
+
+  return trimmedValue;
+}
+
+export function getDatabaseUrl() {
+  for (const key of DATABASE_URL_ENV_KEYS) {
+    const value = normalizeDatabaseUrl(process.env[key]);
+
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
 }
 
 export function isDatabaseConfigured() {

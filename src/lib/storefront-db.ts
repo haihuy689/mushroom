@@ -16,7 +16,7 @@ import {
   type StorefrontProductInput,
   type StorefrontProductRecord,
 } from "@/lib/storefront-product";
-import { getSql, isDatabaseConfigured } from "@/lib/db";
+import { getDatabaseUrl, getSql, isDatabaseConfigured } from "@/lib/db";
 import {
   emptyStorefrontState,
   mergeStorefrontState,
@@ -158,10 +158,6 @@ const STOREFRONT_REQUIRED_TABLES = [
   "storefront_staff_members",
   "storefront_products",
 ] as const;
-
-function getStorefrontDatabaseUrl() {
-  return process.env.DATABASE_URL?.trim() || process.env.POSTGRES_URL?.trim() || "";
-}
 
 const STOREFRONT_REQUIRED_COLUMNS = [
   { table: "storefront_orders", column: "fulfillment_status" },
@@ -1261,7 +1257,7 @@ export async function listStorefrontProductRecords() {
 }
 
 export async function readStorefrontProductRecordsDirect() {
-  const databaseUrl = getStorefrontDatabaseUrl();
+  const databaseUrl = getDatabaseUrl();
 
   if (!databaseUrl) {
     return null as StorefrontProductRecord[] | null;

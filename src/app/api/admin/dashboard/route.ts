@@ -6,6 +6,7 @@ import type { StorefrontProductRecord } from "@/lib/storefront-product";
 import type { StorefrontOrder } from "@/lib/storefront-state";
 import { ensureStorefrontSchema } from "@/lib/storefront-db";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
+import { getDatabaseUrl } from "@/lib/db";
 
 const ADMIN_DASHBOARD_TIMEOUT_MS = 5000;
 
@@ -114,10 +115,6 @@ function withDashboardTimeout<T>(promise: Promise<T>) {
       },
     );
   });
-}
-
-function getDatabaseUrl() {
-  return process.env.DATABASE_URL?.trim() || process.env.POSTGRES_URL?.trim() || "";
 }
 
 function mapStaffRows(rows: StaffRow[]): StorefrontStaffMember[] {
