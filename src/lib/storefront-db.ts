@@ -1,6 +1,6 @@
 import "server-only";
 
-import postgres from "postgres";
+import postgres, { type TransactionSql } from "postgres";
 import {
   buildStorefrontAdminAccess,
   getUserAdminIdentityKeys,
@@ -11,6 +11,14 @@ import {
 } from "@/lib/admin-access";
 import { isOrderStatus, type OrderStatus } from "@/lib/order-status";
 import type { PiVerifiedUser } from "@/lib/pi-types";
+import {
+  DEFAULT_PRODUCT_OPTIONS,
+  PRODUCT_OPTION_GROUPS,
+  isProductOptionGroup,
+  normalizeProductOptionValue,
+  type StorefrontProductOption,
+  type StorefrontProductOptionGroup,
+} from "@/lib/product-options";
 import {
   normalizeStorefrontProductInput,
   type StorefrontProductInput,
@@ -144,6 +152,13 @@ type ProductRow = {
   weight_value: string | number | null;
 };
 
+type ProductOptionRow = {
+  created_at: string;
+  option_group: string;
+  updated_at: string;
+  value: string;
+};
+
 declare global {
   var __mushroomStorefrontSchemaPromise: Promise<boolean> | undefined;
 }
@@ -157,6 +172,7 @@ const STOREFRONT_REQUIRED_TABLES = [
   "storefront_order_items",
   "storefront_staff_members",
   "storefront_products",
+  "storefront_product_options",
 ] as const;
 
 const STOREFRONT_REQUIRED_COLUMNS = [
@@ -474,6 +490,33 @@ export async function ensureStorefrontSchema() {
             create index if not exists storefront_products_active_updated_idx
             on storefront_products (is_active, updated_at desc)
           `;
+          await transaction`
+            create table if not exists storefront_product_options (
+              option_group text not null,
+              value text not null,
+              created_at timestamptz not null default now(),
+              updated_at timestamptz not null default now(),
+              primary key (option_group, value)
+            )
+          `;
+
+          for (const group of PRODUCT_OPTION_GROUPS) {
+            for (const value of DEFAULT_PRODUCT_OPTIONS[group]) {
+              await transaction`
+                insert into storefront_product_options (
+                  option_group,
+                  value,
+                  updated_at
+                )
+                values (
+                  ${group},
+                  ${value},
+                  now()
+                )
+                on conflict (option_group, value) do nothing
+              `;
+            }
+          }
         });
 
         return true;
@@ -537,6 +580,77 @@ function mapProductRow(row: ProductRow): StorefrontProductRecord {
     weightValue:
       row.weight_value === null ? null : Number(row.weight_value),
   };
+}
+
+function mapProductOptionRow(row: ProductOptionRow): StorefrontProductOption {
+  const group = isProductOptionGroup(row.option_group)
+    ? row.option_group
+    : "category";
+
+  return {
+    createdAt: row.created_at,
+    group,
+    updatedAt: row.updated_at,
+    value: row.value,
+  };
+}
+
+function normalizeProductOptionInput(
+  group: string | null | undefined,
+  value: unknown,
+) {
+  if (!isProductOptionGroup(group)) {
+    throw new Error("Invalid product option group.");
+  }
+
+  const normalizedValue = normalizeProductOptionValue(value);
+
+  if (!normalizedValue) {
+    throw new Error("Product option value is required.");
+  }
+
+  return {
+    group,
+    value: normalizedValue,
+  };
+}
+
+async function updateProductsForOptionRename(
+  sql: TransactionSql,
+  group: StorefrontProductOptionGroup,
+  currentValue: string,
+  nextValue: string,
+) {
+  switch (group) {
+    case "category":
+      await sql`
+        update storefront_products
+        set category = ${nextValue}, updated_at = now()
+        where category = ${currentValue}
+      `;
+      return;
+    case "format":
+      await sql`
+        update storefront_products
+        set format = ${nextValue}, updated_at = now()
+        where format = ${currentValue}
+      `;
+      return;
+    case "packaging":
+      await sql`
+        update storefront_products
+        set packaging = ${nextValue}, updated_at = now()
+        where packaging = ${currentValue}
+      `;
+      return;
+    case "weightUnit":
+      await sql`
+        update storefront_products
+        set weight_unit = ${nextValue}, updated_at = now()
+        where weight_unit = ${currentValue}
+      `;
+      return;
+  }
 }
 
 function mapStaffRow(row: StaffRow): StorefrontStaffMember {
@@ -1471,6 +1585,188 @@ export async function saveStorefrontProduct(input: Partial<StorefrontProductInpu
   `;
 
   return mapProductRow(rows[0]);
+}
+
+export async function deleteStorefrontProduct(productId: string) {
+  if (!(await ensureStorefrontSchema())) {
+    throw new Error("Database is not configured.");
+  }
+
+  const sql = getSql();
+  const normalizedProductId = productId.trim();
+
+  if (!sql) {
+    throw new Error("Database is not configured.");
+  }
+
+  if (!normalizedProductId) {
+    throw new Error("Product id is required.");
+  }
+
+  const deletedRows = await sql.begin(async (transaction) => {
+    await transaction`
+      delete from storefront_cart_items
+      where product_id = ${normalizedProductId}
+    `;
+
+    return transaction<{ id: string }[]>`
+      delete from storefront_products
+      where id = ${normalizedProductId}
+      returning id
+    `;
+  });
+
+  if (deletedRows.length === 0) {
+    throw new Error("Product not found.");
+  }
+
+  return {
+    id: deletedRows[0].id,
+  };
+}
+
+export async function listStorefrontProductOptions() {
+  if (!(await ensureStorefrontSchema())) {
+    throw new Error("Database is not configured.");
+  }
+
+  const sql = getSql();
+
+  if (!sql) {
+    throw new Error("Database is not configured.");
+  }
+
+  const rows = await sql<ProductOptionRow[]>`
+    select
+      option_group,
+      value,
+      created_at::text,
+      updated_at::text
+    from storefront_product_options
+    order by
+      case option_group
+        when 'category' then 1
+        when 'format' then 2
+        when 'packaging' then 3
+        when 'weightUnit' then 4
+        else 5
+      end,
+      value asc
+  `;
+
+  return rows.map(mapProductOptionRow);
+}
+
+export async function saveStorefrontProductOption(
+  groupInput: string | null | undefined,
+  valueInput: unknown,
+) {
+  if (!(await ensureStorefrontSchema())) {
+    throw new Error("Database is not configured.");
+  }
+
+  const sql = getSql();
+  const { group, value } = normalizeProductOptionInput(groupInput, valueInput);
+
+  if (!sql) {
+    throw new Error("Database is not configured.");
+  }
+
+  await sql`
+    insert into storefront_product_options (
+      option_group,
+      value,
+      updated_at
+    )
+    values (
+      ${group},
+      ${value},
+      now()
+    )
+    on conflict (option_group, value) do update
+    set updated_at = now()
+  `;
+
+  return listStorefrontProductOptions();
+}
+
+export async function renameStorefrontProductOption(
+  groupInput: string | null | undefined,
+  currentValueInput: unknown,
+  nextValueInput: unknown,
+) {
+  if (!(await ensureStorefrontSchema())) {
+    throw new Error("Database is not configured.");
+  }
+
+  const sql = getSql();
+  const currentOption = normalizeProductOptionInput(groupInput, currentValueInput);
+  const nextValue = normalizeProductOptionValue(nextValueInput);
+
+  if (!sql) {
+    throw new Error("Database is not configured.");
+  }
+
+  if (!nextValue) {
+    throw new Error("Product option value is required.");
+  }
+
+  await sql.begin(async (transaction) => {
+    await transaction`
+      insert into storefront_product_options (
+        option_group,
+        value,
+        updated_at
+      )
+      values (
+        ${currentOption.group},
+        ${nextValue},
+        now()
+      )
+      on conflict (option_group, value) do update
+      set updated_at = now()
+    `;
+
+    if (currentOption.value !== nextValue) {
+      await transaction`
+        delete from storefront_product_options
+        where option_group = ${currentOption.group}
+          and value = ${currentOption.value}
+      `;
+      await updateProductsForOptionRename(
+        transaction,
+        currentOption.group,
+        currentOption.value,
+        nextValue,
+      );
+    }
+  });
+
+  return listStorefrontProductOptions();
+}
+
+export async function deleteStorefrontProductOption(
+  groupInput: string | null | undefined,
+  valueInput: unknown,
+) {
+  if (!(await ensureStorefrontSchema())) {
+    throw new Error("Database is not configured.");
+  }
+
+  const sql = getSql();
+  const { group, value } = normalizeProductOptionInput(groupInput, valueInput);
+
+  if (!sql) {
+    throw new Error("Database is not configured.");
+  }
+
+  await sql`
+    delete from storefront_product_options
+    where option_group = ${group}
+      and value = ${value}
+  `;
+
+  return listStorefrontProductOptions();
 }
 
 export async function listStorefrontOrdersForAdmin() {

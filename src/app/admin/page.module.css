@@ -94,6 +94,7 @@
 
 .navButton,
 .primaryButton,
+.dangerButton,
 .secondaryButton,
 .simpleRow,
 .selectionRow {
@@ -512,10 +513,15 @@
 }
 
 .formGrid,
+.optionManager,
 .summaryGrid {
   display: grid;
   gap: 0.85rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.optionManager {
+  grid-template-columns: minmax(10rem, 0.65fr) minmax(12rem, 1fr) minmax(12rem, 1.2fr);
 }
 
 .field {
@@ -719,6 +725,7 @@
 }
 
 .primaryButton,
+.dangerButton,
 .secondaryButton {
   border-radius: 999px;
   padding: 0.88rem 1.18rem;
@@ -736,7 +743,13 @@
   color: #405b24;
 }
 
+.dangerButton {
+  background: linear-gradient(135deg, #ba4d44, #8f2e28);
+  color: white;
+}
+
 .primaryButton:disabled,
+.dangerButton:disabled,
 .secondaryButton:disabled,
 .navButton:disabled,
 .simpleRow:disabled,
@@ -771,6 +784,7 @@
 @media (hover: hover) {
   .navButton:hover,
   .primaryButton:hover,
+  .dangerButton:hover,
   .secondaryButton:hover,
   .simpleRow:hover,
   .selectionRow:hover,
@@ -802,6 +816,7 @@
 
   .metrics,
   .formGrid,
+  .optionManager,
   .summaryGrid,
   .permissionGrid {
     grid-template-columns: 1fr;

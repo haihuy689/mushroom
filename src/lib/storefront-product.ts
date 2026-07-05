@@ -39,8 +39,8 @@ export type StorefrontProductInput = Omit<
 
 const DEFAULT_ACCENT = "#c38a33";
 const DEFAULT_BADGE = "Mushroom.Pi";
-const DEFAULT_CATEGORY = "Mushroom";
-const DEFAULT_FORMAT = "Standard pack";
+const DEFAULT_CATEGORY = "Nấm tươi";
+const DEFAULT_FORMAT = "Túi 100g";
 const DEFAULT_LOW_STOCK_THRESHOLD = 5;
 const DEFAULT_WEIGHT_UNIT = "g";
 

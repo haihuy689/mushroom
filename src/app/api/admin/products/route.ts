@@ -2,6 +2,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import type { StorefrontProductInput } from "@/lib/storefront-product";
 import {
+  deleteStorefrontProduct,
   listStorefrontProductRecords,
   saveStorefrontProduct,
 } from "@/lib/storefront-db";
@@ -59,6 +60,42 @@ export async function POST(request: Request) {
           error instanceof Error
             ? error.message
             : "Unable to save product right now.",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  const { access } = await getStorefrontAdminContext();
+
+  if (!access.canManageProducts) {
+    return forbiddenResponse();
+  }
+
+  try {
+    const body = (await request.json()) as {
+      id?: string;
+    };
+
+    await deleteStorefrontProduct(body.id ?? "");
+
+    revalidateTag(STOREFRONT_PRODUCT_RECORDS_TAG, "max");
+    revalidatePath("/");
+    revalidatePath("/shop");
+    revalidatePath("/cart");
+    revalidatePath("/admin");
+
+    return NextResponse.json({
+      items: await listStorefrontProductRecords(),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to delete product right now.",
       },
       { status: 500 },
     );

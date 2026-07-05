@@ -33,6 +33,9 @@ export type AdminCenterCopy = {
   dashboardLoading: string;
   dashboardRetry: string;
   dashboardSlowError: string;
+  deleteProductButton: string;
+  deleteProductConfirm: string;
+  deleteProductSuccess: string;
   editProductTitle: string;
   editStaffTitle: string;
   emptyOrders: string;
@@ -75,6 +78,18 @@ export type AdminCenterCopy = {
   mediaUploadingLabel: string;
   productAccentLabel: string;
   productActiveLabel: string;
+  productOptionAddButton: string;
+  productOptionDeleteButton: string;
+  productOptionDeleteConfirm: string;
+  productOptionDeleted: string;
+  productOptionExistingLabel: string;
+  productOptionGroupLabel: string;
+  productOptionLead: string;
+  productOptionRequiredError: string;
+  productOptionSaved: string;
+  productOptionTitle: string;
+  productOptionUpdateButton: string;
+  productOptionValueLabel: string;
   productBadgeLabel: string;
   productCategoryLabel: string;
   productCustomLabel: string;
@@ -175,6 +190,10 @@ const en: AdminCenterCopy = {
   dashboardRetry: "Reload data",
   dashboardSlowError:
     "Admin data is responding slowly right now. Please try reloading.",
+  deleteProductButton: "Delete product",
+  deleteProductConfirm:
+    "Delete this product from the shop? Existing orders will be kept.",
+  deleteProductSuccess: "Product deleted.",
   editProductTitle: "Edit product",
   editStaffTitle: "Edit employee",
   emptyOrders: "No orders yet.",
@@ -220,6 +239,20 @@ const en: AdminCenterCopy = {
   mediaUploadingLabel: "Uploading...",
   productAccentLabel: "Accent background",
   productActiveLabel: "Visible in storefront",
+  productOptionAddButton: "Add option",
+  productOptionDeleteButton: "Delete option",
+  productOptionDeleteConfirm:
+    "Delete this option from the selectable list? Existing products keep their current value.",
+  productOptionDeleted: "Product option deleted.",
+  productOptionExistingLabel: "Existing option",
+  productOptionGroupLabel: "Option group",
+  productOptionLead:
+    "Manage reusable values for category, format, packaging, and weight unit so product setup stays consistent.",
+  productOptionRequiredError: "Choose a group and enter an option value first.",
+  productOptionSaved: "Product option saved.",
+  productOptionTitle: "Reusable product options",
+  productOptionUpdateButton: "Update option",
+  productOptionValueLabel: "Option value",
   productBadgeLabel: "Badge",
   productCategoryLabel: "Category",
   productCustomLabel: "Admin product",
@@ -324,6 +357,10 @@ const vi: AdminCenterCopy = {
   dashboardRetry: "Tai lai du lieu",
   dashboardSlowError:
     "Du lieu quan tri dang phan hoi cham. Ban vui long tai lai sau it giay.",
+  deleteProductButton: "Xoa san pham",
+  deleteProductConfirm:
+    "Xoa san pham nay khoi cua hang? Lich su don hang cu van duoc giu lai.",
+  deleteProductSuccess: "Da xoa san pham.",
   editProductTitle: "Sua san pham",
   editStaffTitle: "Sua nhan vien",
   emptyOrders: "Chua co don hang nao.",
@@ -369,6 +406,20 @@ const vi: AdminCenterCopy = {
   mediaUploadingLabel: "Dang upload...",
   productAccentLabel: "Nen nhan dien",
   productActiveLabel: "Dang hien tren shop",
+  productOptionAddButton: "Them lua chon",
+  productOptionDeleteButton: "Xoa lua chon",
+  productOptionDeleteConfirm:
+    "Xoa lua chon nay khoi danh sach chon? San pham cu van giu gia tri hien tai.",
+  productOptionDeleted: "Da xoa lua chon san pham.",
+  productOptionExistingLabel: "Lua chon dang co",
+  productOptionGroupLabel: "Nhom lua chon",
+  productOptionLead:
+    "Quan ly cac gia tri lap lai cho danh muc, quy cach, bao bi va don vi khoi luong de tao san pham nhanh va dong nhat hon.",
+  productOptionRequiredError: "Hay chon nhom va nhap gia tri lua chon truoc.",
+  productOptionSaved: "Da luu lua chon san pham.",
+  productOptionTitle: "Lua chon san pham lap lai",
+  productOptionUpdateButton: "Cap nhat lua chon",
+  productOptionValueLabel: "Gia tri lua chon",
   productBadgeLabel: "Nhan",
   productCategoryLabel: "Danh muc",
   productCustomLabel: "San pham quan tri",

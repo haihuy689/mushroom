@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type FormEvent,
@@ -18,6 +19,13 @@ import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { ORDER_STATUSES, type OrderStatus } from "@/lib/order-status";
 import { getOrderStatusCounts, resolveOrderStatus } from "@/lib/order-tracking";
+import {
+  PRODUCT_OPTION_GROUPS,
+  createProductOptionMap,
+  normalizeProductOptionValue,
+  type StorefrontProductOption,
+  type StorefrontProductOptionGroup,
+} from "@/lib/product-options";
 import {
   createEmptyStorefrontProductInput,
   type StorefrontProductInput,
@@ -56,6 +64,11 @@ type RequestInitWithTimeout = RequestInit & {
 };
 
 type ProductEditorMode = "idle" | "create" | "edit";
+type ProductOptionEditor = {
+  group: StorefrontProductOptionGroup;
+  selectedValue: string;
+  value: string;
+};
 
 type StaffEditor = {
   canManageOrders: boolean;
@@ -175,6 +188,27 @@ function createEmptyStaffEditor(): StaffEditor {
     note: "",
     role: "staff",
   };
+}
+
+function createEmptyProductOptionEditor(): ProductOptionEditor {
+  return {
+    group: "category",
+    selectedValue: "",
+    value: "",
+  };
+}
+
+function getProductOptionField(group: StorefrontProductOptionGroup) {
+  switch (group) {
+    case "category":
+      return "category";
+    case "format":
+      return "format";
+    case "packaging":
+      return "packaging";
+    case "weightUnit":
+      return "weightUnit";
+  }
 }
 
 function toProductEditor(product: StorefrontProductRecord): StorefrontProductInput {
@@ -338,7 +372,16 @@ export function AdminPageClient({
   const [uploadingMediaKind, setUploadingMediaKind] =
     useState<ProductMediaUploadKind | null>(null);
   const [savingProduct, setSavingProduct] = useState(false);
+  const [deletingProduct, setDeletingProduct] = useState(false);
   const [refreshingProducts, setRefreshingProducts] = useState(false);
+  const [productOptions, setProductOptions] = useState(
+    createProductOptionMap(),
+  );
+  const productOptionsRequestedRef = useRef(false);
+  const [savingProductOption, setSavingProductOption] = useState(false);
+  const [deletingProductOption, setDeletingProductOption] = useState(false);
+  const [productOptionEditor, setProductOptionEditor] =
+    useState<ProductOptionEditor>(createEmptyProductOptionEditor());
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [orderEditor, setOrderEditor] = useState<OrderEditor | null>(null);
   const [savingOrder, setSavingOrder] = useState(false);
@@ -451,6 +494,74 @@ export function AdminPageClient({
     [activeProducts.length, hiddenProducts.length, lowStockProducts.length],
   );
 
+  const productOptionGroupLabels = useMemo(
+    () =>
+      ({
+        category: copy.productCategoryLabel,
+        format: copy.productFormatLabel,
+        packaging: copy.packagingLabel,
+        weightUnit: copy.weightUnitLabel,
+      }) satisfies Record<StorefrontProductOptionGroup, string>,
+    [
+      copy.packagingLabel,
+      copy.productCategoryLabel,
+      copy.productFormatLabel,
+      copy.weightUnitLabel,
+    ],
+  );
+
+  const productSelectOptions = useMemo(() => {
+    const optionMap = createProductOptionMap(
+      PRODUCT_OPTION_GROUPS.flatMap((group) =>
+        productOptions[group].map((value) => ({
+          createdAt: "",
+          group,
+          updatedAt: "",
+          value,
+        })),
+      ),
+    );
+
+    const addValue = (
+      group: StorefrontProductOptionGroup,
+      value: string | null | undefined,
+    ) => {
+      const normalizedValue = normalizeProductOptionValue(value);
+
+      if (normalizedValue && !optionMap[group].includes(normalizedValue)) {
+        optionMap[group].push(normalizedValue);
+      }
+    };
+
+    for (const product of products) {
+      addValue("category", product.category);
+      addValue("format", product.format);
+      addValue("packaging", product.packaging);
+      addValue("weightUnit", product.weightUnit);
+    }
+
+    addValue("category", productEditor.category);
+    addValue("format", productEditor.format);
+    addValue("packaging", productEditor.packaging);
+    addValue("weightUnit", productEditor.weightUnit);
+
+    for (const group of PRODUCT_OPTION_GROUPS) {
+      optionMap[group] = Array.from(new Set(optionMap[group])).sort((a, b) =>
+        a.localeCompare(b, locale),
+      );
+    }
+
+    return optionMap;
+  }, [
+    locale,
+    productEditor.category,
+    productEditor.format,
+    productEditor.packaging,
+    productEditor.weightUnit,
+    productOptions,
+    products,
+  ]);
+
   const navigationItems = useMemo(
     () =>
       [
@@ -501,6 +612,14 @@ export function AdminPageClient({
       products.length,
     ],
   );
+
+  const handleRefreshProductOptions = useCallback(async () => {
+    const data = await readJson<{ items: StorefrontProductOption[] }>(
+      "/api/admin/product-options",
+    );
+
+    setProductOptions(createProductOptionMap(data.items));
+  }, []);
 
   useEffect(() => {
     if (navigationItems.some((item) => item.id === activeView)) {
@@ -570,6 +689,17 @@ export function AdminPageClient({
       return;
     }
 
+    if (!productOptionsRequestedRef.current) {
+      productOptionsRequestedRef.current = true;
+      void handleRefreshProductOptions().catch((error) => {
+        productOptionsRequestedRef.current = false;
+        setMessage({
+          kind: "error",
+          text: error instanceof Error ? error.message : copy.saveError,
+        });
+      });
+    }
+
     const frame = window.requestAnimationFrame(() => {
       if (productMode === "idle") {
         if (products.length > 0) {
@@ -608,7 +738,14 @@ export function AdminPageClient({
     return () => {
       window.cancelAnimationFrame(frame);
     };
-  }, [canManageProducts, productMode, products, selectedProductId]);
+  }, [
+    canManageProducts,
+    copy.saveError,
+    handleRefreshProductOptions,
+    productMode,
+    products,
+    selectedProductId,
+  ]);
 
   useEffect(() => {
     if (!canManageOrders) {
@@ -951,6 +1088,174 @@ export function AdminPageClient({
       });
     } finally {
       setSavingProduct(false);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    const productId = selectedProductId;
+
+    if (!productId || !window.confirm(copy.deleteProductConfirm)) {
+      return;
+    }
+
+    setDeletingProduct(true);
+    setMessage(null);
+
+    try {
+      const data = await readJson<{ items: StorefrontProductRecord[] }>(
+        "/api/admin/products",
+        {
+          method: "DELETE",
+          timeoutMs: 30000,
+          body: JSON.stringify({
+            id: productId,
+          }),
+        },
+      );
+
+      setProducts(data.items);
+
+      if (data.items.length > 0) {
+        setProductMode("edit");
+        setSelectedProductId(data.items[0].id);
+        setProductEditor(toProductEditor(data.items[0]));
+      } else {
+        setProductMode("create");
+        setSelectedProductId(null);
+        setProductEditor(createEmptyStorefrontProductInput());
+      }
+
+      setMessage({
+        kind: "success",
+        text: copy.deleteProductSuccess,
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setDeletingProduct(false);
+    }
+  };
+
+  const handleProductOptionGroupChange = (
+    group: StorefrontProductOptionGroup,
+  ) => {
+    setProductOptionEditor({
+      group,
+      selectedValue: "",
+      value: "",
+    });
+  };
+
+  const handleProductOptionSelectionChange = (value: string) => {
+    setProductOptionEditor((current) => ({
+      ...current,
+      selectedValue: value,
+      value,
+    }));
+  };
+
+  const handleSaveProductOption = async () => {
+    const value = normalizeProductOptionValue(productOptionEditor.value);
+
+    if (!value) {
+      setMessage({
+        kind: "error",
+        text: copy.productOptionRequiredError,
+      });
+      return;
+    }
+
+    setSavingProductOption(true);
+    setMessage(null);
+
+    try {
+      const isUpdate = Boolean(productOptionEditor.selectedValue);
+      const data = await readJson<{
+        items: StorefrontProductOption[];
+        products?: StorefrontProductRecord[];
+      }>("/api/admin/product-options", {
+        method: isUpdate ? "PATCH" : "POST",
+        body: JSON.stringify({
+          group: productOptionEditor.group,
+          nextValue: value,
+          value: productOptionEditor.selectedValue || value,
+        }),
+      });
+
+      setProductOptions(createProductOptionMap(data.items));
+
+      if (data.products) {
+        setProducts(data.products);
+      }
+
+      const field = getProductOptionField(productOptionEditor.group);
+
+      setProductEditor((current) => ({
+        ...current,
+        [field]: current[field] === productOptionEditor.selectedValue ? value : current[field],
+      }) as StorefrontProductInput);
+      setProductOptionEditor((current) => ({
+        ...current,
+        selectedValue: value,
+        value,
+      }));
+      setMessage({
+        kind: "success",
+        text: copy.productOptionSaved,
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setSavingProductOption(false);
+    }
+  };
+
+  const handleDeleteProductOption = async () => {
+    if (
+      !productOptionEditor.selectedValue ||
+      !window.confirm(copy.productOptionDeleteConfirm)
+    ) {
+      return;
+    }
+
+    setDeletingProductOption(true);
+    setMessage(null);
+
+    try {
+      const data = await readJson<{ items: StorefrontProductOption[] }>(
+        "/api/admin/product-options",
+        {
+          method: "DELETE",
+          body: JSON.stringify({
+            group: productOptionEditor.group,
+            value: productOptionEditor.selectedValue,
+          }),
+        },
+      );
+
+      setProductOptions(createProductOptionMap(data.items));
+      setProductOptionEditor((current) => ({
+        ...current,
+        selectedValue: "",
+        value: "",
+      }));
+      setMessage({
+        kind: "success",
+        text: copy.productOptionDeleted,
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setDeletingProductOption(false);
     }
   };
 
@@ -1474,6 +1779,7 @@ export function AdminPageClient({
                     </div>
                   )}
                 </article>
+
               </div>
             </section>
           ) : null}
@@ -1686,7 +1992,7 @@ export function AdminPageClient({
                         </label>
                         <label className={styles.field}>
                           <span>{copy.productCategoryLabel}</span>
-                          <input
+                          <select
                             value={productEditor.category}
                             onChange={(event) =>
                               handleProductEditorChange(
@@ -1694,7 +2000,13 @@ export function AdminPageClient({
                                 readFieldValue(event),
                               )
                             }
-                          />
+                          >
+                            {productSelectOptions.category.map((value) => (
+                              <option key={value} value={value}>
+                                {value}
+                              </option>
+                            ))}
+                          </select>
                         </label>
                         <label className={styles.field}>
                           <span>{copy.priceLabel}</span>
@@ -1808,7 +2120,7 @@ export function AdminPageClient({
                         </label>
                         <label className={styles.field}>
                           <span>{copy.packagingLabel}</span>
-                          <input
+                          <select
                             value={productEditor.packaging}
                             onChange={(event) =>
                               handleProductEditorChange(
@@ -1816,11 +2128,18 @@ export function AdminPageClient({
                                 readFieldValue(event),
                               )
                             }
-                          />
+                          >
+                            <option value="">--</option>
+                            {productSelectOptions.packaging.map((value) => (
+                              <option key={value} value={value}>
+                                {value}
+                              </option>
+                            ))}
+                          </select>
                         </label>
                         <label className={styles.field}>
                           <span>{copy.productFormatLabel}</span>
-                          <input
+                          <select
                             value={productEditor.format}
                             onChange={(event) =>
                               handleProductEditorChange(
@@ -1828,7 +2147,13 @@ export function AdminPageClient({
                                 readFieldValue(event),
                               )
                             }
-                          />
+                          >
+                            {productSelectOptions.format.map((value) => (
+                              <option key={value} value={value}>
+                                {value}
+                              </option>
+                            ))}
+                          </select>
                         </label>
                         <label className={styles.field}>
                           <span>{copy.weightValueLabel}</span>
@@ -1849,7 +2174,7 @@ export function AdminPageClient({
                         </label>
                         <label className={styles.field}>
                           <span>{copy.weightUnitLabel}</span>
-                          <input
+                          <select
                             value={productEditor.weightUnit ?? ""}
                             onChange={(event) =>
                               handleProductEditorChange(
@@ -1859,7 +2184,14 @@ export function AdminPageClient({
                                   : readFieldValue(event),
                               )
                             }
-                          />
+                          >
+                            <option value="">--</option>
+                            {productSelectOptions.weightUnit.map((value) => (
+                              <option key={value} value={value}>
+                                {value}
+                              </option>
+                            ))}
+                          </select>
                         </label>
                         <div className={styles.field}>
                           <span>{copy.imageUrlLabel}</span>
@@ -2077,6 +2409,20 @@ export function AdminPageClient({
                         >
                           {savingProduct ? copy.savingLabel : copy.saveProductButton}
                         </button>
+                        {productMode === "edit" && selectedProductId ? (
+                          <button
+                            type="button"
+                            className={styles.dangerButton}
+                            disabled={deletingProduct}
+                            onClick={() => {
+                              void handleDeleteProduct();
+                            }}
+                          >
+                            {deletingProduct
+                              ? copy.savingLabel
+                              : copy.deleteProductButton}
+                          </button>
+                        ) : null}
                       </div>
                       {message ? (
                         <div
@@ -2088,6 +2434,98 @@ export function AdminPageClient({
                       ) : null}
                     </form>
                   )}
+                </article>
+
+                <article className={`${styles.panel} ${styles.widePanel}`}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <p className={styles.sectionEyebrow}>{copy.productsTab}</p>
+                      <h4>{copy.productOptionTitle}</h4>
+                      <p className={styles.sectionLead}>{copy.productOptionLead}</p>
+                    </div>
+                  </div>
+
+                  <div className={styles.optionManager}>
+                    <label className={styles.field}>
+                      <span>{copy.productOptionGroupLabel}</span>
+                      <select
+                        value={productOptionEditor.group}
+                        onChange={(event) =>
+                          handleProductOptionGroupChange(
+                            event.currentTarget
+                              .value as StorefrontProductOptionGroup,
+                          )
+                        }
+                      >
+                        {PRODUCT_OPTION_GROUPS.map((group) => (
+                          <option key={group} value={group}>
+                            {productOptionGroupLabels[group]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.productOptionExistingLabel}</span>
+                      <select
+                        value={productOptionEditor.selectedValue}
+                        onChange={(event) =>
+                          handleProductOptionSelectionChange(
+                            event.currentTarget.value,
+                          )
+                        }
+                      >
+                        <option value="">--</option>
+                        {productOptions[productOptionEditor.group].map((value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className={styles.field}>
+                      <span>{copy.productOptionValueLabel}</span>
+                      <input
+                        value={productOptionEditor.value}
+                        onChange={(event) =>
+                          setProductOptionEditor((current) => ({
+                            ...current,
+                            value: String(readFieldValue(event)),
+                          }))
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  <div className={styles.formActions}>
+                    <button
+                      type="button"
+                      className={styles.primaryButton}
+                      disabled={savingProductOption}
+                      onClick={() => {
+                        void handleSaveProductOption();
+                      }}
+                    >
+                      {savingProductOption
+                        ? copy.savingLabel
+                        : productOptionEditor.selectedValue
+                          ? copy.productOptionUpdateButton
+                          : copy.productOptionAddButton}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.dangerButton}
+                      disabled={
+                        deletingProductOption || !productOptionEditor.selectedValue
+                      }
+                      onClick={() => {
+                        void handleDeleteProductOption();
+                      }}
+                    >
+                      {deletingProductOption
+                        ? copy.savingLabel
+                        : copy.productOptionDeleteButton}
+                    </button>
+                  </div>
                 </article>
               </div>
             </section>
