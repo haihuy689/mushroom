@@ -68,6 +68,16 @@ export type StorefrontCopy = {
   defaultAddress: string;
   selectedAddress: string;
   addressRequired: string;
+  locationGeocodeFailed: string;
+  locationMismatch: string;
+  locationPermissionDenied: string;
+  locationRequired: string;
+  locationUnavailable: string;
+  locationVerified: string;
+  locationVerifyButton: string;
+  locationVerifyLead: string;
+  locationVerifyTitle: string;
+  locationVerifying: string;
   placeOrder: string;
   placingOrder: string;
   signInToCheckout: string;
@@ -159,6 +169,21 @@ const en: StorefrontCopy = {
   defaultAddress: "Default",
   selectedAddress: "Selected",
   addressRequired: "Choose or save a delivery address before placing the order.",
+  locationGeocodeFailed:
+    "We could not identify your GPS country. Please try again.",
+  locationMismatch:
+    "GPS country does not match the delivery country. Please check the address.",
+  locationPermissionDenied:
+    "Location permission was denied. Allow GPS verification before checkout.",
+  locationRequired: "Verify your GPS country before placing the order.",
+  locationUnavailable:
+    "GPS verification is unavailable on this browser or device.",
+  locationVerified: "GPS country matches the delivery country.",
+  locationVerifyButton: "Verify GPS location",
+  locationVerifyLead:
+    "We compare your GPS country with the delivery country to reduce fake addresses.",
+  locationVerifyTitle: "Address verification",
+  locationVerifying: "Checking GPS...",
   placeOrder: "Place order with Pi",
   placingOrder: "Preparing Pi payment...",
   signInToCheckout: "Sign in with Pi",
@@ -262,6 +287,23 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     selectedAddress: "\u0110ang ch\u1ecdn",
     addressRequired:
       "H\u00e3y ch\u1ecdn ho\u1eb7c l\u01b0u \u0111\u1ecba ch\u1ec9 nh\u1eadn h\u00e0ng tr\u01b0\u1edbc khi \u0111\u1eb7t \u0111\u01a1n.",
+    locationGeocodeFailed:
+      "Chua xac dinh duoc quoc gia tu GPS. Ban vui long thu lai.",
+    locationMismatch:
+      "Quoc gia GPS khong khop voi quoc gia trong dia chi. Hay kiem tra lai dia chi.",
+    locationPermissionDenied:
+      "Ban chua cap quyen vi tri. Hay cho phep xac minh GPS truoc khi thanh toan.",
+    locationRequired:
+      "Hay xac minh quoc gia bang GPS truoc khi dat hang.",
+    locationUnavailable:
+      "Trinh duyet hoac thiet bi nay chua ho tro xac minh GPS.",
+    locationVerified:
+      "Quoc gia GPS khop voi quoc gia trong dia chi giao hang.",
+    locationVerifyButton: "Xac minh GPS",
+    locationVerifyLead:
+      "He thong so sanh quoc gia tu GPS voi quoc gia giao hang de han che dia chi ao.",
+    locationVerifyTitle: "Xac minh dia chi",
+    locationVerifying: "Dang kiem tra GPS...",
     placeOrder: "\u0110\u1eb7t h\u00e0ng b\u1eb1ng Pi",
     placingOrder: "\u0110ang chu\u1ea9n b\u1ecb thanh to\u00e1n Pi...",
     signInToCheckout: "\u0110\u0103ng nh\u1eadp b\u1eb1ng Pi",

@@ -17,6 +17,23 @@ export type StorefrontShippingAddress = {
   note?: string;
 };
 
+export type StorefrontLocationVerificationStatus =
+  | "matched"
+  | "mismatch"
+  | "unverified";
+
+export type StorefrontLocationVerification = {
+  accuracyMeters?: number;
+  addressCountry: string;
+  checkedAt: string;
+  countryCode?: string;
+  countryName?: string;
+  latitude?: number;
+  longitude?: number;
+  message?: string;
+  status: StorefrontLocationVerificationStatus;
+};
+
 export type StorefrontAddress = StorefrontShippingAddress & {
   id: string;
   isDefault: boolean;
@@ -52,6 +69,7 @@ export type StorefrontOrder = {
   trackingCode?: string;
   username?: string;
   items?: StorefrontOrderLine[];
+  locationVerification?: StorefrontLocationVerification;
   shippingAddress?: StorefrontShippingAddress;
 };
 
@@ -175,6 +193,33 @@ export function isStorefrontOrderLine(
   );
 }
 
+export function isStorefrontLocationVerification(
+  value: unknown,
+): value is StorefrontLocationVerification {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as StorefrontLocationVerification;
+
+  return (
+    typeof candidate.addressCountry === "string" &&
+    typeof candidate.checkedAt === "string" &&
+    (candidate.status === "matched" ||
+      candidate.status === "mismatch" ||
+      candidate.status === "unverified") &&
+    (candidate.latitude === undefined || isFiniteNumber(candidate.latitude)) &&
+    (candidate.longitude === undefined || isFiniteNumber(candidate.longitude)) &&
+    (candidate.accuracyMeters === undefined ||
+      isFiniteNumber(candidate.accuracyMeters)) &&
+    (candidate.countryCode === undefined ||
+      typeof candidate.countryCode === "string") &&
+    (candidate.countryName === undefined ||
+      typeof candidate.countryName === "string") &&
+    (candidate.message === undefined || typeof candidate.message === "string")
+  );
+}
+
 export function isStorefrontOrder(value: unknown): value is StorefrontOrder {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -188,6 +233,9 @@ export function isStorefrontOrder(value: unknown): value is StorefrontOrder {
   const hasValidShippingAddress =
     candidate.shippingAddress === undefined ||
     isStorefrontShippingAddress(candidate.shippingAddress);
+  const hasValidLocationVerification =
+    candidate.locationVerification === undefined ||
+    isStorefrontLocationVerification(candidate.locationVerification);
 
   return (
     typeof candidate.id === "string" &&
@@ -211,7 +259,8 @@ export function isStorefrontOrder(value: unknown): value is StorefrontOrder {
     (candidate.adminNote === undefined ||
       typeof candidate.adminNote === "string") &&
     hasValidItems &&
-    hasValidShippingAddress
+    hasValidShippingAddress &&
+    hasValidLocationVerification
   );
 }
 
@@ -275,6 +324,41 @@ function normalizeShippingAddress(
     city: normalizeText(address.city),
     country: normalizeText(address.country),
     note: normalizeText(address.note),
+  };
+}
+
+function normalizeLocationVerification(
+  verification: StorefrontLocationVerification | undefined,
+): StorefrontLocationVerification | undefined {
+  if (!verification) {
+    return undefined;
+  }
+
+  return {
+    accuracyMeters:
+      typeof verification.accuracyMeters === "number" &&
+      Number.isFinite(verification.accuracyMeters)
+        ? Math.max(0, Math.round(verification.accuracyMeters))
+        : undefined,
+    addressCountry: normalizeText(verification.addressCountry),
+    checkedAt: toIsoDate(verification.checkedAt),
+    countryCode: normalizeText(verification.countryCode).toUpperCase() || undefined,
+    countryName: normalizeText(verification.countryName) || undefined,
+    latitude:
+      typeof verification.latitude === "number" &&
+      Number.isFinite(verification.latitude)
+        ? Number(verification.latitude.toFixed(6))
+        : undefined,
+    longitude:
+      typeof verification.longitude === "number" &&
+      Number.isFinite(verification.longitude)
+        ? Number(verification.longitude.toFixed(6))
+        : undefined,
+    message: normalizeText(verification.message) || undefined,
+    status:
+      verification.status === "matched" || verification.status === "mismatch"
+        ? verification.status
+        : "unverified",
   };
 }
 
@@ -399,6 +483,9 @@ export function normalizeOrders(
       adminNote: normalizeText(order.adminNote) || undefined,
       username: normalizeText(order.username) || undefined,
       items: normalizeOrderLines(order),
+      locationVerification: normalizeLocationVerification(
+        order.locationVerification,
+      ),
       shippingAddress: normalizeShippingAddress(order.shippingAddress),
     });
   }

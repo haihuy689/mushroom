@@ -2720,6 +2720,17 @@ export function AdminPageClient({
                               .filter(Boolean)
                               .join(", ")}
                           </span>
+                          {selectedOrder.locationVerification ? (
+                            <span>
+                              GPS: {selectedOrder.locationVerification.status} |{" "}
+                              {selectedOrder.locationVerification.countryName ??
+                                "--"}
+                              {selectedOrder.locationVerification.countryCode
+                                ? ` (${selectedOrder.locationVerification.countryCode})`
+                                : ""}{" "}
+                              | {selectedOrder.locationVerification.message ?? ""}
+                            </span>
+                          ) : null}
                         </div>
                       ) : null}
 

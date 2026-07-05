@@ -1,10 +1,10 @@
 .page {
   width: 100%;
-  max-width: 980px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 14px 14px 44px;
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .hero,
@@ -12,7 +12,7 @@
 .layout {
   position: relative;
   overflow: clip;
-  border-radius: 24px;
+  border-radius: 22px;
   border: 1px solid var(--line-soft);
   background:
     linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(248, 243, 232, 0.9));
@@ -35,13 +35,13 @@
 .hero,
 .layout {
   display: grid;
-  gap: 20px;
-  padding: 28px;
+  gap: 16px;
+  padding: 20px;
 }
 
 .hero {
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 290px);
+  align-items: center;
 }
 
 .heroCopy,
@@ -74,8 +74,8 @@
 }
 
 .heroCopy h1 {
-  font-size: clamp(2.8rem, 6vw, 4.6rem);
-  line-height: 0.92;
+  font-size: clamp(2.15rem, 5vw, 3.7rem);
+  line-height: 0.96;
   color: #2b160d;
 }
 
@@ -98,7 +98,7 @@
 }
 
 .lead {
-  margin: 12px 0 0;
+  margin: 8px 0 0;
   max-width: 56ch;
 }
 
@@ -107,15 +107,15 @@
 .lineCard,
 .addressCard {
   display: grid;
-  gap: 14px;
-  padding: 22px;
-  border-radius: 20px;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
   background: #fffdf8;
   border: 1px solid rgba(70, 64, 40, 0.12);
 }
 
 .summaryCard strong {
-  font-size: 2.1rem;
+  font-size: 1.8rem;
   color: #29150d;
 }
 
@@ -160,7 +160,7 @@
 }
 
 .layout {
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.88fr);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
   align-items: start;
 }
 
@@ -168,6 +168,11 @@
 .rightColumn {
   display: grid;
   gap: 18px;
+}
+
+.rightColumn {
+  position: sticky;
+  top: 84px;
 }
 
 .sectionHeading,
@@ -197,16 +202,17 @@
 
 .lineList,
 .addressList,
+.addressDetails,
 .addressForm,
 .formGrid {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .lineCard {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
-  gap: 16px;
+  gap: 14px;
 }
 
 .lineContent {
@@ -217,12 +223,12 @@
 
 .lineTitle h3 {
   margin: 0;
-  font-size: 1.14rem;
+  font-size: 1.04rem;
   color: #29150d;
 }
 
 .lineTitle p {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
 }
 
 .removeButton {
@@ -233,9 +239,9 @@
 .lineMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   color: rgba(58, 36, 24, 0.7);
-  font-size: 0.9rem;
+  font-size: 0.84rem;
 }
 
 .stockMeta[data-stocked="true"] {
@@ -261,7 +267,7 @@
 
 .priceBlock strong {
   color: #29150d;
-  font-size: 1.08rem;
+  font-size: 1rem;
 }
 
 .quantityStepper {
@@ -342,8 +348,37 @@
   font-weight: 700;
 }
 
-.formHeading h3 {
-  margin: 0;
+.addressDetails {
+  border: 1px solid rgba(83, 50, 27, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 248, 232, 0.46);
+  padding: 12px;
+}
+
+.addressDetails summary {
+  cursor: pointer;
+  color: #29150d;
+  font-weight: 800;
+  list-style: none;
+}
+
+.addressDetails summary::-webkit-details-marker {
+  display: none;
+}
+
+.addressDetails summary::after {
+  content: "+";
+  float: right;
+  color: #5f7b35;
+  font-weight: 900;
+}
+
+.addressDetails[open] summary::after {
+  content: "-";
+}
+
+.addressDetails[open] .addressForm {
+  margin-top: 12px;
 }
 
 .sectionLead,
@@ -394,6 +429,10 @@
   .hero,
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  .rightColumn {
+    position: static;
   }
 }
 

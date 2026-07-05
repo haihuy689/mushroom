@@ -6,6 +6,7 @@ import { useStorefront, type StorefrontAddress } from "@/components/storefront-p
 import type { Product } from "@/lib/pi-types";
 import type { PiCheckoutCopy } from "@/lib/public-site-copy";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
+import type { StorefrontLocationVerification } from "@/lib/storefront-state";
 import { PiNetworkIcon } from "./brand-icons";
 import styles from "./cart-checkout-card.module.css";
 
@@ -28,6 +29,109 @@ type MessageState =
   | { kind: "success"; text: string }
   | { kind: "error"; text: string }
   | null;
+
+type AddressLocationVerification = StorefrontLocationVerification & {
+  addressId: string;
+};
+
+type ReverseGeocodeResponse = {
+  countryCode?: string;
+  countryName?: string;
+};
+
+const COUNTRY_CODE_BY_NAME: Record<string, string> = {
+  america: "US",
+  canada: "CA",
+  france: "FR",
+  "hong kong": "HK",
+  japan: "JP",
+  "south korea": "KR",
+  thailand: "TH",
+  uk: "GB",
+  "united kingdom": "GB",
+  "united states": "US",
+  us: "US",
+  usa: "US",
+  "viet nam": "VN",
+  vietnam: "VN",
+  vn: "VN",
+};
+
+function normalizeCountryText(value: string | null | undefined) {
+  return (value ?? "")
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function resolveCountryCode(value: string | null | undefined) {
+  const normalizedValue = normalizeCountryText(value);
+
+  if (/^[a-z]{2}$/i.test((value ?? "").trim())) {
+    return (value ?? "").trim().toUpperCase();
+  }
+
+  return COUNTRY_CODE_BY_NAME[normalizedValue] ?? "";
+}
+
+function countriesMatch(
+  addressCountry: string,
+  gpsCountryCode: string | undefined,
+  gpsCountryName: string | undefined,
+) {
+  const addressCode = resolveCountryCode(addressCountry);
+  const normalizedAddress = normalizeCountryText(addressCountry);
+  const normalizedGpsCountry = normalizeCountryText(gpsCountryName);
+
+  if (addressCode && gpsCountryCode) {
+    return addressCode === gpsCountryCode.trim().toUpperCase();
+  }
+
+  return Boolean(
+    normalizedAddress &&
+      normalizedGpsCountry &&
+      (normalizedAddress === normalizedGpsCountry ||
+        normalizedGpsCountry.includes(normalizedAddress) ||
+        normalizedAddress.includes(normalizedGpsCountry)),
+  );
+}
+
+function getCurrentGpsPosition() {
+  return new Promise<GeolocationPosition>((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      maximumAge: 60_000,
+      timeout: 12_000,
+    });
+  });
+}
+
+async function reverseGeocodeCountry(latitude: number, longitude: number) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), 8_000);
+
+  try {
+    const response = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}&localityLanguage=en`,
+      {
+        cache: "no-store",
+        signal: controller.signal,
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Reverse geocoding failed.");
+    }
+
+    return (await response.json()) as ReverseGeocodeResponse;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
 
 async function postJson<T>(
   path: string,
@@ -73,11 +177,19 @@ export function CartCheckoutCard({
   } = useStorefront();
   const [message, setMessage] = useState<MessageState>(null);
   const [paymentBusy, setPaymentBusy] = useState(false);
+  const [locationBusy, setLocationBusy] = useState(false);
+  const [locationVerification, setLocationVerification] =
+    useState<AddressLocationVerification | null>(null);
 
   const totalPi = Number(
     lines.reduce((sum, line) => sum + line.lineTotalPi, 0).toFixed(4),
   );
   const totalItems = lines.reduce((sum, line) => sum + line.quantity, 0);
+  const activeLocationVerification =
+    locationVerification?.addressId === selectedAddress?.id
+      ? locationVerification
+      : null;
+  const locationMatched = activeLocationVerification?.status === "matched";
 
   const authenticate = async () => {
     if (!sdkReady) {
@@ -134,6 +246,22 @@ export function CartCheckoutCard({
       setMessage({
         kind: "error",
         text: copy.addressRequired,
+      });
+      return;
+    }
+
+    if (!activeLocationVerification) {
+      setMessage({
+        kind: "error",
+        text: copy.locationRequired,
+      });
+      return;
+    }
+
+    if (!locationMatched) {
+      setMessage({
+        kind: "error",
+        text: copy.locationMismatch,
       });
       return;
     }
@@ -209,6 +337,7 @@ export function CartCheckoutCard({
                 quantity: line.quantity,
                 totalPi: line.lineTotalPi,
               })),
+              locationVerification: activeLocationVerification,
               shippingAddress: {
                 fullName: selectedAddress.fullName,
                 phone: selectedAddress.phone,
@@ -255,6 +384,88 @@ export function CartCheckoutCard({
     );
   };
 
+  const handleVerifyLocation = async () => {
+    if (!selectedAddress) {
+      setMessage({
+        kind: "error",
+        text: copy.addressRequired,
+      });
+      return;
+    }
+
+    if (!("geolocation" in navigator)) {
+      setMessage({
+        kind: "error",
+        text: copy.locationUnavailable,
+      });
+      setLocationVerification({
+        addressId: selectedAddress.id,
+        addressCountry: selectedAddress.country,
+        checkedAt: new Date().toISOString(),
+        message: copy.locationUnavailable,
+        status: "unverified",
+      });
+      return;
+    }
+
+    setLocationBusy(true);
+    setMessage(null);
+
+    try {
+      const position = await getCurrentGpsPosition();
+      const country = await reverseGeocodeCountry(
+        position.coords.latitude,
+        position.coords.longitude,
+      );
+      const matched = countriesMatch(
+        selectedAddress.country,
+        country.countryCode,
+        country.countryName,
+      );
+      const nextVerification: AddressLocationVerification = {
+        accuracyMeters: Math.round(position.coords.accuracy),
+        addressId: selectedAddress.id,
+        addressCountry: selectedAddress.country,
+        checkedAt: new Date().toISOString(),
+        countryCode: country.countryCode?.trim().toUpperCase() || undefined,
+        countryName: country.countryName?.trim() || undefined,
+        latitude: Number(position.coords.latitude.toFixed(6)),
+        longitude: Number(position.coords.longitude.toFixed(6)),
+        message: matched ? copy.locationVerified : copy.locationMismatch,
+        status: matched ? "matched" : "mismatch",
+      };
+
+      setLocationVerification(nextVerification);
+      setMessage({
+        kind: matched ? "success" : "error",
+        text: nextVerification.message ?? copy.locationGeocodeFailed,
+      });
+    } catch (error) {
+      const permissionDenied =
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code?: number }).code === 1;
+      const text = permissionDenied
+        ? copy.locationPermissionDenied
+        : copy.locationGeocodeFailed;
+
+      setLocationVerification({
+        addressId: selectedAddress.id,
+        addressCountry: selectedAddress.country,
+        checkedAt: new Date().toISOString(),
+        message: text,
+        status: "unverified",
+      });
+      setMessage({
+        kind: "error",
+        text,
+      });
+    } finally {
+      setLocationBusy(false);
+    }
+  };
+
   return (
     <section className={styles.card}>
       <div className={styles.top}>
@@ -297,6 +508,41 @@ export function CartCheckoutCard({
         <div className={styles.notice}>{copy.addressRequired}</div>
       )}
 
+      <div
+        className={styles.locationCard}
+        data-status={activeLocationVerification?.status ?? "idle"}
+      >
+        <div>
+          <span>{copy.locationVerifyTitle}</span>
+          <strong>
+            {activeLocationVerification?.status === "matched"
+              ? copy.locationVerified
+              : activeLocationVerification?.status === "mismatch"
+                ? copy.locationMismatch
+                : copy.locationVerifyLead}
+          </strong>
+          {activeLocationVerification ? (
+            <p>
+              {activeLocationVerification.countryName ?? "--"}
+              {activeLocationVerification.countryCode
+                ? ` (${activeLocationVerification.countryCode})`
+                : ""}{" "}
+              | {copy.country}: {activeLocationVerification.addressCountry}
+            </p>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className={styles.secondaryButton}
+          disabled={locationBusy || !selectedAddress}
+          onClick={() => {
+            void handleVerifyLocation();
+          }}
+        >
+          {locationBusy ? copy.locationVerifying : copy.locationVerifyButton}
+        </button>
+      </div>
+
       {hasInventoryIssue ? (
         <div className={styles.notice}>{copy.inventoryIssue}</div>
       ) : null}
@@ -331,6 +577,7 @@ export function CartCheckoutCard({
             !sdkReady ||
             paymentBusy ||
             hasInventoryIssue ||
+            !locationMatched ||
             !viewer ||
             !selectedAddress ||
             !serverConfigured ||

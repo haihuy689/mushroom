@@ -84,6 +84,15 @@ type OrderRow = {
   shipping_city: string | null;
   shipping_country: string | null;
   shipping_note: string | null;
+  location_accuracy_meters: number | null;
+  location_address_country: string | null;
+  location_checked_at: string | null;
+  location_country_code: string | null;
+  location_country_name: string | null;
+  location_latitude: string | number | null;
+  location_longitude: string | number | null;
+  location_message: string | null;
+  location_status: string | null;
 };
 
 type OrderItemRow = {
@@ -233,6 +242,29 @@ function mapOrderRows(
           note: row.shipping_note ?? "",
         }
       : undefined,
+    locationVerification: row.location_status
+      ? {
+          accuracyMeters: row.location_accuracy_meters ?? undefined,
+          addressCountry: row.location_address_country ?? "",
+          checkedAt: row.location_checked_at ?? row.created_at,
+          countryCode: row.location_country_code ?? undefined,
+          countryName: row.location_country_name ?? undefined,
+          latitude:
+            row.location_latitude === null
+              ? undefined
+              : Number(row.location_latitude),
+          longitude:
+            row.location_longitude === null
+              ? undefined
+              : Number(row.location_longitude),
+          message: row.location_message ?? undefined,
+          status:
+            row.location_status === "matched" ||
+            row.location_status === "mismatch"
+              ? row.location_status
+              : "unverified",
+        }
+      : undefined,
   }));
 }
 
@@ -304,7 +336,16 @@ export async function GET() {
               shipping_district,
               shipping_city,
               shipping_country,
-              shipping_note
+              shipping_note,
+              location_status,
+              location_checked_at::text,
+              location_country_code,
+              location_country_name,
+              location_address_country,
+              location_latitude,
+              location_longitude,
+              location_accuracy_meters,
+              location_message
             from storefront_orders
             order by created_at desc
             limit 80

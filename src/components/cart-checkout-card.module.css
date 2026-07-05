@@ -61,6 +61,7 @@
 .summaryBlock,
 .viewerCard,
 .addressCard,
+.locationCard,
 .notice,
 .message {
   display: grid;
@@ -72,7 +73,8 @@
 
 .summaryBlock,
 .viewerCard,
-.addressCard {
+.addressCard,
+.locationCard {
   background: rgba(255, 248, 232, 0.76);
 }
 
@@ -82,6 +84,8 @@
 .viewerCard span,
 .addressCard span,
 .addressCard p,
+.locationCard span,
+.locationCard p,
 .hint,
 .notice {
   color: rgba(67, 41, 24, 0.74);
@@ -98,12 +102,29 @@
 }
 
 .viewerCard strong,
-.addressCard strong {
+.addressCard strong,
+.locationCard strong {
   color: #29150d;
 }
 
-.addressCard p {
+.addressCard p,
+.locationCard p {
   margin: 0;
+}
+
+.locationCard {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.locationCard[data-status="matched"] {
+  border-color: rgba(47, 95, 69, 0.26);
+  background: rgba(218, 244, 223, 0.76);
+}
+
+.locationCard[data-status="mismatch"],
+.locationCard[data-status="unverified"] {
+  border-color: rgba(154, 71, 56, 0.22);
+  background: rgba(255, 236, 215, 0.72);
 }
 
 .notice {

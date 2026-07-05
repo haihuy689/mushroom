@@ -378,108 +378,110 @@ export function CartPageClient({
                 </div>
               )}
 
-              <form className={styles.addressForm} onSubmit={handleAddressSubmit}>
-                <div className={styles.formHeading}>
-                  <h3>{copy.addAddressTitle}</h3>
-                </div>
+              <details
+                className={styles.addressDetails}
+                open={addresses.length === 0}
+              >
+                <summary>{copy.addAddressTitle}</summary>
+                <form className={styles.addressForm} onSubmit={handleAddressSubmit}>
+                  <div className={styles.formGrid}>
+                    <label>
+                      <span>{copy.fullName}</span>
+                      <input
+                        required
+                        name="fullName"
+                        value={formState.fullName}
+                        onChange={handleFieldChange}
+                      />
+                    </label>
+                    <label>
+                      <span>{copy.phone}</span>
+                      <input
+                        required
+                        name="phone"
+                        value={formState.phone}
+                        onChange={handleFieldChange}
+                      />
+                    </label>
+                    <label className={styles.fullField}>
+                      <span>{copy.addressLine1}</span>
+                      <input
+                        required
+                        name="line1"
+                        value={formState.line1}
+                        onChange={handleFieldChange}
+                      />
+                    </label>
+                    <label className={styles.fullField}>
+                      <span>{copy.addressLine2}</span>
+                      <input
+                        name="line2"
+                        value={formState.line2}
+                        onChange={handleFieldChange}
+                      />
+                    </label>
+                    <label>
+                      <span>{copy.ward}</span>
+                      <input
+                        required
+                        name="ward"
+                        value={formState.ward}
+                        onChange={handleFieldChange}
+                      />
+                    </label>
+                    <label>
+                      <span>{copy.district}</span>
+                      <input
+                        required
+                        name="district"
+                        value={formState.district}
+                        onChange={handleFieldChange}
+                      />
+                    </label>
+                    <label>
+                      <span>{copy.city}</span>
+                      <input
+                        required
+                        name="city"
+                        value={formState.city}
+                        onChange={handleFieldChange}
+                      />
+                    </label>
+                    <label>
+                      <span>{copy.country}</span>
+                      <input
+                        required
+                        name="country"
+                        value={formState.country}
+                        onChange={handleFieldChange}
+                      />
+                    </label>
+                    <label className={styles.fullField}>
+                      <span>{copy.note}</span>
+                      <textarea
+                        name="note"
+                        value={formState.note}
+                        onChange={handleFieldChange}
+                        rows={3}
+                      />
+                    </label>
+                  </div>
 
-                <div className={styles.formGrid}>
-                  <label>
-                    <span>{copy.fullName}</span>
+                  <label className={styles.checkboxRow}>
                     <input
-                      required
-                      name="fullName"
-                      value={formState.fullName}
+                      type="checkbox"
+                      name="isDefault"
+                      checked={formState.isDefault}
                       onChange={handleFieldChange}
                     />
+                    <span>{copy.setAsDefault}</span>
                   </label>
-                  <label>
-                    <span>{copy.phone}</span>
-                    <input
-                      required
-                      name="phone"
-                      value={formState.phone}
-                      onChange={handleFieldChange}
-                    />
-                  </label>
-                  <label className={styles.fullField}>
-                    <span>{copy.addressLine1}</span>
-                    <input
-                      required
-                      name="line1"
-                      value={formState.line1}
-                      onChange={handleFieldChange}
-                    />
-                  </label>
-                  <label className={styles.fullField}>
-                    <span>{copy.addressLine2}</span>
-                    <input
-                      name="line2"
-                      value={formState.line2}
-                      onChange={handleFieldChange}
-                    />
-                  </label>
-                  <label>
-                    <span>{copy.ward}</span>
-                    <input
-                      required
-                      name="ward"
-                      value={formState.ward}
-                      onChange={handleFieldChange}
-                    />
-                  </label>
-                  <label>
-                    <span>{copy.district}</span>
-                    <input
-                      required
-                      name="district"
-                      value={formState.district}
-                      onChange={handleFieldChange}
-                    />
-                  </label>
-                  <label>
-                    <span>{copy.city}</span>
-                    <input
-                      required
-                      name="city"
-                      value={formState.city}
-                      onChange={handleFieldChange}
-                    />
-                  </label>
-                  <label>
-                    <span>{copy.country}</span>
-                    <input
-                      required
-                      name="country"
-                      value={formState.country}
-                      onChange={handleFieldChange}
-                    />
-                  </label>
-                  <label className={styles.fullField}>
-                    <span>{copy.note}</span>
-                    <textarea
-                      name="note"
-                      value={formState.note}
-                      onChange={handleFieldChange}
-                      rows={3}
-                    />
-                  </label>
-                </div>
 
-                <label className={styles.checkboxRow}>
-                  <input
-                    type="checkbox"
-                    name="isDefault"
-                    checked={formState.isDefault}
-                    onChange={handleFieldChange}
-                  />
-                  <span>{copy.setAsDefault}</span>
-                </label>
-
-                <button type="submit" className={styles.primaryLink}>
-                  {copy.saveAddress}
-                </button>
-              </form>
+                  <button type="submit" className={styles.primaryLink}>
+                    {copy.saveAddress}
+                  </button>
+                </form>
+              </details>
             </article>
 
             <CartCheckoutCard

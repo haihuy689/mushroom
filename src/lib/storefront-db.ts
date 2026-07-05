@@ -81,6 +81,15 @@ type OrderRow = {
   shipping_city: string | null;
   shipping_country: string | null;
   shipping_note: string | null;
+  location_accuracy_meters: number | null;
+  location_address_country: string | null;
+  location_checked_at: string | null;
+  location_country_code: string | null;
+  location_country_name: string | null;
+  location_latitude: string | number | null;
+  location_longitude: string | number | null;
+  location_message: string | null;
+  location_status: string | null;
 };
 
 type OrderItemRow = {
@@ -182,6 +191,15 @@ const STOREFRONT_REQUIRED_COLUMNS = [
   { table: "storefront_orders", column: "shipping_carrier" },
   { table: "storefront_orders", column: "tracking_code" },
   { table: "storefront_orders", column: "admin_note" },
+  { table: "storefront_orders", column: "location_status" },
+  { table: "storefront_orders", column: "location_checked_at" },
+  { table: "storefront_orders", column: "location_country_code" },
+  { table: "storefront_orders", column: "location_country_name" },
+  { table: "storefront_orders", column: "location_address_country" },
+  { table: "storefront_orders", column: "location_latitude" },
+  { table: "storefront_orders", column: "location_longitude" },
+  { table: "storefront_orders", column: "location_accuracy_meters" },
+  { table: "storefront_orders", column: "location_message" },
   { table: "storefront_staff_members", column: "updated_at" },
   { table: "storefront_staff_members", column: "is_active" },
   { table: "storefront_staff_members", column: "role" },
@@ -360,6 +378,42 @@ export async function ensureStorefrontSchema() {
           await transaction`
             alter table storefront_orders
             add column if not exists admin_note text
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists location_status text
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists location_checked_at timestamptz
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists location_country_code text
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists location_country_name text
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists location_address_country text
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists location_latitude numeric(10, 6)
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists location_longitude numeric(10, 6)
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists location_accuracy_meters integer
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists location_message text
           `;
           await transaction`
             create table if not exists storefront_order_items (
@@ -788,7 +842,16 @@ async function readStorefrontState(piUid: string) {
         shipping_district,
         shipping_city,
         shipping_country,
-        shipping_note
+        shipping_note,
+        location_status,
+        location_checked_at::text,
+        location_country_code,
+        location_country_name,
+        location_address_country,
+        location_latitude,
+        location_longitude,
+        location_accuracy_meters,
+        location_message
       from storefront_orders
       where pi_uid = ${piUid}
       order by created_at desc
@@ -963,7 +1026,16 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
         shipping_district,
         shipping_city,
         shipping_country,
-        shipping_note
+        shipping_note,
+        location_status,
+        location_checked_at,
+        location_country_code,
+        location_country_name,
+        location_address_country,
+        location_latitude,
+        location_longitude,
+        location_accuracy_meters,
+        location_message
       )
       values (
         ${order.id},
@@ -990,7 +1062,16 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
         ${order.shippingAddress?.district ?? null},
         ${order.shippingAddress?.city ?? null},
         ${order.shippingAddress?.country ?? null},
-        ${order.shippingAddress?.note ?? null}
+        ${order.shippingAddress?.note ?? null},
+        ${order.locationVerification?.status ?? null},
+        ${order.locationVerification?.checkedAt ?? null},
+        ${order.locationVerification?.countryCode ?? null},
+        ${order.locationVerification?.countryName ?? null},
+        ${order.locationVerification?.addressCountry ?? null},
+        ${order.locationVerification?.latitude ?? null},
+        ${order.locationVerification?.longitude ?? null},
+        ${order.locationVerification?.accuracyMeters ?? null},
+        ${order.locationVerification?.message ?? null}
       )
       on conflict (id) do update
       set
@@ -1016,7 +1097,16 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
         shipping_district = excluded.shipping_district,
         shipping_city = excluded.shipping_city,
         shipping_country = excluded.shipping_country,
-        shipping_note = excluded.shipping_note
+        shipping_note = excluded.shipping_note,
+        location_status = excluded.location_status,
+        location_checked_at = excluded.location_checked_at,
+        location_country_code = excluded.location_country_code,
+        location_country_name = excluded.location_country_name,
+        location_address_country = excluded.location_address_country,
+        location_latitude = excluded.location_latitude,
+        location_longitude = excluded.location_longitude,
+        location_accuracy_meters = excluded.location_accuracy_meters,
+        location_message = excluded.location_message
     `;
 
     await transaction`
@@ -1110,6 +1200,29 @@ function mapOrderRows(
       trackingCode: row.tracking_code ?? undefined,
       username: row.username ?? undefined,
       items: itemsByOrderId.get(row.id) ?? [],
+      locationVerification: row.location_status
+        ? {
+            accuracyMeters: row.location_accuracy_meters ?? undefined,
+            addressCountry: row.location_address_country ?? "",
+            checkedAt: row.location_checked_at ?? row.created_at,
+            countryCode: row.location_country_code ?? undefined,
+            countryName: row.location_country_name ?? undefined,
+            latitude:
+              row.location_latitude === null
+                ? undefined
+                : Number(row.location_latitude),
+            longitude:
+              row.location_longitude === null
+                ? undefined
+                : Number(row.location_longitude),
+            message: row.location_message ?? undefined,
+            status:
+              row.location_status === "matched" ||
+              row.location_status === "mismatch"
+                ? row.location_status
+                : "unverified",
+          }
+        : undefined,
       shippingAddress: row.shipping_full_name
         ? {
             fullName: row.shipping_full_name,
@@ -1163,7 +1276,16 @@ async function readAllStorefrontOrders() {
           shipping_district,
           shipping_city,
           shipping_country,
-          shipping_note
+          shipping_note,
+          location_status,
+          location_checked_at::text,
+          location_country_code,
+          location_country_name,
+          location_address_country,
+          location_latitude,
+          location_longitude,
+          location_accuracy_meters,
+          location_message
         from storefront_orders
         order by created_at desc
         limit 80
@@ -1830,7 +1952,16 @@ export async function updateStorefrontOrderRecord(
       shipping_district,
       shipping_city,
       shipping_country,
-      shipping_note
+      shipping_note,
+      location_status,
+      location_checked_at::text,
+      location_country_code,
+      location_country_name,
+      location_address_country,
+      location_latitude,
+      location_longitude,
+      location_accuracy_meters,
+      location_message
   `;
 
   if (updatedRows.length === 0) {
