@@ -38,6 +38,7 @@ type AdminPageClientProps = {
 };
 
 type AdminView = "overview" | "products" | "orders" | "staff" | "operations";
+type ProductMediaUploadKind = "cover" | "gallery" | "video";
 
 type MessageState =
   | { kind: "error"; text: string }
@@ -74,6 +75,38 @@ type OrderEditor = {
   status: OrderStatus;
   trackingCode: string;
 };
+
+type ProductMediaUploadResponse = {
+  item: {
+    url: string;
+  };
+};
+
+async function uploadAdminProductMedia(
+  file: File,
+  kind: ProductMediaUploadKind,
+) {
+  const formData = new FormData();
+  formData.set("file", file);
+  formData.set("kind", kind);
+
+  const response = await fetch("/api/admin/uploads", {
+    body: formData,
+    cache: "no-store",
+    method: "POST",
+  });
+  const data = (await response.json()) as ProductMediaUploadResponse & {
+    error?: string;
+  };
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.error === "string" ? data.error : "Unable to upload file.",
+    );
+  }
+
+  return data.item.url;
+}
 
 async function readJson<T>(path: string, init?: RequestInitWithTimeout) {
   const { timeoutMs = 10000, ...requestInit } = init ?? {};
@@ -209,6 +242,17 @@ function getDisplayedSoldCount(
   );
 }
 
+function getMediaFileName(url: string) {
+  try {
+    const pathName = new URL(url).pathname;
+    const fileName = pathName.split("/").pop();
+
+    return fileName ? decodeURIComponent(fileName) : "Uploaded file";
+  } catch {
+    return url.split("/").pop() || "Uploaded file";
+  }
+}
+
 function normalizeIdentityKey(value: string) {
   return value.trim().toLowerCase();
 }
@@ -256,6 +300,8 @@ export function AdminPageClient({
   const [productEditor, setProductEditor] = useState<StorefrontProductInput>(
     createEmptyStorefrontProductInput(),
   );
+  const [uploadingMediaKind, setUploadingMediaKind] =
+    useState<ProductMediaUploadKind | null>(null);
   const [savingProduct, setSavingProduct] = useState(false);
   const [refreshingProducts, setRefreshingProducts] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -761,6 +807,69 @@ export function AdminPageClient({
       ...current,
       [field]: value,
     }) as StorefrontProductInput);
+  };
+
+  const handleProductMediaUpload = async (
+    kind: ProductMediaUploadKind,
+    files: File[],
+  ) => {
+    if (files.length === 0) {
+      return;
+    }
+
+    setUploadingMediaKind(kind);
+    setMessage(null);
+
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (const file of files) {
+        uploadedUrls.push(await uploadAdminProductMedia(file, kind));
+      }
+
+      setProductEditor((current) => {
+        if (kind === "cover") {
+          return {
+            ...current,
+            imageUrl: uploadedUrls[0] ?? current.imageUrl,
+          };
+        }
+
+        if (kind === "video") {
+          return {
+            ...current,
+            videoUrl: uploadedUrls[0] ?? current.videoUrl,
+          };
+        }
+
+        return {
+          ...current,
+          galleryImageUrls: Array.from(
+            new Set([...(current.galleryImageUrls ?? []), ...uploadedUrls]),
+          ).slice(0, 12),
+        };
+      });
+      setMessage({
+        kind: "success",
+        text: copy.mediaUploadSuccess,
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setUploadingMediaKind(null);
+    }
+  };
+
+  const handleRemoveGalleryImage = (url: string) => {
+    setProductEditor((current) => ({
+      ...current,
+      galleryImageUrls: (current.galleryImageUrls ?? []).filter(
+        (item) => item !== url,
+      ),
+    }));
   };
 
   const handleSaveProduct = async (event: FormEvent<HTMLFormElement>) => {
@@ -1687,49 +1796,117 @@ export function AdminPageClient({
                             }
                           />
                         </label>
-                        <label className={styles.field}>
+                        <div className={styles.field}>
                           <span>{copy.imageUrlLabel}</span>
-                          <input
-                            value={productEditor.imageUrl}
-                            onChange={(event) =>
-                              handleProductEditorChange(
-                                "imageUrl",
-                                readFieldValue(event),
-                              )
-                            }
-                          />
-                          <small>{copy.coverImageHelp}</small>
-                        </label>
-                        <label className={`${styles.field} ${styles.fullField}`}>
+                          <label className={styles.uploadDropzone}>
+                            <input
+                              accept="image/jpeg,image/png,image/webp"
+                              disabled={uploadingMediaKind !== null}
+                              type="file"
+                              onChange={(event) => {
+                                const files = Array.from(
+                                  event.currentTarget.files ?? [],
+                                );
+                                event.currentTarget.value = "";
+                                void handleProductMediaUpload("cover", files);
+                              }}
+                            />
+                            <strong>
+                              {uploadingMediaKind === "cover"
+                                ? copy.mediaUploadingLabel
+                                : copy.uploadCoverImageLabel}
+                            </strong>
+                            <small>{copy.coverImageHelp}</small>
+                          </label>
+                          {productEditor.imageUrl ? (
+                            <div className={styles.mediaFileRow}>
+                              <span>{getMediaFileName(productEditor.imageUrl)}</span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleProductEditorChange("imageUrl", "")
+                                }
+                              >
+                                {copy.removeMediaButton}
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className={`${styles.field} ${styles.fullField}`}>
                           <span>{copy.galleryImagesLabel}</span>
-                          <textarea
-                            rows={4}
-                            value={(productEditor.galleryImageUrls ?? []).join("\n")}
-                            onChange={(event) =>
-                              handleProductEditorChange(
-                                "galleryImageUrls",
-                                event.target.value
-                                  .split(/\r?\n/)
-                                  .map((item) => item.trim())
-                                  .filter(Boolean),
-                              )
-                            }
-                          />
-                          <small>{copy.galleryImagesHelp}</small>
-                        </label>
-                        <label className={`${styles.field} ${styles.fullField}`}>
+                          <label className={styles.uploadDropzone}>
+                            <input
+                              accept="image/jpeg,image/png,image/webp"
+                              disabled={uploadingMediaKind !== null}
+                              multiple
+                              type="file"
+                              onChange={(event) => {
+                                const files = Array.from(
+                                  event.currentTarget.files ?? [],
+                                );
+                                event.currentTarget.value = "";
+                                void handleProductMediaUpload("gallery", files);
+                              }}
+                            />
+                            <strong>
+                              {uploadingMediaKind === "gallery"
+                                ? copy.mediaUploadingLabel
+                                : copy.uploadGalleryImagesLabel}
+                            </strong>
+                            <small>{copy.galleryImagesHelp}</small>
+                          </label>
+                          {(productEditor.galleryImageUrls ?? []).length > 0 ? (
+                            <div className={styles.mediaList}>
+                              {(productEditor.galleryImageUrls ?? []).map((url, index) => (
+                                <div key={`${url}-${index}`} className={styles.mediaFileRow}>
+                                  <span>{getMediaFileName(url)}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveGalleryImage(url)}
+                                  >
+                                    {copy.removeMediaButton}
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className={`${styles.field} ${styles.fullField}`}>
                           <span>{copy.videoUrlLabel}</span>
-                          <input
-                            value={productEditor.videoUrl}
-                            onChange={(event) =>
-                              handleProductEditorChange(
-                                "videoUrl",
-                                readFieldValue(event),
-                              )
-                            }
-                          />
-                          <small>{copy.videoUrlHelp}</small>
-                        </label>
+                          <label className={styles.uploadDropzone}>
+                            <input
+                              accept="video/mp4,video/webm,video/quicktime"
+                              disabled={uploadingMediaKind !== null}
+                              type="file"
+                              onChange={(event) => {
+                                const files = Array.from(
+                                  event.currentTarget.files ?? [],
+                                );
+                                event.currentTarget.value = "";
+                                void handleProductMediaUpload("video", files);
+                              }}
+                            />
+                            <strong>
+                              {uploadingMediaKind === "video"
+                                ? copy.mediaUploadingLabel
+                                : copy.uploadProductVideoLabel}
+                            </strong>
+                            <small>{copy.videoUrlHelp}</small>
+                          </label>
+                          {productEditor.videoUrl ? (
+                            <div className={styles.mediaFileRow}>
+                              <span>{getMediaFileName(productEditor.videoUrl)}</span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleProductEditorChange("videoUrl", "")
+                                }
+                              >
+                                {copy.removeMediaButton}
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
                         <label className={`${styles.field} ${styles.fullField}`}>
                           <span>{copy.mediaNoteLabel}</span>
                           <textarea

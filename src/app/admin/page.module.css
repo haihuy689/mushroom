@@ -452,6 +452,83 @@
   color: #7c6b57;
 }
 
+.uploadDropzone {
+  position: relative;
+  display: grid;
+  gap: 0.35rem;
+  min-height: 7.5rem;
+  place-items: center;
+  border: 1px dashed rgba(95, 123, 53, 0.38);
+  border-radius: 1.1rem;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(95, 123, 53, 0.12), transparent 30%),
+    #fffdf8;
+  color: #392416;
+  cursor: pointer;
+  padding: 1.1rem;
+  text-align: center;
+  transition:
+    border-color 140ms ease,
+    transform 140ms ease,
+    background 140ms ease;
+}
+
+.uploadDropzone:hover {
+  border-color: rgba(95, 123, 53, 0.72);
+  transform: translateY(-1px);
+}
+
+.uploadDropzone input {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.uploadDropzone strong {
+  color: #4d6f25;
+  font-weight: 900;
+}
+
+.uploadDropzone input:disabled {
+  cursor: wait;
+}
+
+.mediaList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.mediaFileRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  border: 1px solid rgba(70, 64, 40, 0.1);
+  border-radius: 0.95rem;
+  background: rgba(255, 253, 248, 0.78);
+  padding: 0.65rem 0.75rem;
+}
+
+.mediaFileRow span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mediaFileRow button {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(109, 25, 142, 0.1);
+  color: #6d198e;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 0.45rem 0.7rem;
+}
+
 .fullField {
   grid-column: 1 / -1;
 }

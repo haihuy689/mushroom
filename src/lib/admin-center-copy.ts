@@ -71,6 +71,8 @@ export type AdminCenterCopy = {
   paymentIdLabel: string;
   priceLabel: string;
   mediaNoteLabel: string;
+  mediaUploadSuccess: string;
+  mediaUploadingLabel: string;
   productAccentLabel: string;
   productActiveLabel: string;
   productBadgeLabel: string;
@@ -122,6 +124,10 @@ export type AdminCenterCopy = {
   totalSoldCountLabel: string;
   trackingCodeLabel: string;
   txidLabel: string;
+  removeMediaButton: string;
+  uploadCoverImageLabel: string;
+  uploadGalleryImagesLabel: string;
+  uploadProductVideoLabel: string;
   videoUrlHelp: string;
   videoUrlLabel: string;
   weightUnitLabel: string;
@@ -208,6 +214,8 @@ const en: AdminCenterCopy = {
   paymentIdLabel: "Payment ID",
   priceLabel: "Price (Pi)",
   mediaNoteLabel: "Media note",
+  mediaUploadSuccess: "Media uploaded.",
+  mediaUploadingLabel: "Uploading...",
   productAccentLabel: "Accent background",
   productActiveLabel: "Visible in storefront",
   productBadgeLabel: "Badge",
@@ -260,6 +268,10 @@ const en: AdminCenterCopy = {
   totalSoldCountLabel: "Displayed sold count",
   trackingCodeLabel: "Tracking code",
   txidLabel: "Transaction ID",
+  removeMediaButton: "Remove",
+  uploadCoverImageLabel: "Choose cover image",
+  uploadGalleryImagesLabel: "Add inner images",
+  uploadProductVideoLabel: "Choose product video",
   videoUrlHelp: "Use a product demo video URL, YouTube, or hosted MP4.",
   videoUrlLabel: "Product video URL",
   weightUnitLabel: "Weight unit",
@@ -347,6 +359,8 @@ const vi: AdminCenterCopy = {
   paymentIdLabel: "Ma payment",
   priceLabel: "Gia ban (Pi)",
   mediaNoteLabel: "Ghi chu media",
+  mediaUploadSuccess: "Da upload media.",
+  mediaUploadingLabel: "Dang upload...",
   productAccentLabel: "Nen nhan dien",
   productActiveLabel: "Dang hien tren shop",
   productBadgeLabel: "Nhan",
@@ -402,6 +416,10 @@ const vi: AdminCenterCopy = {
   totalSoldCountLabel: "So da ban hien thi",
   trackingCodeLabel: "Ma van don",
   txidLabel: "Ma giao dich",
+  removeMediaButton: "Go bo",
+  uploadCoverImageLabel: "Chon anh bia",
+  uploadGalleryImagesLabel: "Them anh ben trong",
+  uploadProductVideoLabel: "Chon video san pham",
   videoUrlHelp: "Dung URL video gioi thieu san pham, YouTube hoac MP4 da host.",
   videoUrlLabel: "URL video san pham",
   weightUnitLabel: "Don vi khoi luong",
