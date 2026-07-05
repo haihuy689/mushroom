@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Noto_Sans } from "next/font/google";
+import { LocalePersistence } from "@/components/locale-persistence";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { StorefrontProvider } from "@/components/storefront-provider";
@@ -45,6 +46,7 @@ export default async function RootLayout({
           strategy="lazyOnload"
         />
         <StorefrontProvider>
+          <LocalePersistence currentLocale={locale} />
           <div className="site-shell">
             <SiteHeader />
             <main className="site-main">{children}</main>

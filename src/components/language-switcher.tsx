@@ -26,6 +26,17 @@ function writeLocaleCookie(locale: SiteLocale) {
   document.cookie = `${LOCALE_COOKIE_NAME}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
 }
 
+function rememberLocale(locale: SiteLocale) {
+  writeLocaleCookie(locale);
+
+  try {
+    window.localStorage.setItem(LOCALE_COOKIE_NAME, locale);
+    window.sessionStorage.setItem(LOCALE_COOKIE_NAME, locale);
+  } catch {
+    // Pi Browser may restrict one storage layer, so URL locale remains the fallback.
+  }
+}
+
 export function LanguageSwitcher({
   currentLocale,
   compact = false,
@@ -61,33 +72,31 @@ export function LanguageSwitcher({
     };
   }, []);
 
-  const getLocaleUrl = (locale: SiteLocale) => {
-    const returnTo =
-      typeof window === "undefined"
-        ? "/"
-        : `${window.location.pathname}${window.location.search}`;
-    const searchParams = new URLSearchParams({
-      locale,
-      returnTo,
-    });
+  const getLocalePageUrl = (locale: SiteLocale) => {
+    if (typeof window === "undefined") {
+      return `/?locale=${locale}`;
+    }
 
-    return `/api/preferences/locale?${searchParams.toString()}`;
+    const url = new URL(window.location.href);
+    url.searchParams.set("locale", locale);
+    return `${url.pathname}${url.search}${url.hash}`;
   };
 
   const selectLocale = (
     event: MouseEvent<HTMLAnchorElement>,
     locale: SiteLocale,
   ) => {
-    if (locale === currentLocale) {
+    if (pendingLocale !== null || locale === currentLocale) {
       event.preventDefault();
       setIsOpen(false);
       return;
     }
 
+    event.preventDefault();
     setPendingLocale(locale);
     setIsOpen(false);
-    writeLocaleCookie(locale);
-    event.currentTarget.href = getLocaleUrl(locale);
+    rememberLocale(locale);
+    window.location.assign(getLocalePageUrl(locale));
   };
 
   return (
@@ -115,7 +124,7 @@ export function LanguageSwitcher({
           {localeOptions.map((option) => (
             <a
               key={option.code}
-              href={`/api/preferences/locale?locale=${option.code}`}
+              href={`/?locale=${option.code}`}
               className={styles.languageOption}
               aria-current={option.code === currentLocale ? "true" : undefined}
               aria-disabled={pendingLocale !== null}
