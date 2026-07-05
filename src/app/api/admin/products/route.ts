@@ -38,17 +38,29 @@ export async function POST(request: Request) {
     return forbiddenResponse();
   }
 
-  const body = (await request.json()) as Partial<StorefrontProductInput>;
-  const item = await saveStorefrontProduct(body);
+  try {
+    const body = (await request.json()) as Partial<StorefrontProductInput>;
+    const item = await saveStorefrontProduct(body);
 
-  revalidateTag(STOREFRONT_PRODUCT_RECORDS_TAG, "max");
-  revalidatePath("/");
-  revalidatePath("/shop");
-  revalidatePath("/cart");
-  revalidatePath("/admin");
+    revalidateTag(STOREFRONT_PRODUCT_RECORDS_TAG, "max");
+    revalidatePath("/");
+    revalidatePath("/shop");
+    revalidatePath("/cart");
+    revalidatePath("/admin");
 
-  return NextResponse.json({
-    item,
-    items: await listStorefrontProductRecords(),
-  });
+    return NextResponse.json({
+      item,
+      items: await listStorefrontProductRecords(),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to save product right now.",
+      },
+      { status: 500 },
+    );
+  }
 }

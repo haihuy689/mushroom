@@ -182,6 +182,22 @@
   background: linear-gradient(180deg, #fff8f7, #fff1ef);
 }
 
+.inlineFormMessage {
+  border: 1px solid rgba(43, 131, 80, 0.24);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #f6fff8, #effbf2);
+  color: #315a21;
+  font-weight: 800;
+  line-height: 1.5;
+  padding: 0.85rem 1rem;
+}
+
+.inlineFormMessage[data-kind="error"] {
+  border-color: rgba(191, 77, 68, 0.22);
+  background: linear-gradient(180deg, #fff8f7, #fff1ef);
+  color: #893228;
+}
+
 .errorRow {
   display: flex;
   align-items: center;

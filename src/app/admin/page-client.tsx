@@ -129,12 +129,27 @@ async function readJson<T>(path: string, init?: RequestInitWithTimeout) {
       signal: controller.signal,
     });
 
-    const data = (await response.json()) as T & { error?: string };
+    const rawResponse = await response.text();
+    let data: (T & { error?: string }) | null = null;
+
+    try {
+      data = rawResponse
+        ? (JSON.parse(rawResponse) as T & { error?: string })
+        : ({} as T & { error?: string });
+    } catch {
+      data = null;
+    }
 
     if (!response.ok) {
       throw new Error(
-        typeof data.error === "string" ? data.error : "Request failed.",
+        data && typeof data.error === "string"
+          ? data.error
+          : rawResponse || `Request failed with status ${response.status}.`,
       );
+    }
+
+    if (!data) {
+      throw new Error("Server returned an invalid response.");
     }
 
     return data;
@@ -239,6 +254,18 @@ function readFieldValue(
   }
 
   return target.value;
+}
+
+function readAdminNumber(value: number | string | null | undefined) {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return Number(value.trim().replace(/\s+/g, "").replace(",", "."));
+  }
+
+  return NaN;
 }
 
 function getDisplayedSoldCount(
@@ -886,13 +913,25 @@ export function AdminPageClient({
     setMessage(null);
 
     try {
+      const pricePi = readAdminNumber(productEditor.pricePi);
+
+      if (!productEditor.name.trim() || !Number.isFinite(pricePi) || pricePi < 0) {
+        setMessage({
+          kind: "error",
+          text: copy.productRequiredFieldsError,
+        });
+        return;
+      }
+
       const data = await readJson<{
         item: StorefrontProductRecord;
         items: StorefrontProductRecord[];
       }>("/api/admin/products", {
         method: "POST",
+        timeoutMs: 30000,
         body: JSON.stringify({
           ...productEditor,
+          pricePi,
           sourceProductId: null,
         }),
       });
@@ -2033,6 +2072,14 @@ export function AdminPageClient({
                           {savingProduct ? copy.savingLabel : copy.saveProductButton}
                         </button>
                       </div>
+                      {message ? (
+                        <div
+                          className={styles.inlineFormMessage}
+                          data-kind={message.kind}
+                        >
+                          {message.text}
+                        </div>
+                      ) : null}
                     </form>
                   )}
                 </article>

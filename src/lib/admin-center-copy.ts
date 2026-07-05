@@ -85,6 +85,7 @@ export type AdminCenterCopy = {
   productLiveStatus: string;
   productNameLabel: string;
   productOutOfStockStatus: string;
+  productRequiredFieldsError: string;
   productSlugLabel: string;
   productSystemLabel: string;
   productTaglineLabel: string;
@@ -229,6 +230,8 @@ const en: AdminCenterCopy = {
   productLiveStatus: "Live",
   productNameLabel: "Product name",
   productOutOfStockStatus: "Out of stock",
+  productRequiredFieldsError:
+    "Please enter a product name and a valid price before saving.",
   productSlugLabel: "Slug",
   productSystemLabel: "Old sample",
   productTaglineLabel: "Short tagline",
@@ -376,6 +379,8 @@ const vi: AdminCenterCopy = {
   productLiveStatus: "Dang ban",
   productNameLabel: "Ten san pham",
   productOutOfStockStatus: "Het hang",
+  productRequiredFieldsError:
+    "Hay nhap ten san pham va gia ban hop le truoc khi luu.",
   productSlugLabel: "Slug",
   productSystemLabel: "Mau cu",
   productTaglineLabel: "Mo ta ngan",
