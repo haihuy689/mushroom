@@ -1142,18 +1142,98 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
         quantity = excluded.quantity,
         total_pi = excluded.total_pi,
         created_at = excluded.created_at,
-        delivered_at = coalesce(excluded.delivered_at, storefront_orders.delivered_at),
-        txid = excluded.txid,
-        payment_id = excluded.payment_id,
-        assigned_staff = coalesce(excluded.assigned_staff, storefront_orders.assigned_staff),
-        fulfillment_status = excluded.fulfillment_status,
-        received_by = coalesce(excluded.received_by, storefront_orders.received_by),
-        shipping_carrier = coalesce(storefront_orders.shipping_carrier, excluded.shipping_carrier),
-        shipper_name = coalesce(excluded.shipper_name, storefront_orders.shipper_name),
-        status_updated_at = excluded.status_updated_at,
-        status_updated_by = excluded.status_updated_by,
-        tracking_code = coalesce(storefront_orders.tracking_code, excluded.tracking_code),
-        admin_note = coalesce(storefront_orders.admin_note, excluded.admin_note),
+        delivered_at = case
+          when excluded.status_updated_at is not null
+            and (
+              storefront_orders.status_updated_at is null
+              or excluded.status_updated_at >= storefront_orders.status_updated_at
+            )
+          then coalesce(excluded.delivered_at, storefront_orders.delivered_at)
+          else storefront_orders.delivered_at
+        end,
+        txid = coalesce(excluded.txid, storefront_orders.txid),
+        payment_id = coalesce(excluded.payment_id, storefront_orders.payment_id),
+        assigned_staff = case
+          when excluded.status_updated_at is not null
+            and (
+              storefront_orders.status_updated_at is null
+              or excluded.status_updated_at >= storefront_orders.status_updated_at
+            )
+          then coalesce(excluded.assigned_staff, storefront_orders.assigned_staff)
+          else storefront_orders.assigned_staff
+        end,
+        fulfillment_status = case
+          when excluded.status_updated_at is not null
+            and (
+              storefront_orders.status_updated_at is null
+              or excluded.status_updated_at >= storefront_orders.status_updated_at
+            )
+          then coalesce(excluded.fulfillment_status, storefront_orders.fulfillment_status)
+          else storefront_orders.fulfillment_status
+        end,
+        received_by = case
+          when excluded.status_updated_at is not null
+            and (
+              storefront_orders.status_updated_at is null
+              or excluded.status_updated_at >= storefront_orders.status_updated_at
+            )
+          then coalesce(excluded.received_by, storefront_orders.received_by)
+          else storefront_orders.received_by
+        end,
+        shipping_carrier = case
+          when excluded.status_updated_at is not null
+            and (
+              storefront_orders.status_updated_at is null
+              or excluded.status_updated_at >= storefront_orders.status_updated_at
+            )
+          then coalesce(excluded.shipping_carrier, storefront_orders.shipping_carrier)
+          else storefront_orders.shipping_carrier
+        end,
+        shipper_name = case
+          when excluded.status_updated_at is not null
+            and (
+              storefront_orders.status_updated_at is null
+              or excluded.status_updated_at >= storefront_orders.status_updated_at
+            )
+          then coalesce(excluded.shipper_name, storefront_orders.shipper_name)
+          else storefront_orders.shipper_name
+        end,
+        status_updated_at = case
+          when excluded.status_updated_at is not null
+            and (
+              storefront_orders.status_updated_at is null
+              or excluded.status_updated_at >= storefront_orders.status_updated_at
+            )
+          then excluded.status_updated_at
+          else storefront_orders.status_updated_at
+        end,
+        status_updated_by = case
+          when excluded.status_updated_at is not null
+            and (
+              storefront_orders.status_updated_at is null
+              or excluded.status_updated_at >= storefront_orders.status_updated_at
+            )
+          then coalesce(excluded.status_updated_by, storefront_orders.status_updated_by)
+          else storefront_orders.status_updated_by
+        end,
+        tracking_code = case
+          when excluded.status_updated_at is not null
+            and (
+              storefront_orders.status_updated_at is null
+              or excluded.status_updated_at >= storefront_orders.status_updated_at
+            )
+          then coalesce(excluded.tracking_code, storefront_orders.tracking_code)
+          else storefront_orders.tracking_code
+        end,
+        admin_note = case
+          when excluded.status_updated_at is not null
+            and (
+              storefront_orders.status_updated_at is null
+              or excluded.status_updated_at >= storefront_orders.status_updated_at
+            )
+          then coalesce(excluded.admin_note, storefront_orders.admin_note)
+          else storefront_orders.admin_note
+        end,
         username = excluded.username,
         shipping_full_name = excluded.shipping_full_name,
         shipping_phone = excluded.shipping_phone,

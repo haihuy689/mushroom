@@ -104,6 +104,7 @@ export function OrdersPageClient({
   const [retryingOrderId, setRetryingOrderId] = useState<string | null>(null);
   const [refreshingOrders, setRefreshingOrders] = useState(false);
   const refreshingOrdersRef = useRef(false);
+  const viewerUid = viewer?.uid ?? null;
 
   const authenticateForOrderPersistence = useCallback(async () => {
     if (!window.Pi) {
@@ -281,18 +282,41 @@ export function OrdersPageClient({
   );
 
   useEffect(() => {
-    if (!hydrated || !viewer) {
+    if (!hydrated || !viewerUid) {
       return;
     }
 
-    const timer = window.setTimeout(() => {
+    let cancelled = false;
+    const refreshQuietly = () => {
+      if (cancelled) {
+        return;
+      }
+
       void handleRefreshOrders(true);
-    }, 0);
+    };
+    const handleFocus = () => {
+      refreshQuietly();
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshQuietly();
+      }
+    };
+
+    const timer = window.setTimeout(refreshQuietly, 0);
+    const interval = window.setInterval(refreshQuietly, 20000);
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
+      cancelled = true;
       window.clearTimeout(timer);
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [handleRefreshOrders, hydrated, viewer]);
+  }, [handleRefreshOrders, hydrated, viewerUid]);
 
   const recordExistingOrderStatus = async (
     order: StorefrontOrder,

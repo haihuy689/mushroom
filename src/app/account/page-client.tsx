@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { getOrderStatusCounts, resolveOrderStatus } from "@/lib/order-tracking";
@@ -20,7 +21,16 @@ export function AccountPageClient({
   copy,
   orderCopy,
 }: AccountPageClientProps) {
-  const { addresses, cartCount, hydrated, orders, viewer } = useStorefront();
+  const {
+    addresses,
+    cartCount,
+    hydrated,
+    orders,
+    refreshStorefrontState,
+    viewer,
+  } = useStorefront();
+  const refreshInFlightRef = useRef(false);
+  const viewerUid = viewer?.uid ?? null;
   const statusCounts = hydrated ? getOrderStatusCounts(orders) : null;
 
   const formatter = new Intl.DateTimeFormat(locale, {
@@ -39,6 +49,50 @@ export function AccountPageClient({
     ready_to_ship: orderCopy.readyToShip,
     shipping: orderCopy.shipping,
   };
+
+  useEffect(() => {
+    if (!hydrated || !viewerUid) {
+      return;
+    }
+
+    let cancelled = false;
+    const refreshAccountState = async () => {
+      if (cancelled || refreshInFlightRef.current) {
+        return;
+      }
+
+      refreshInFlightRef.current = true;
+
+      try {
+        await refreshStorefrontState();
+      } finally {
+        refreshInFlightRef.current = false;
+      }
+    };
+    const handleFocus = () => {
+      void refreshAccountState();
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void refreshAccountState();
+      }
+    };
+
+    void refreshAccountState();
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    const interval = window.setInterval(() => {
+      void refreshAccountState();
+    }, 20000);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.clearInterval(interval);
+    };
+  }, [hydrated, refreshStorefrontState, viewerUid]);
 
   return (
     <div className={styles.page}>
