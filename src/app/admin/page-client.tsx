@@ -274,6 +274,29 @@ function toOrderEditor(order: StorefrontOrder): OrderEditor {
   };
 }
 
+function getAdminOrderPriority(order: StorefrontOrder) {
+  const status = resolveOrderStatus(order);
+
+  switch (status) {
+    case "paid":
+      return 0;
+    case "confirmed":
+      return 1;
+    case "preparing":
+      return 2;
+    case "shipping":
+      return 3;
+    case "pending_payment":
+      return 4;
+    case "payment_failed":
+      return 5;
+    case "delivered":
+      return 6;
+    default:
+      return 7;
+  }
+}
+
 function toDateTimeLocalValue(value: string | undefined) {
   if (!value) {
     return "";
@@ -494,6 +517,22 @@ export function AdminPageClient({
   );
 
   const orderCounts = useMemo(() => getOrderStatusCounts(orders), [orders]);
+  const adminOrderQueue = useMemo(
+    () =>
+      [...orders].sort((leftOrder, rightOrder) => {
+        const priorityDelta =
+          getAdminOrderPriority(leftOrder) - getAdminOrderPriority(rightOrder);
+
+        if (priorityDelta !== 0) {
+          return priorityDelta;
+        }
+
+        return (
+          Date.parse(rightOrder.createdAt) - Date.parse(leftOrder.createdAt)
+        );
+      }),
+    [orders],
+  );
   const activeProducts = useMemo(
     () => products.filter((product) => product.isActive),
     [products],
@@ -2654,8 +2693,28 @@ export function AdminPageClient({
                     <p className={styles.emptyState}>{copy.emptyOrders}</p>
                   ) : (
                     <div className={styles.selectionList}>
-                      {orders.map((order) => {
+                      {adminOrderQueue.map((order) => {
                         const status = resolveOrderStatus(order);
+                        const customerName =
+                          order.shippingAddress?.fullName ??
+                          order.username ??
+                          order.shopperUid ??
+                          "--";
+                        const addressSummary = order.shippingAddress
+                          ? [
+                              order.shippingAddress.line1,
+                              order.shippingAddress.ward,
+                              order.shippingAddress.district,
+                              order.shippingAddress.city,
+                            ]
+                              .filter(Boolean)
+                              .join(", ")
+                          : "--";
+                        const paymentTone =
+                          status === "pending_payment" ||
+                          status === "payment_failed"
+                            ? status
+                            : "success";
 
                         return (
                           <button
@@ -2667,18 +2726,28 @@ export function AdminPageClient({
                           >
                             <div className={styles.selectionCopy}>
                               <div className={styles.selectionTitle}>
-                                <strong>#{order.id}</strong>
-                                <span>{order.username ?? order.shopperUid ?? "--"}</span>
+                                <strong>#{order.id.slice(-10).toUpperCase()}</strong>
+                                <span>{order.productName}</span>
                               </div>
                               <div className={styles.tagRow}>
                                 <span className={styles.statusChip} data-tone={status}>
                                   {statusLabelByKey[status]}
                                 </span>
+                                <span className={styles.statusChip} data-tone={paymentTone}>
+                                  {order.txid ? orderCopy.paid : statusLabelByKey[status]}
+                                </span>
+                                {order.trackingCode ? (
+                                  <span className={styles.statusChip} data-tone="shipping">
+                                    {copy.trackingCodeLabel}: {order.trackingCode}
+                                  </span>
+                                ) : null}
                               </div>
                             </div>
                             <div className={styles.selectionMeta}>
                               <strong>{formatPi(order.totalPi)}</strong>
+                              <span>{copy.customerLabel}: {customerName}</span>
                               <span>{dateFormatter.format(new Date(order.createdAt))}</span>
+                              <span>{copy.orderAddress}: {addressSummary}</span>
                               {order.fulfillmentStaff ? (
                                 <span>{copy.fulfillmentStaffLabel}: {order.fulfillmentStaff}</span>
                               ) : null}

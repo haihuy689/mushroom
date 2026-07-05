@@ -54,6 +54,7 @@ type StorefrontContextValue = {
   updateCartQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   recordOrder: (order: StorefrontOrderInput) => void;
+  refreshStorefrontState: () => Promise<boolean>;
   saveAddress: (address: StorefrontAddressInput) => string;
   setDefaultAddress: (addressId: string) => void;
 };
@@ -815,6 +816,38 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshStorefrontState = useCallback(async () => {
+    const targetViewerUid = viewerRef.current?.uid;
+
+    if (!targetViewerUid) {
+      return false;
+    }
+
+    try {
+      const response = await postStorefrontState<StorefrontStateResponse>({
+        action: "syncSession",
+        ...stateSnapshotRef.current,
+      });
+
+      if (viewerRef.current?.uid !== targetViewerUid) {
+        return false;
+      }
+
+      lastCartSignatureRef.current = serializeCartItems(response.cartItems);
+      lastAddressSignatureRef.current = serializeAddresses(response.addresses);
+
+      setCartItems(response.cartItems);
+      setAddresses(response.addresses);
+      setOrders(response.orders);
+      setDatabaseConfigured(response.databaseConfigured);
+      setSyncedViewerUid(targetViewerUid);
+
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   const saveAddress = (address: StorefrontAddressInput) => {
     const nextAddress = createStorefrontAddress(address);
 
@@ -873,6 +906,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
         updateCartQuantity,
         clearCart,
         recordOrder,
+        refreshStorefrontState,
         saveAddress,
         setDefaultAddress,
       }}

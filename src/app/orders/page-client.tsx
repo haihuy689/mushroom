@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import type { PiCheckoutCopy } from "@/lib/public-site-copy";
@@ -66,6 +66,7 @@ export function OrdersPageClient({
     hydrated,
     orders,
     recordOrder,
+    refreshStorefrontState,
     sdkReady,
     signInWithPi,
     viewer,
@@ -77,7 +78,14 @@ export function OrdersPageClient({
     orderId: string;
     text: string;
   } | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [syncMessage, setSyncMessage] = useState<{
+    kind: "error" | "success";
+    text: string;
+  } | null>(null);
   const [retryingOrderId, setRetryingOrderId] = useState<string | null>(null);
+  const [refreshingOrders, setRefreshingOrders] = useState(false);
+  const refreshingOrdersRef = useRef(false);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -150,6 +158,54 @@ export function OrdersPageClient({
     delivered: copy.delivered,
   };
   const loadingLabel = locale === "vi" ? "\u0110ang t\u1ea3i..." : "Loading...";
+  const notAvailableLabel = locale === "vi" ? "Ch\u01b0a c\u00f3" : "Not available";
+
+  const handleRefreshOrders = useCallback(
+    async (quiet = false) => {
+      if (!viewer || refreshingOrdersRef.current) {
+        return;
+      }
+
+      refreshingOrdersRef.current = true;
+      setRefreshingOrders(true);
+
+      if (!quiet) {
+        setSyncMessage(null);
+      }
+
+      const refreshed = await refreshStorefrontState();
+
+      if (!quiet) {
+        setSyncMessage({
+          kind: refreshed ? "success" : "error",
+          text: refreshed ? copy.syncSuccess : copy.syncFailed,
+        });
+      }
+
+      refreshingOrdersRef.current = false;
+      setRefreshingOrders(false);
+    },
+    [
+      copy.syncFailed,
+      copy.syncSuccess,
+      refreshStorefrontState,
+      viewer,
+    ],
+  );
+
+  useEffect(() => {
+    if (!hydrated || !viewer) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void handleRefreshOrders(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [handleRefreshOrders, hydrated, viewer]);
 
   const recordExistingOrderStatus = (
     order: StorefrontOrder,
@@ -327,20 +383,39 @@ export function OrdersPageClient({
       </section>
 
       <section className={styles.board}>
-        <div className={styles.filterRow}>
-          {filters.map((filter) => (
-            <button
-              key={filter.key}
-              type="button"
-              className={styles.filterChip}
-              data-active={activeFilter === filter.key}
-              onClick={() => setActiveFilter(filter.key)}
-            >
-              <span>{filter.label}</span>
-              <strong>{filter.count}</strong>
-            </button>
-          ))}
+        <div className={styles.boardToolbar}>
+          <div className={styles.filterRow}>
+            {filters.map((filter) => (
+              <button
+                key={filter.key}
+                type="button"
+                className={styles.filterChip}
+                data-active={activeFilter === filter.key}
+                onClick={() => setActiveFilter(filter.key)}
+              >
+                <span>{filter.label}</span>
+                <strong>{filter.count}</strong>
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className={styles.refreshButton}
+            disabled={!viewer || refreshingOrders}
+            onClick={() => {
+              void handleRefreshOrders();
+            }}
+          >
+            {refreshingOrders ? copy.refreshingOrders : copy.refreshOrders}
+          </button>
         </div>
+
+        {syncMessage ? (
+          <div className={styles.inlineMessage} data-kind={syncMessage.kind}>
+            {syncMessage.text}
+          </div>
+        ) : null}
 
         {!hydrated ? (
           <div className={styles.emptyState}>
@@ -365,6 +440,7 @@ export function OrdersPageClient({
             {visibleOrders.map((order) => {
               const status = resolveOrderStatus(order, nowMs);
               const activeStepIndex = getOrderStatusStepIndex(status);
+              const isExpanded = expandedOrderId === order.id;
               const headline =
                 order.items && order.items.length > 1
                   ? order.productName
@@ -379,96 +455,193 @@ export function OrdersPageClient({
                     .filter(Boolean)
                     .join(", ")
                 : null;
+              const recipientLine = order.shippingAddress
+                ? [
+                    order.shippingAddress.fullName,
+                    order.shippingAddress.phone,
+                  ]
+                    .filter(Boolean)
+                    .join(" | ")
+                : null;
 
               return (
-                <article key={order.id} className={styles.orderCard}>
-                  <div className={styles.orderTop}>
-                    <div>
+                <article
+                  key={order.id}
+                  className={styles.orderCard}
+                  data-expanded={isExpanded}
+                >
+                  <button
+                    type="button"
+                    className={styles.orderSummaryButton}
+                    aria-expanded={isExpanded}
+                    onClick={() =>
+                      setExpandedOrderId((currentOrderId) =>
+                        currentOrderId === order.id ? null : order.id,
+                      )
+                    }
+                  >
+                    <div className={styles.orderSummaryMain}>
                       <span className={styles.orderCode}>
                         {copy.orderCodeLabel} #{order.id}
                       </span>
                       <h2>{headline}</h2>
                       <p>
-                        {order.quantity} x / {order.totalPi} Pi
+                        {copy.placedAtLabel}:{" "}
+                        {formatter.format(new Date(order.createdAt))}
                       </p>
-                      {addressLine ? <p>{addressLine}</p> : null}
                     </div>
 
-                    <span
-                      className={styles.statusPill}
-                      data-status={status}
-                    >
-                      {statusLabelByKey[status]}
-                    </span>
-                  </div>
-
-                  <div className={styles.orderMeta}>
-                    <span>{formatter.format(new Date(order.createdAt))}</span>
-                    <span>
-                      {copy.updatedLabel}:{" "}
-                      {formatter.format(
-                        new Date(order.statusUpdatedAt ?? order.createdAt),
-                      )}
-                    </span>
-                  </div>
-
-                  {order.items && order.items.length > 0 ? (
-                    <ul className={styles.itemList}>
-                      {order.items.map((item) => (
-                        <li key={`${order.id}-${item.productId}`} className={styles.itemRow}>
-                          <span>{item.productName}</span>
-                          <strong>
-                            {item.quantity} x / {item.totalPi} Pi
-                          </strong>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-
-                  {status === "pending_payment" || status === "payment_failed" ? (
-                    <div className={styles.paymentNotice} data-status={status}>
-                      <strong>{statusLabelByKey[status]}</strong>
-                      <p>
-                        {status === "pending_payment"
-                          ? copy.paymentPendingNotice
-                          : copy.paymentFailedNotice}
-                      </p>
-                      {paymentMessage?.orderId === order.id ? (
-                        <div
-                          className={styles.inlineMessage}
-                          data-kind={paymentMessage.kind}
-                        >
-                          {paymentMessage.text}
-                        </div>
-                      ) : null}
-                      <button
-                        type="button"
-                        className={styles.secondaryLink}
-                        disabled={retryingOrderId !== null || authBusy}
-                        onClick={() => {
-                          void handleRetryPayment(order);
-                        }}
+                    <div className={styles.orderSummaryMeta}>
+                      <span
+                        className={styles.statusPill}
+                        data-status={status}
                       >
-                        {retryingOrderId === order.id
-                          ? copy.retryingPayment
-                          : copy.retryPayment}
-                      </button>
+                        {statusLabelByKey[status]}
+                      </span>
+                      <strong>{order.totalPi} Pi</strong>
+                      <small>
+                        {order.quantity}{" "}
+                        {locale === "vi" ? "s\u1ea3n ph\u1ea9m" : "items"}
+                      </small>
+                      <span className={styles.detailsHint}>
+                        {isExpanded ? copy.hideDetails : copy.expandDetails}
+                      </span>
                     </div>
-                  ) : (
-                    <div className={styles.progressTrack}>
-                      {TRACKABLE_ORDER_STATUSES.map((step, index) => (
-                        <div
-                          key={step}
-                          className={styles.progressStep}
-                          data-active={index <= activeStepIndex}
-                          data-current={index === activeStepIndex}
-                        >
-                          <span className={styles.progressDot} />
-                          <strong>{statusLabelByKey[step]}</strong>
+                  </button>
+
+                  {isExpanded ? (
+                    <div className={styles.orderDetails}>
+                      <section className={styles.detailSection}>
+                        <div className={styles.detailSectionHeader}>
+                          <strong>{copy.statusSummaryTitle}</strong>
+                          <span>
+                            {copy.updatedLabel}:{" "}
+                            {formatter.format(
+                              new Date(order.statusUpdatedAt ?? order.createdAt),
+                            )}
+                          </span>
                         </div>
-                      ))}
+
+                        {status === "pending_payment" ||
+                        status === "payment_failed" ? (
+                          <div className={styles.paymentNotice} data-status={status}>
+                            <strong>{statusLabelByKey[status]}</strong>
+                            <p>
+                              {status === "pending_payment"
+                                ? copy.paymentPendingNotice
+                                : copy.paymentFailedNotice}
+                            </p>
+                            {paymentMessage?.orderId === order.id ? (
+                              <div
+                                className={styles.inlineMessage}
+                                data-kind={paymentMessage.kind}
+                              >
+                                {paymentMessage.text}
+                              </div>
+                            ) : null}
+                            <button
+                              type="button"
+                              className={styles.secondaryLink}
+                              disabled={retryingOrderId !== null || authBusy}
+                              onClick={() => {
+                                void handleRetryPayment(order);
+                              }}
+                            >
+                              {retryingOrderId === order.id
+                                ? copy.retryingPayment
+                                : copy.retryPayment}
+                            </button>
+                          </div>
+                        ) : (
+                          <div className={styles.progressTrack}>
+                            {TRACKABLE_ORDER_STATUSES.map((step, index) => (
+                              <div
+                                key={step}
+                                className={styles.progressStep}
+                                data-active={index <= activeStepIndex}
+                                data-current={index === activeStepIndex}
+                              >
+                                <span className={styles.progressDot} />
+                                <strong>{statusLabelByKey[step]}</strong>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </section>
+
+                      <section className={styles.detailSection}>
+                        <strong>{copy.orderItemsTitle}</strong>
+                        {order.items && order.items.length > 0 ? (
+                          <ul className={styles.itemList}>
+                            {order.items.map((item) => (
+                              <li
+                                key={`${order.id}-${item.productId}`}
+                                className={styles.itemRow}
+                              >
+                                <span>{item.productName}</span>
+                                <strong>
+                                  {item.quantity} x / {item.totalPi} Pi
+                                </strong>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </section>
+
+                      <section className={styles.detailSection}>
+                        <strong>{copy.paymentDetailsTitle}</strong>
+                        <div className={styles.detailInfoGrid}>
+                          <span>
+                            {copy.totalLabel}: <strong>{order.totalPi} Pi</strong>
+                          </span>
+                          <span>
+                            Payment ID:{" "}
+                            <strong>{order.paymentId ?? notAvailableLabel}</strong>
+                          </span>
+                          <span>
+                            TXID: <strong>{order.txid ?? notAvailableLabel}</strong>
+                          </span>
+                          <span>
+                            {copy.orderCodeLabel}: <strong>{order.id}</strong>
+                          </span>
+                        </div>
+                      </section>
+
+                      <section className={styles.detailSection}>
+                        <strong>{copy.deliveryDetailsTitle}</strong>
+                        <div className={styles.detailInfoGrid}>
+                          <span>
+                            {copy.carrierLabel}:{" "}
+                            <strong>
+                              {order.shippingCarrier ?? notAvailableLabel}
+                            </strong>
+                          </span>
+                          <span>
+                            {copy.shipperLabel}:{" "}
+                            <strong>{order.shipperName ?? notAvailableLabel}</strong>
+                          </span>
+                          <span>
+                            {copy.trackingCodeLabel}:{" "}
+                            <strong>{order.trackingCode ?? notAvailableLabel}</strong>
+                          </span>
+                          <span>
+                            {copy.receiverLabel}:{" "}
+                            <strong>{order.receivedBy ?? notAvailableLabel}</strong>
+                          </span>
+                        </div>
+                        {recipientLine ? (
+                          <p className={styles.addressLine}>
+                            {copy.receiverLabel}: {recipientLine}
+                          </p>
+                        ) : null}
+                        {addressLine ? (
+                          <p className={styles.addressLine}>
+                            {copy.deliveryAddressLabel}: {addressLine}
+                          </p>
+                        ) : null}
+                      </section>
                     </div>
-                  )}
+                  ) : null}
                 </article>
               );
             })}
