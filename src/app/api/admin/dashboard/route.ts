@@ -357,6 +357,16 @@ export async function GET() {
                 location_accuracy_meters,
                 location_message
               from storefront_orders
+              where txid is not null
+                or fulfillment_status in (
+                  'paid',
+                  'confirmed',
+                  'preparing',
+                  'ready_to_ship',
+                  'shipping',
+                  'delivered',
+                  'delivery_issue'
+                )
               order by created_at desc
               limit 80
             `,
@@ -367,6 +377,16 @@ export async function GET() {
               with recent_orders as (
                 select id, created_at
                 from storefront_orders
+                where txid is not null
+                  or fulfillment_status in (
+                    'paid',
+                    'confirmed',
+                    'preparing',
+                    'ready_to_ship',
+                    'shipping',
+                    'delivered',
+                    'delivery_issue'
+                  )
                 order by created_at desc
                 limit 80
               )

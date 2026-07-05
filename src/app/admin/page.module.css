@@ -474,13 +474,15 @@
 .statusChip[data-tone="pending_payment"],
 .statusChip[data-tone="paid"],
 .statusChip[data-tone="confirmed"],
-.statusChip[data-tone="preparing"] {
+.statusChip[data-tone="preparing"],
+.statusChip[data-tone="ready_to_ship"] {
   background: #fff4dd;
   color: #996400;
 }
 
 .statusChip[data-tone="danger"],
-.statusChip[data-tone="payment_failed"] {
+.statusChip[data-tone="payment_failed"],
+.statusChip[data-tone="delivery_issue"] {
   background: #fff0ef;
   color: #ba4d44;
 }
@@ -493,6 +495,29 @@
 .statusChip[data-tone="delivered"] {
   background: #edf9f0;
   color: #197645;
+}
+
+.quickActionPanel {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(95, 127, 53, 0.16);
+  background: linear-gradient(135deg, #fffdf8, #f1f7e8);
+}
+
+.quickActionPanel > strong {
+  color: #28150c;
+}
+
+.quickActionGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.quickActionGrid button[data-active="true"] {
+  box-shadow: inset 0 0 0 2px rgba(95, 127, 53, 0.24);
 }
 
 .previewCard {

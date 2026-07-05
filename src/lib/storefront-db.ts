@@ -233,8 +233,10 @@ const STOCK_CONFIRMED_ORDER_STATUSES = new Set<OrderStatus>([
   "paid",
   "confirmed",
   "preparing",
+  "ready_to_ship",
   "shipping",
   "delivered",
+  "delivery_issue",
 ]);
 
 function isStockConfirmedOrder(order: Pick<StorefrontOrder, "status" | "txid">) {
@@ -1363,6 +1365,16 @@ async function readAllStorefrontOrders() {
         location_accuracy_meters,
         location_message
       from storefront_orders
+      where txid is not null
+        or fulfillment_status in (
+          'paid',
+          'confirmed',
+          'preparing',
+          'ready_to_ship',
+          'shipping',
+          'delivered',
+          'delivery_issue'
+        )
       order by created_at desc
       limit 80
     `,
@@ -1375,6 +1387,16 @@ async function readAllStorefrontOrders() {
         item.total_pi
       from storefront_order_items item
       inner join storefront_orders parent on parent.id = item.order_id
+      where parent.txid is not null
+        or parent.fulfillment_status in (
+          'paid',
+          'confirmed',
+          'preparing',
+          'ready_to_ship',
+          'shipping',
+          'delivered',
+          'delivery_issue'
+        )
       order by parent.created_at desc, item.product_name asc
     `,
   ]);

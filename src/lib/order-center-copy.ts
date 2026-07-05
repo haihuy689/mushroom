@@ -25,6 +25,7 @@ export type OrderCenterCopy = {
   ordersPageDescription: string;
   ordersPageTitle: string;
   ordersTitle: string;
+  deliveryIssue: string;
   paymentDetailsTitle: string;
   paymentFailedNotice: string;
   paymentPendingNotice: string;
@@ -33,6 +34,7 @@ export type OrderCenterCopy = {
   pendingPayment: string;
   placedAtLabel: string;
   preparing: string;
+  readyToShip: string;
   receiverLabel: string;
   refreshOrders: string;
   refreshingOrders: string;
@@ -55,7 +57,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     allOrders: "All",
     browseShop: "Browse shop",
     carrierLabel: "Carrier",
-    confirmed: "Buyer confirmed",
+    confirmed: "Store confirmed",
     delivered: "Delivered",
     deliveryAddressLabel: "Delivery address",
     deliveryDetailsTitle: "Delivery details",
@@ -79,16 +81,18 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
       "Track Mushroom.Pi orders by payment and delivery states.",
     ordersPageTitle: "Orders | Mushroom.Pi",
     ordersTitle: "Order center",
+    deliveryIssue: "Needs attention",
     paymentDetailsTitle: "Payment",
     paymentFailedNotice:
       "This order has not been paid successfully. Please return to checkout and create a new Pi payment when you are ready.",
     paymentPendingNotice:
       "This order is waiting for Pi payment confirmation. If payment was not completed, please checkout again.",
-    paid: "Paid",
+    paid: "Paid, waiting for store confirmation",
     paymentFailed: "Payment failed",
     pendingPayment: "Awaiting payment",
     placedAtLabel: "Placed",
-    preparing: "Preparing",
+    preparing: "Seller is preparing items",
+    readyToShip: "Packed, waiting for pickup",
     receiverLabel: "Receiver",
     refreshOrders: "Refresh orders",
     refreshingOrders: "Refreshing...",
@@ -109,7 +113,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     allOrders: "T\u1ea5t c\u1ea3",
     browseShop: "V\u00e0o shop",
     carrierLabel: "Đơn vị vận chuyển",
-    confirmed: "Ng\u01b0\u1eddi mua \u0111\u00e3 x\u00e1c nh\u1eadn",
+    confirmed: "Shop \u0111\u00e3 x\u00e1c nh\u1eadn \u0111\u01a1n",
     delivered: "\u0110\u00e3 giao",
     deliveryAddressLabel: "Địa chỉ nhận hàng",
     deliveryDetailsTitle: "Thông tin giao hàng",
@@ -135,16 +139,18 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
       "Theo d\u00f5i \u0111\u01a1n Mushroom.Pi theo c\u00e1c tr\u1ea1ng th\u00e1i thanh to\u00e1n v\u00e0 giao h\u00e0ng.",
     ordersPageTitle: "\u0110\u01a1n h\u00e0ng | Mushroom.Pi",
     ordersTitle: "Trung t\u00e2m \u0111\u01a1n h\u00e0ng",
+    deliveryIssue: "\u0110\u01a1n c\u00f3 v\u1ea5n \u0111\u1ec1",
     paymentDetailsTitle: "Thanh toán",
     paymentFailedNotice:
       "\u0110\u01a1n n\u00e0y ch\u01b0a thanh to\u00e1n th\u00e0nh c\u00f4ng. H\u00e3y quay l\u1ea1i gi\u1ecf h\u00e0ng v\u00e0 t\u1ea1o thanh to\u00e1n Pi m\u1edbi khi b\u1ea1n s\u1eb5n s\u00e0ng.",
     paymentPendingNotice:
       "\u0110\u01a1n n\u00e0y \u0111ang ch\u1edd x\u00e1c nh\u1eadn thanh to\u00e1n Pi. N\u1ebfu b\u1ea1n ch\u01b0a ho\u00e0n t\u1ea5t thanh to\u00e1n, h\u00e3y thanh to\u00e1n l\u1ea1i t\u1eeb gi\u1ecf h\u00e0ng.",
-    paid: "\u0110\u00e3 thanh to\u00e1n",
+    paid: "\u0110\u00e3 thanh to\u00e1n, ch\u1edd shop x\u00e1c nh\u1eadn",
     paymentFailed: "Thanh to\u00e1n th\u1ea5t b\u1ea1i",
     pendingPayment: "Ch\u1edd thanh to\u00e1n",
     placedAtLabel: "Ngày đặt",
-    preparing: "\u0110ang so\u1ea1n h\u00e0ng",
+    preparing: "Ng\u01b0\u1eddi b\u00e1n \u0111ang chu\u1ea9n b\u1ecb h\u00e0ng",
+    readyToShip: "\u0110\u00e3 so\u1ea1n xong, ch\u1edd giao",
     receiverLabel: "Người nhận",
     refreshOrders: "Làm mới đơn hàng",
     refreshingOrders: "Đang làm mới...",
@@ -165,7 +171,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     allOrders: "Todos",
     browseShop: "Ver tienda",
     carrierLabel: "Transportista",
-    confirmed: "Confirmado por comprador",
+    confirmed: "Confirmado por tienda",
     delivered: "Entregado",
     deliveryAddressLabel: "Direccion de entrega",
     deliveryDetailsTitle: "Entrega",
@@ -191,16 +197,18 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
       "Sigue los pedidos de Mushroom.Pi por procesamiento, envio y entregado.",
     ordersPageTitle: "Pedidos | Mushroom.Pi",
     ordersTitle: "Centro de pedidos",
+    deliveryIssue: "Requiere atención",
     paymentDetailsTitle: "Pago",
     paymentFailedNotice:
       "Este pedido no se pago correctamente. Vuelve al checkout y crea un nuevo pago Pi cuando estes listo.",
     paymentPendingNotice:
       "Este pedido espera confirmacion de pago Pi. Si no terminaste el pago, vuelve al checkout.",
-    paid: "Pagado",
+    paid: "Pagado, esperando confirmación",
     paymentFailed: "Pago fallido",
     pendingPayment: "Pendiente de pago",
     placedAtLabel: "Pedido",
-    preparing: "Preparando",
+    preparing: "El vendedor prepara el pedido",
+    readyToShip: "Empacado, esperando retiro",
     receiverLabel: "Recibe",
     refreshOrders: "Actualizar pedidos",
     refreshingOrders: "Actualizando...",
@@ -221,7 +229,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     allOrders: "Tous",
     browseShop: "Voir la boutique",
     carrierLabel: "Transporteur",
-    confirmed: "Confirmee par l'acheteur",
+    confirmed: "Confirmee par la boutique",
     delivered: "Livre",
     deliveryAddressLabel: "Adresse de livraison",
     deliveryDetailsTitle: "Livraison",
@@ -247,16 +255,18 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
       "Suivez les commandes Mushroom.Pi par preparation, expedition et livraison.",
     ordersPageTitle: "Commandes | Mushroom.Pi",
     ordersTitle: "Centre de commandes",
+    deliveryIssue: "A verifier",
     paymentDetailsTitle: "Paiement",
     paymentFailedNotice:
       "Cette commande n'a pas ete payee correctement. Revenez au checkout et creez un nouveau paiement Pi quand vous etes pret.",
     paymentPendingNotice:
       "Cette commande attend la confirmation du paiement Pi. Si le paiement n'est pas termine, revenez au checkout.",
-    paid: "Payee",
+    paid: "Payee, en attente de confirmation",
     paymentFailed: "Paiement echoue",
     pendingPayment: "Paiement en attente",
     placedAtLabel: "Commande",
-    preparing: "Preparation",
+    preparing: "Le vendeur prepare la commande",
+    readyToShip: "Preparee, en attente d'enlevement",
     receiverLabel: "Receptionnaire",
     refreshOrders: "Actualiser",
     refreshingOrders: "Actualisation...",
@@ -277,7 +287,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     allOrders: "\u5168\u90e8",
     browseShop: "\u524d\u5f80\u5546\u5e97",
     carrierLabel: "\u627f\u8fd0\u65b9",
-    confirmed: "\u4e70\u5bb6\u5df2\u786e\u8ba4",
+    confirmed: "\u5546\u5bb6\u5df2\u786e\u8ba4",
     delivered: "\u5df2\u9001\u8fbe",
     deliveryAddressLabel: "\u6536\u8d27\u5730\u5740",
     deliveryDetailsTitle: "\u914d\u9001\u4fe1\u606f",
@@ -303,16 +313,18 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
       "\u6309\u5904\u7406\u4e2d\u3001\u8fd0\u9001\u4e2d\u3001\u5df2\u9001\u8fbe\u8ddf\u8e2a Mushroom.Pi \u8ba2\u5355\u3002",
     ordersPageTitle: "\u8ba2\u5355 | Mushroom.Pi",
     ordersTitle: "\u8ba2\u5355\u4e2d\u5fc3",
+    deliveryIssue: "\u8ba2\u5355\u6709\u95ee\u9898",
     paymentDetailsTitle: "\u652f\u4ed8\u4fe1\u606f",
     paymentFailedNotice:
       "\u8fd9\u7b14\u8ba2\u5355\u5c1a\u672a\u6210\u529f\u652f\u4ed8\u3002\u8bf7\u56de\u5230\u7ed3\u8d26\u9875\u91cd\u65b0\u53d1\u8d77 Pi \u652f\u4ed8\u3002",
     paymentPendingNotice:
       "\u8fd9\u7b14\u8ba2\u5355\u6b63\u5728\u7b49\u5f85 Pi \u652f\u4ed8\u786e\u8ba4\u3002\u5982\u679c\u5c1a\u672a\u5b8c\u6210\u652f\u4ed8\uff0c\u8bf7\u56de\u5230\u7ed3\u8d26\u9875\u3002",
-    paid: "\u5df2\u652f\u4ed8",
+    paid: "\u5df2\u652f\u4ed8\uff0c\u7b49\u5f85\u5546\u5bb6\u786e\u8ba4",
     paymentFailed: "\u652f\u4ed8\u5931\u8d25",
     pendingPayment: "\u5f85\u652f\u4ed8",
     placedAtLabel: "\u4e0b\u5355\u65f6\u95f4",
-    preparing: "\u5907\u8d27\u4e2d",
+    preparing: "\u5356\u5bb6\u6b63\u5728\u5907\u8d27",
+    readyToShip: "\u5df2\u6253\u5305\uff0c\u7b49\u5f85\u53d6\u4ef6",
     receiverLabel: "\u6536\u4ef6\u4eba",
     refreshOrders: "\u5237\u65b0\u8ba2\u5355",
     refreshingOrders: "\u5237\u65b0\u4e2d...",

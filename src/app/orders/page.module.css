@@ -254,9 +254,15 @@
 
 .statusPill[data-status="paid"],
 .statusPill[data-status="confirmed"],
-.statusPill[data-status="preparing"] {
+.statusPill[data-status="preparing"],
+.statusPill[data-status="ready_to_ship"] {
   background: rgba(255, 214, 156, 0.56);
   color: #7a4618;
+}
+
+.statusPill[data-status="delivery_issue"] {
+  background: rgba(255, 228, 221, 0.78);
+  color: #9a352c;
 }
 
 .statusPill[data-status="shipping"] {
@@ -361,7 +367,8 @@
   border: 1px solid rgba(83, 50, 27, 0.08);
 }
 
-.paymentNotice[data-status="payment_failed"] {
+.paymentNotice[data-status="payment_failed"],
+.paymentNotice[data-status="delivery_issue"] {
   background: rgba(255, 228, 221, 0.78);
   border-color: rgba(154, 71, 56, 0.24);
 }
@@ -393,7 +400,7 @@
 
 .progressTrack {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 10px;
 }
 

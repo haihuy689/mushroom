@@ -31,10 +31,12 @@ export function AccountPageClient({
   const statusLabelByKey: Record<OrderStatus, string> = {
     confirmed: orderCopy.confirmed,
     delivered: orderCopy.delivered,
+    delivery_issue: orderCopy.deliveryIssue,
     paid: orderCopy.paid,
     payment_failed: orderCopy.paymentFailed,
     pending_payment: orderCopy.pendingPayment,
     preparing: orderCopy.preparing,
+    ready_to_ship: orderCopy.readyToShip,
     shipping: orderCopy.shipping,
   };
 

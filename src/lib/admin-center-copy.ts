@@ -35,6 +35,7 @@ export type AdminCenterCopy = {
   dashboardSlowError: string;
   deliveredAtLabel: string;
   deliveryProgressTitle: string;
+  confirmOrderButton: string;
   deleteProductButton: string;
   deleteProductConfirm: string;
   deleteProductSuccess: string;
@@ -68,6 +69,9 @@ export type AdminCenterCopy = {
   orderCodeLabel: string;
   orderItems: string;
   orderPaymentTitle: string;
+  orderPaymentPaidLabel: string;
+  orderPaymentStatusLabel: string;
+  orderQuickActionsTitle: string;
   orderManagerLead: string;
   orderManagerTitle: string;
   ordersTab: string;
@@ -76,6 +80,9 @@ export type AdminCenterCopy = {
   packagingLabel: string;
   paymentIdLabel: string;
   priceLabel: string;
+  markDeliveredButton: string;
+  markIssueButton: string;
+  markReadyToShipButton: string;
   mediaNoteLabel: string;
   mediaUploadSuccess: string;
   mediaUploadingLabel: string;
@@ -142,6 +149,8 @@ export type AdminCenterCopy = {
   staffRoleLabel: string;
   staffTab: string;
   statusLabel: string;
+  startPreparingButton: string;
+  startShippingButton: string;
   teamOverviewTitle: string;
   totalSalesLabel: string;
   totalSoldCountLabel: string;
@@ -198,6 +207,7 @@ const en: AdminCenterCopy = {
     "Admin data is responding slowly right now. Please try reloading.",
   deliveredAtLabel: "Delivered at",
   deliveryProgressTitle: "Fulfillment progress",
+  confirmOrderButton: "Confirm order",
   deleteProductButton: "Delete product",
   deleteProductConfirm:
     "Delete this product from the shop? Existing orders will be kept.",
@@ -235,6 +245,9 @@ const en: AdminCenterCopy = {
   orderCodeLabel: "Order code",
   orderItems: "Items",
   orderPaymentTitle: "Payment details",
+  orderPaymentPaidLabel: "Paid",
+  orderPaymentStatusLabel: "Payment status",
+  orderQuickActionsTitle: "Quick fulfillment actions",
   orderManagerLead:
     "Track each order with status, shipping carrier, tracking code, and internal notes for fulfillment.",
   orderManagerTitle: "Order management",
@@ -244,6 +257,9 @@ const en: AdminCenterCopy = {
   packagingLabel: "Packaging",
   paymentIdLabel: "Payment ID",
   priceLabel: "Price (Pi)",
+  markDeliveredButton: "Mark delivered",
+  markIssueButton: "Mark issue",
+  markReadyToShipButton: "Packed, ready to ship",
   mediaNoteLabel: "Media note",
   mediaUploadSuccess: "Media uploaded.",
   mediaUploadingLabel: "Uploading...",
@@ -314,6 +330,8 @@ const en: AdminCenterCopy = {
   staffRoleLabel: "Role",
   staffTab: "Staff",
   statusLabel: "Status",
+  startPreparingButton: "Seller is preparing items",
+  startShippingButton: "Start delivery",
   teamOverviewTitle: "Team overview",
   totalSalesLabel: "Total Pi",
   totalSoldCountLabel: "Displayed sold count",
@@ -371,6 +389,7 @@ const vi: AdminCenterCopy = {
     "Dữ liệu quản trị đang phản hồi chậm. Bạn vui lòng tải lại sau ít giây.",
   deliveredAtLabel: "Thời điểm giao thành công",
   deliveryProgressTitle: "Tiến độ xử lý đơn",
+  confirmOrderButton: "Xác nhận đơn hàng",
   deleteProductButton: "Xóa sản phẩm",
   deleteProductConfirm:
     "Xóa sản phẩm này khỏi cửa hàng? Lịch sử đơn hàng cũ vẫn được giữ lại.",
@@ -408,6 +427,9 @@ const vi: AdminCenterCopy = {
   orderCodeLabel: "Mã đơn",
   orderItems: "Sản phẩm",
   orderPaymentTitle: "Thông tin thanh toán",
+  orderPaymentPaidLabel: "Đã thanh toán",
+  orderPaymentStatusLabel: "Trạng thái thanh toán",
+  orderQuickActionsTitle: "Thao tác xử lý nhanh",
   orderManagerLead:
     "Theo dõi đơn hàng với trạng thái, đơn vị giao hàng, mã vận đơn và ghi chú nội bộ cho khâu giao nhận.",
   orderManagerTitle: "Quản lý đơn hàng",
@@ -417,6 +439,9 @@ const vi: AdminCenterCopy = {
   packagingLabel: "Bao bì",
   paymentIdLabel: "Mã payment",
   priceLabel: "Giá bán (Pi)",
+  markDeliveredButton: "Đã giao thành công",
+  markIssueButton: "Đơn có vấn đề",
+  markReadyToShipButton: "Đã soạn xong, chờ giao",
   mediaNoteLabel: "Ghi chú media",
   mediaUploadSuccess: "Đã upload media.",
   mediaUploadingLabel: "Đang upload...",
@@ -490,6 +515,8 @@ const vi: AdminCenterCopy = {
   staffRoleLabel: "Vai trò",
   staffTab: "Nhân viên",
   statusLabel: "Trạng thái",
+  startPreparingButton: "Người bán đang chuẩn bị hàng",
+  startShippingButton: "Bắt đầu giao hàng",
   teamOverviewTitle: "Tổng quan đội ngũ",
   totalSalesLabel: "Tổng Pi",
   totalSoldCountLabel: "Số đã bán hiển thị",

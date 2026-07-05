@@ -165,14 +165,29 @@ export function OrdersPageClient({
       count: statusCounts?.paid ?? 0,
     },
     {
+      key: "confirmed",
+      label: copy.confirmed,
+      count: statusCounts?.confirmed ?? 0,
+    },
+    {
       key: "preparing",
       label: copy.preparing,
       count: statusCounts?.preparing ?? 0,
     },
     {
+      key: "ready_to_ship",
+      label: copy.readyToShip,
+      count: statusCounts?.ready_to_ship ?? 0,
+    },
+    {
       key: "shipping",
       label: copy.shipping,
       count: statusCounts?.shipping ?? 0,
+    },
+    {
+      key: "delivery_issue",
+      label: copy.deliveryIssue,
+      count: statusCounts?.delivery_issue ?? 0,
     },
     {
       key: "delivered",
@@ -183,10 +198,12 @@ export function OrdersPageClient({
 
   const statusLabelByKey: Record<OrderStatus, string> = {
     confirmed: copy.confirmed,
+    delivery_issue: copy.deliveryIssue,
     paid: copy.paid,
     payment_failed: copy.paymentFailed,
     pending_payment: copy.pendingPayment,
     preparing: copy.preparing,
+    ready_to_ship: copy.readyToShip,
     shipping: copy.shipping,
     delivered: copy.delivered,
   };
@@ -653,15 +670,19 @@ export function OrdersPageClient({
                         </div>
 
                         {status === "pending_payment" ||
-                        status === "payment_failed" ? (
+                        status === "payment_failed" ||
+                        status === "delivery_issue" ? (
                           <div className={styles.paymentNotice} data-status={status}>
                             <strong>{statusLabelByKey[status]}</strong>
                             <p>
                               {status === "pending_payment"
                                 ? copy.paymentPendingNotice
-                                : copy.paymentFailedNotice}
+                                : status === "payment_failed"
+                                  ? copy.paymentFailedNotice
+                                  : copy.deliveryIssue}
                             </p>
-                            {paymentMessage?.orderId === order.id ? (
+                            {status !== "delivery_issue" &&
+                            paymentMessage?.orderId === order.id ? (
                               <div
                                 className={styles.inlineMessage}
                                 data-kind={paymentMessage.kind}
@@ -669,18 +690,20 @@ export function OrdersPageClient({
                                 {paymentMessage.text}
                               </div>
                             ) : null}
-                            <button
-                              type="button"
-                              className={styles.secondaryLink}
-                              disabled={retryingOrderId !== null || authBusy}
-                              onClick={() => {
-                                void handleRetryPayment(order);
-                              }}
-                            >
-                              {retryingOrderId === order.id
-                                ? copy.retryingPayment
-                                : copy.retryPayment}
-                            </button>
+                            {status !== "delivery_issue" ? (
+                              <button
+                                type="button"
+                                className={styles.secondaryLink}
+                                disabled={retryingOrderId !== null || authBusy}
+                                onClick={() => {
+                                  void handleRetryPayment(order);
+                                }}
+                              >
+                                {retryingOrderId === order.id
+                                  ? copy.retryingPayment
+                                  : copy.retryPayment}
+                              </button>
+                            ) : null}
                           </div>
                         ) : (
                           <div className={styles.progressTrack}>

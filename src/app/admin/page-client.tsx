@@ -17,7 +17,7 @@ import type {
 import type { AdminCenterCopy } from "@/lib/admin-center-copy";
 import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
-import { ORDER_STATUSES, type OrderStatus } from "@/lib/order-status";
+import { ADMIN_ORDER_STATUSES, type OrderStatus } from "@/lib/order-status";
 import { getOrderStatusCounts, resolveOrderStatus } from "@/lib/order-tracking";
 import {
   PRODUCT_OPTION_GROUPS,
@@ -284,17 +284,35 @@ function getAdminOrderPriority(order: StorefrontOrder) {
       return 1;
     case "preparing":
       return 2;
-    case "shipping":
+    case "ready_to_ship":
       return 3;
-    case "pending_payment":
+    case "shipping":
       return 4;
-    case "payment_failed":
+    case "delivery_issue":
       return 5;
     case "delivered":
       return 6;
-    default:
+    case "pending_payment":
+    case "payment_failed":
       return 7;
+    default:
+      return 8;
   }
+}
+
+function isAdminVisibleOrder(order: StorefrontOrder) {
+  const status = resolveOrderStatus(order);
+
+  return (
+    Boolean(order.txid) ||
+    status === "paid" ||
+    status === "confirmed" ||
+    status === "preparing" ||
+    status === "ready_to_ship" ||
+    status === "shipping" ||
+    status === "delivered" ||
+    status === "delivery_issue"
+  );
 }
 
 function toDateTimeLocalValue(value: string | undefined) {
@@ -516,10 +534,14 @@ export function AdminPageClient({
     [piFormatter],
   );
 
-  const orderCounts = useMemo(() => getOrderStatusCounts(orders), [orders]);
+  const adminOrders = useMemo(
+    () => orders.filter(isAdminVisibleOrder),
+    [orders],
+  );
+  const orderCounts = useMemo(() => getOrderStatusCounts(adminOrders), [adminOrders]);
   const adminOrderQueue = useMemo(
     () =>
-      [...orders].sort((leftOrder, rightOrder) => {
+      [...adminOrders].sort((leftOrder, rightOrder) => {
         const priorityDelta =
           getAdminOrderPriority(leftOrder) - getAdminOrderPriority(rightOrder);
 
@@ -531,7 +553,7 @@ export function AdminPageClient({
           Date.parse(rightOrder.createdAt) - Date.parse(leftOrder.createdAt)
         );
       }),
-    [orders],
+    [adminOrders],
   );
   const activeProducts = useMemo(
     () => products.filter((product) => product.isActive),
@@ -557,16 +579,16 @@ export function AdminPageClient({
     [staff],
   );
   const openOrders =
-    orderCounts.pending_payment +
-    orderCounts.payment_failed +
     orderCounts.paid +
     orderCounts.confirmed +
     orderCounts.preparing +
+    orderCounts.ready_to_ship +
+    orderCounts.delivery_issue +
     orderCounts.shipping;
   const totalSalesPi = useMemo(
     () =>
-      orders.reduce((total, order) => total + Number(order.totalPi || 0), 0),
-    [orders],
+      adminOrders.reduce((total, order) => total + Number(order.totalPi || 0), 0),
+    [adminOrders],
   );
   const catalogValuePi = useMemo(
     () =>
@@ -580,10 +602,12 @@ export function AdminPageClient({
   const statusLabelByKey: Record<OrderStatus, string> = {
     confirmed: orderCopy.confirmed,
     delivered: orderCopy.delivered,
+    delivery_issue: orderCopy.deliveryIssue,
     paid: orderCopy.paid,
     payment_failed: orderCopy.paymentFailed,
     pending_payment: orderCopy.pendingPayment,
     preparing: orderCopy.preparing,
+    ready_to_ship: orderCopy.readyToShip,
     shipping: orderCopy.shipping,
   };
 
@@ -668,7 +692,7 @@ export function AdminPageClient({
     () =>
       [
         {
-          count: `${orders.length}`,
+          count: `${adminOrders.length}`,
           id: "overview" as const,
           label: copy.overviewTab,
           visible: true,
@@ -710,7 +734,7 @@ export function AdminPageClient({
       copy.staffTab,
       lowStockProducts.length,
       openOrders,
-      orders.length,
+      adminOrders.length,
       products.length,
     ],
   );
@@ -855,14 +879,15 @@ export function AdminPageClient({
     }
 
     const frame = window.requestAnimationFrame(() => {
-      if (orders.length === 0) {
+      if (adminOrderQueue.length === 0) {
         setSelectedOrderId(null);
         setOrderEditor(null);
         return;
       }
 
       const selectedOrder =
-        orders.find((order) => order.id === selectedOrderId) ?? orders[0];
+        adminOrderQueue.find((order) => order.id === selectedOrderId) ??
+        adminOrderQueue[0];
 
       if (selectedOrder.id !== selectedOrderId) {
         setSelectedOrderId(selectedOrder.id);
@@ -874,7 +899,7 @@ export function AdminPageClient({
     return () => {
       window.cancelAnimationFrame(frame);
     };
-  }, [canManageOrders, orders, selectedOrderId]);
+  }, [adminOrderQueue, canManageOrders, selectedOrderId]);
 
   useEffect(() => {
     if (!canManageStaff) {
@@ -1386,30 +1411,24 @@ export function AdminPageClient({
     );
   };
 
-  const handleSaveOrder = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!orderEditor) {
-      return;
-    }
-
+  const saveOrderEditor = async (editor: OrderEditor) => {
     setSavingOrder(true);
     setMessage(null);
 
     try {
       const data = await readJson<{ order: StorefrontOrder }>(
-        `/api/admin/orders/${orderEditor.id}`,
+        `/api/admin/orders/${editor.id}`,
         {
           method: "PATCH",
           body: JSON.stringify({
-            adminNote: orderEditor.adminNote,
-            deliveredAt: fromDateTimeLocalValue(orderEditor.deliveredAt),
-            fulfillmentStaff: orderEditor.fulfillmentStaff,
-            receivedBy: orderEditor.receivedBy,
-            shippingCarrier: orderEditor.shippingCarrier,
-            shipperName: orderEditor.shipperName,
-            status: orderEditor.status,
-            trackingCode: orderEditor.trackingCode,
+            adminNote: editor.adminNote,
+            deliveredAt: fromDateTimeLocalValue(editor.deliveredAt),
+            fulfillmentStaff: editor.fulfillmentStaff,
+            receivedBy: editor.receivedBy,
+            shippingCarrier: editor.shippingCarrier,
+            shipperName: editor.shipperName,
+            status: editor.status,
+            trackingCode: editor.trackingCode,
           }),
         },
       );
@@ -1430,6 +1449,36 @@ export function AdminPageClient({
     } finally {
       setSavingOrder(false);
     }
+  };
+
+  const handleSaveOrder = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!orderEditor) {
+      return;
+    }
+
+    await saveOrderEditor(orderEditor);
+  };
+
+  const handleQuickOrderStatus = async (status: OrderStatus) => {
+    if (!orderEditor) {
+      return;
+    }
+
+    const deliveredAt =
+      status === "delivered" && !orderEditor.deliveredAt
+        ? toDateTimeLocalValue(new Date().toISOString())
+        : orderEditor.deliveredAt;
+
+    const nextEditor = {
+      ...orderEditor,
+      deliveredAt,
+      status,
+    };
+
+    setOrderEditor(nextEditor);
+    await saveOrderEditor(nextEditor);
   };
 
   const handleStartNewStaff = () => {
@@ -1753,7 +1802,7 @@ export function AdminPageClient({
             <div className={styles.metrics}>
               <article className={styles.metricCard}>
                 <span>{orderCopy.orders}</span>
-                <strong>{numberFormatter.format(orders.length)}</strong>
+                <strong>{numberFormatter.format(adminOrders.length)}</strong>
               </article>
               <article className={styles.metricCard}>
                 <span>{copy.openOrdersLabel}</span>
@@ -1829,11 +1878,11 @@ export function AdminPageClient({
                       <h4>{copy.recentOrdersTitle}</h4>
                     </div>
                   </div>
-                  {orders.length === 0 ? (
+                  {adminOrderQueue.length === 0 ? (
                     <p className={styles.emptyState}>{copy.emptyOrders}</p>
                   ) : (
                     <div className={styles.simpleList}>
-                      {orders.slice(0, 5).map((order) => (
+                      {adminOrderQueue.slice(0, 5).map((order) => (
                         <button
                           key={order.id}
                           type="button"
@@ -2682,14 +2731,16 @@ export function AdminPageClient({
                       <h4>{orderCopy.orders}</h4>
                     </div>
                     <div className={styles.inlineMetrics}>
-                      <span>{orderCopy.pendingPayment}: {orderCounts.pending_payment}</span>
                       <span>{orderCopy.paid}: {orderCounts.paid}</span>
+                      <span>{orderCopy.confirmed}: {orderCounts.confirmed}</span>
+                      <span>{orderCopy.readyToShip}: {orderCounts.ready_to_ship}</span>
                       <span>{orderCopy.shipping}: {orderCounts.shipping}</span>
+                      <span>{orderCopy.deliveryIssue}: {orderCounts.delivery_issue}</span>
                       <span>{orderCopy.delivered}: {orderCounts.delivered}</span>
                     </div>
                   </div>
 
-                  {orders.length === 0 ? (
+                  {adminOrderQueue.length === 0 ? (
                     <p className={styles.emptyState}>{copy.emptyOrders}</p>
                   ) : (
                     <div className={styles.selectionList}>
@@ -2710,12 +2761,6 @@ export function AdminPageClient({
                               .filter(Boolean)
                               .join(", ")
                           : "--";
-                        const paymentTone =
-                          status === "pending_payment" ||
-                          status === "payment_failed"
-                            ? status
-                            : "success";
-
                         return (
                           <button
                             key={order.id}
@@ -2733,8 +2778,8 @@ export function AdminPageClient({
                                 <span className={styles.statusChip} data-tone={status}>
                                   {statusLabelByKey[status]}
                                 </span>
-                                <span className={styles.statusChip} data-tone={paymentTone}>
-                                  {order.txid ? orderCopy.paid : statusLabelByKey[status]}
+                                <span className={styles.statusChip} data-tone="success">
+                                  {copy.orderPaymentPaidLabel}
                                 </span>
                                 {order.trackingCode ? (
                                   <span className={styles.statusChip} data-tone="shipping">
@@ -2783,6 +2828,10 @@ export function AdminPageClient({
                           </strong>
                         </div>
                         <div className={styles.summaryCard}>
+                          <span>{copy.orderPaymentStatusLabel}</span>
+                          <strong>{copy.orderPaymentPaidLabel}</strong>
+                        </div>
+                        <div className={styles.summaryCard}>
                           <span>{copy.statusLabel}</span>
                           <strong>{statusLabelByKey[resolveOrderStatus(selectedOrder)]}</strong>
                         </div>
@@ -2797,6 +2846,55 @@ export function AdminPageClient({
                         <div className={styles.summaryCard}>
                           <span>{copy.priceLabel}</span>
                           <strong>{formatPi(selectedOrder.totalPi)}</strong>
+                        </div>
+                      </div>
+
+                      <div className={styles.quickActionPanel}>
+                        <strong>{copy.orderQuickActionsTitle}</strong>
+                        <div className={styles.quickActionGrid}>
+                          {[
+                            {
+                              label: copy.confirmOrderButton,
+                              status: "confirmed" as const,
+                            },
+                            {
+                              label: copy.startPreparingButton,
+                              status: "preparing" as const,
+                            },
+                            {
+                              label: copy.markReadyToShipButton,
+                              status: "ready_to_ship" as const,
+                            },
+                            {
+                              label: copy.startShippingButton,
+                              status: "shipping" as const,
+                            },
+                            {
+                              label: copy.markDeliveredButton,
+                              status: "delivered" as const,
+                            },
+                            {
+                              label: copy.markIssueButton,
+                              status: "delivery_issue" as const,
+                            },
+                          ].map((action) => (
+                            <button
+                              key={action.status}
+                              type="button"
+                              className={
+                                action.status === "delivery_issue"
+                                  ? styles.dangerButton
+                                  : styles.secondaryButton
+                              }
+                              data-active={orderEditor.status === action.status}
+                              disabled={savingOrder || orderEditor.status === action.status}
+                              onClick={() => {
+                                void handleQuickOrderStatus(action.status);
+                              }}
+                            >
+                              {action.label}
+                            </button>
+                          ))}
                         </div>
                       </div>
 
@@ -2816,7 +2914,7 @@ export function AdminPageClient({
                               )
                             }
                           >
-                            {ORDER_STATUSES.map((status) => (
+                            {ADMIN_ORDER_STATUSES.map((status) => (
                               <option key={status} value={status}>
                                 {statusLabelByKey[status]}
                               </option>
@@ -3418,11 +3516,11 @@ export function AdminPageClient({
                       <h4>{copy.openOrdersLabel}</h4>
                     </div>
                   </div>
-                  {orders.length === 0 ? (
+                  {adminOrderQueue.length === 0 ? (
                     <p className={styles.emptyState}>{copy.emptyOrders}</p>
                   ) : (
                     <div className={styles.simpleList}>
-                      {orders
+                      {adminOrderQueue
                         .filter((order) => resolveOrderStatus(order) !== "delivered")
                         .slice(0, 8)
                         .map((order) => {

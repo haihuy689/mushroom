@@ -1,44 +1,20 @@
 import { type OrderStatus } from "@/lib/order-status";
 
-const CONFIRMED_START_MS = 2 * 60 * 1000;
-const PREPARING_START_MS = 6 * 60 * 1000;
-const SHIPPING_START_MS = 14 * 60 * 1000;
-const DELIVERY_DONE_MS = 35 * 60 * 1000;
-
 export function resolveOrderStatus(
-  order: { createdAt: string; status?: OrderStatus },
-  nowMs = Date.now(),
+  order: { status?: OrderStatus },
+  _nowMs = Date.now(),
 ): OrderStatus {
+  void _nowMs;
+
   if (order.status) {
     return order.status;
-  }
-
-  const createdAtMs = Date.parse(order.createdAt);
-  const elapsedMs = Number.isFinite(createdAtMs)
-    ? Math.max(0, nowMs - createdAtMs)
-    : 0;
-
-  if (elapsedMs >= DELIVERY_DONE_MS) {
-    return "delivered";
-  }
-
-  if (elapsedMs >= SHIPPING_START_MS) {
-    return "shipping";
-  }
-
-  if (elapsedMs >= PREPARING_START_MS) {
-    return "preparing";
-  }
-
-  if (elapsedMs >= CONFIRMED_START_MS) {
-    return "confirmed";
   }
 
   return "paid";
 }
 
 export function getOrderStatusCounts(
-  orders: Array<{ createdAt: string; status?: OrderStatus }>,
+  orders: Array<{ createdAt?: string; status?: OrderStatus }>,
   nowMs = Date.now(),
 ) {
   return orders.reduce(
@@ -53,8 +29,10 @@ export function getOrderStatusCounts(
       paid: 0,
       confirmed: 0,
       preparing: 0,
+      ready_to_ship: 0,
       shipping: 0,
       delivered: 0,
+      delivery_issue: 0,
     } as Record<OrderStatus, number>,
   );
 }
@@ -70,10 +48,14 @@ export function getOrderStatusStepIndex(status: OrderStatus) {
       return 1;
     case "preparing":
       return 2;
-    case "shipping":
+    case "ready_to_ship":
       return 3;
-    case "delivered":
+    case "shipping":
       return 4;
+    case "delivered":
+      return 5;
+    case "delivery_issue":
+      return 2;
     default:
       return 0;
   }

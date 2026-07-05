@@ -270,8 +270,10 @@ function AccountMenu({
         paid: 0,
         confirmed: 0,
         preparing: 0,
+        ready_to_ship: 0,
         shipping: 0,
         delivered: 0,
+        delivery_issue: 0,
       };
   const avatarLabel = viewerName?.trim().slice(0, 1).toUpperCase() || "Pi";
   const statusHint = isSignedIn ? copy.menuSignedInHint : copy.menuGuestHint;

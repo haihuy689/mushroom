@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isOrderStatus } from "@/lib/order-status";
+import { isAdminOrderStatus } from "@/lib/order-status";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 import { updateStorefrontOrderRecord } from "@/lib/storefront-db";
 
@@ -31,7 +31,7 @@ export async function PATCH(
     trackingCode?: string;
   };
 
-  if (!isOrderStatus(body.status)) {
+  if (!isAdminOrderStatus(body.status)) {
     return NextResponse.json(
       {
         error: "Invalid order status.",
