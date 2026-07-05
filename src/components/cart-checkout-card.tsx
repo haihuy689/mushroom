@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStorefront, type StorefrontAddress } from "@/components/storefront-provider";
 import type { OrderStatus } from "@/lib/order-status";
-import type { Product } from "@/lib/pi-types";
+import type { PiVerifiedUser, Product } from "@/lib/pi-types";
 import type { PiCheckoutCopy } from "@/lib/public-site-copy";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
 import type {
@@ -161,6 +161,22 @@ async function postJson<T>(
   return data;
 }
 
+async function getCurrentPiSession() {
+  const response = await fetch("/api/pi/session", {
+    cache: "no-store",
+  });
+
+  const data = (await response.json()) as {
+    user?: PiVerifiedUser | null;
+  };
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return data.user ?? null;
+}
+
 function wait(ms: number) {
   return new Promise((resolve) => {
     window.setTimeout(resolve, ms);
@@ -216,6 +232,7 @@ export function CartCheckoutCard({
     recordOrder,
     sdkReady,
     signInWithPi,
+    setViewer,
     viewer,
   } = useStorefront();
   const [message, setMessage] = useState<MessageState>(null);
@@ -277,14 +294,6 @@ export function CartCheckoutCard({
       return;
     }
 
-    if (!viewer) {
-      setMessage({
-        kind: "error",
-        text: piCopy.authRequired,
-      });
-      return;
-    }
-
     if (!selectedAddress) {
       setMessage({
         kind: "error",
@@ -325,6 +334,34 @@ export function CartCheckoutCard({
       return;
     }
 
+    let activeViewer = viewer;
+    let hasServerSession = false;
+
+    try {
+      const sessionUser = await getCurrentPiSession();
+
+      if (sessionUser?.uid && (!activeViewer || sessionUser.uid === activeViewer.uid)) {
+        activeViewer = sessionUser;
+        hasServerSession = true;
+        setViewer(sessionUser);
+      }
+    } catch {
+      // If the session check fails, fall through to Pi sign-in below.
+    }
+
+    if (!hasServerSession) {
+      activeViewer = await signInWithPi();
+      hasServerSession = Boolean(activeViewer);
+    }
+
+    if (!activeViewer || !hasServerSession) {
+      setMessage({
+        kind: "error",
+        text: piCopy.authRequired,
+      });
+      return;
+    }
+
     const reusableOrder = orders.find((order) => {
       const status = order.status;
 
@@ -353,8 +390,8 @@ export function CartCheckoutCard({
       quantity: totalItems,
       totalPi,
       createdAt: reusableOrder?.createdAt ?? new Date().toISOString(),
-      username: viewer.username,
-      shopperUid: viewer.uid,
+      username: activeViewer.username,
+      shopperUid: activeViewer.uid,
       items: frozenLines,
       locationVerification: frozenLocationVerification,
       shippingAddress: {

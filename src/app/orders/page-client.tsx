@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
+import type { PiVerifiedUser } from "@/lib/pi-types";
 import type { PiCheckoutCopy } from "@/lib/public-site-copy";
 import {
   getOrderStatusCounts,
@@ -53,6 +54,22 @@ async function postJson<T>(
   return data;
 }
 
+async function getCurrentPiSession() {
+  const response = await fetch("/api/pi/session", {
+    cache: "no-store",
+  });
+
+  const data = (await response.json()) as {
+    user?: PiVerifiedUser | null;
+  };
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return data.user ?? null;
+}
+
 export function OrdersPageClient({
   locale,
   copy,
@@ -69,6 +86,7 @@ export function OrdersPageClient({
     refreshStorefrontState,
     sdkReady,
     signInWithPi,
+    setViewer,
     viewer,
   } = useStorefront();
   const [activeFilter, setActiveFilter] = useState<OrderFilter>("all");
@@ -173,6 +191,37 @@ export function OrdersPageClient({
         setSyncMessage(null);
       }
 
+      let hasServerSession = false;
+
+      try {
+        const sessionUser = await getCurrentPiSession();
+
+        if (sessionUser?.uid && (!viewer || sessionUser.uid === viewer.uid)) {
+          hasServerSession = true;
+          setViewer(sessionUser);
+        }
+      } catch {
+        // Manual refresh can still fall back to Pi sign-in below.
+      }
+
+      if (!hasServerSession && !quiet) {
+        const verified = await signInWithPi();
+        hasServerSession = Boolean(verified);
+      }
+
+      if (!hasServerSession) {
+        if (!quiet) {
+          setSyncMessage({
+            kind: "error",
+            text: copy.syncFailed,
+          });
+        }
+
+        refreshingOrdersRef.current = false;
+        setRefreshingOrders(false);
+        return;
+      }
+
       const refreshed = await refreshStorefrontState();
 
       if (!quiet) {
@@ -189,6 +238,8 @@ export function OrdersPageClient({
       copy.syncFailed,
       copy.syncSuccess,
       refreshStorefrontState,
+      setViewer,
+      signInWithPi,
       viewer,
     ],
   );
@@ -207,20 +258,30 @@ export function OrdersPageClient({
     };
   }, [handleRefreshOrders, hydrated, viewer]);
 
-  const recordExistingOrderStatus = (
+  const recordExistingOrderStatus = async (
     order: StorefrontOrder,
     status: OrderStatus,
     paymentId?: string,
     txid?: string,
   ) => {
-    recordOrder({
+    const nextOrder = {
       ...order,
       paymentId,
       status,
       statusUpdatedAt: new Date().toISOString(),
       statusUpdatedBy: "Pi Network Testnet",
       txid,
-    });
+    } satisfies StorefrontOrder;
+
+    recordOrder(nextOrder);
+    await postJson(
+      "/api/storefront/state",
+      {
+        action: "recordOrder",
+        order: nextOrder,
+      },
+      copy.syncFailed,
+    );
   };
 
   const handleRetryPayment = async (order: StorefrontOrder) => {
@@ -252,12 +313,26 @@ export function OrdersPageClient({
     }
 
     let activeViewer = viewer;
+    let hasServerSession = false;
 
-    if (!activeViewer) {
-      activeViewer = await signInWithPi();
+    try {
+      const sessionUser = await getCurrentPiSession();
+
+      if (sessionUser?.uid && (!activeViewer || sessionUser.uid === activeViewer.uid)) {
+        activeViewer = sessionUser;
+        hasServerSession = true;
+        setViewer(sessionUser);
+      }
+    } catch {
+      // If the session check fails, fall through to Pi sign-in below.
     }
 
-    if (!activeViewer) {
+    if (!hasServerSession) {
+      activeViewer = await signInWithPi();
+      hasServerSession = Boolean(activeViewer);
+    }
+
+    if (!activeViewer || !hasServerSession) {
       setPaymentMessage({
         kind: "error",
         orderId: order.id,
@@ -292,9 +367,13 @@ export function OrdersPageClient({
               { paymentId },
               piCopy.approvalFailed,
             );
-            recordExistingOrderStatus(order, "pending_payment", paymentId);
+            await recordExistingOrderStatus(order, "pending_payment", paymentId);
           } catch (error) {
-            recordExistingOrderStatus(order, "payment_failed", paymentId);
+            await recordExistingOrderStatus(
+              order,
+              "payment_failed",
+              paymentId,
+            ).catch(() => undefined);
             setRetryingOrderId(null);
             setPaymentMessage({
               kind: "error",
@@ -310,7 +389,7 @@ export function OrdersPageClient({
               { paymentId, txid },
               piCopy.completionFailed,
             );
-            recordExistingOrderStatus(order, "paid", paymentId, txid);
+            await recordExistingOrderStatus(order, "paid", paymentId, txid);
             clearCart();
             setRetryingOrderId(null);
             setPaymentMessage({
@@ -319,7 +398,11 @@ export function OrdersPageClient({
               text: copy.retryPaymentSuccess,
             });
           } catch (error) {
-            recordExistingOrderStatus(order, "payment_failed", paymentId);
+            await recordExistingOrderStatus(
+              order,
+              "payment_failed",
+              paymentId,
+            ).catch(() => undefined);
             setRetryingOrderId(null);
             setPaymentMessage({
               kind: "error",
@@ -329,7 +412,11 @@ export function OrdersPageClient({
           }
         },
         onCancel: (paymentId) => {
-          recordExistingOrderStatus(order, "payment_failed", paymentId);
+          void recordExistingOrderStatus(
+            order,
+            "payment_failed",
+            paymentId,
+          ).catch(() => undefined);
           setRetryingOrderId(null);
           setPaymentMessage({
             kind: "error",
@@ -338,7 +425,11 @@ export function OrdersPageClient({
           });
         },
         onError: (error, payment) => {
-          recordExistingOrderStatus(order, "payment_failed", payment?.identifier);
+          void recordExistingOrderStatus(
+            order,
+            "payment_failed",
+            payment?.identifier,
+          ).catch(() => undefined);
           setRetryingOrderId(null);
           setPaymentMessage({
             kind: "error",
