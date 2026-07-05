@@ -5,7 +5,7 @@ import { getSql } from "@/lib/db";
 
 const ADMIN_PASSWORD_HASH_PREFIX = "scrypt";
 const ADMIN_PASSWORD_KEY_LENGTH = 64;
-const ADMIN_PASSWORD_LOOKUP_TIMEOUT_MS = 2500;
+const ADMIN_PASSWORD_LOOKUP_TIMEOUT_MS = 8000;
 
 type AdminPasswordRow = {
   password_hash: string;

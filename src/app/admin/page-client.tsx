@@ -881,6 +881,7 @@ export function AdminPageClient({
           password: adminPassword,
           username: adminUsername,
         }),
+        timeoutMs: 20000,
       });
 
       setCredentialAuthOverride(true);
