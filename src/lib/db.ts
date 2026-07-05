@@ -14,23 +14,28 @@ const DATABASE_URL_ENV_KEYS = [
 ] as const;
 
 function normalizeDatabaseUrl(value: string | undefined) {
-  const trimmedValue = value?.trim() ?? "";
+  let trimmedValue = value?.trim() ?? "";
 
-  if (
-    (trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) ||
-    (trimmedValue.startsWith("'") && trimmedValue.endsWith("'"))
+  while (
+    trimmedValue.length >= 2 &&
+    ((trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) ||
+      (trimmedValue.startsWith("'") && trimmedValue.endsWith("'")))
   ) {
-    return trimmedValue.slice(1, -1).trim();
+    trimmedValue = trimmedValue.slice(1, -1).trim();
   }
 
   return trimmedValue;
+}
+
+function isPostgresUrl(value: string) {
+  return /^postgres(?:ql)?:\/\//i.test(value);
 }
 
 export function getDatabaseUrl() {
   for (const key of DATABASE_URL_ENV_KEYS) {
     const value = normalizeDatabaseUrl(process.env[key]);
 
-    if (value) {
+    if (value && isPostgresUrl(value)) {
       return value;
     }
   }
