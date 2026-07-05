@@ -1,5 +1,17 @@
 export const ORDER_STATUSES = [
-  "processing",
+  "pending_payment",
+  "payment_failed",
+  "paid",
+  "confirmed",
+  "preparing",
+  "shipping",
+  "delivered",
+] as const;
+
+export const TRACKABLE_ORDER_STATUSES = [
+  "paid",
+  "confirmed",
+  "preparing",
   "shipping",
   "delivered",
 ] as const;

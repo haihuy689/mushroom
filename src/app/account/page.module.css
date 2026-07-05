@@ -191,6 +191,11 @@
   color: #29150d;
 }
 
+.paymentWarning {
+  color: #9a352c;
+  font-weight: 700;
+}
+
 .addressList {
   list-style: none;
   display: grid;
@@ -250,7 +255,19 @@
   white-space: nowrap;
 }
 
-.orderStatus[data-status="processing"] {
+.orderStatus[data-status="pending_payment"] {
+  background: rgba(255, 214, 156, 0.56);
+  color: #7a4618;
+}
+
+.orderStatus[data-status="payment_failed"] {
+  background: rgba(255, 228, 221, 0.78);
+  color: #9a352c;
+}
+
+.orderStatus[data-status="paid"],
+.orderStatus[data-status="confirmed"],
+.orderStatus[data-status="preparing"] {
   background: rgba(255, 214, 156, 0.56);
   color: #7a4618;
 }

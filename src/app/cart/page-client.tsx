@@ -69,7 +69,6 @@ export function CartPageClient({
   const {
     addresses,
     cartItems,
-    clearCart,
     hydrated,
     removeFromCart,
     saveAddress,
@@ -109,10 +108,6 @@ export function CartPageClient({
     [cartItems, catalogById],
   );
 
-  const totalPi = Number(
-    cartLines.reduce((sum, line) => sum + line.lineTotalPi, 0).toFixed(4),
-  );
-  const totalItems = cartLines.reduce((sum, line) => sum + line.item.quantity, 0);
   const hasInventoryIssue = cartLines.some(({ item, product }) => {
     const availableInventory = product.inventoryCount ?? 0;
 
@@ -163,38 +158,6 @@ export function CartPageClient({
 
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
-        <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>{copy.cart}</p>
-          <h1>{copy.cartTitle}</h1>
-          <p className={styles.lead}>{copy.cartLead}</p>
-        </div>
-
-        <div className={styles.summaryCard}>
-          <span className={styles.summaryLabel}>{copy.total}</span>
-          <strong>{totalPi} Pi</strong>
-          <span className={styles.summaryMeta}>
-            {hydrated
-              ? `${cartLines.length} ${copy.linesLabel} / ${totalItems} ${copy.itemsLabel}`
-              : copy.loading}
-          </span>
-
-          {cartLines.length > 0 ? (
-            <button
-              type="button"
-              className={styles.clearButton}
-              onClick={() => clearCart()}
-            >
-              {copy.clearCart}
-            </button>
-          ) : (
-            <Link href="/shop" className={styles.primaryLink}>
-              {copy.continueShopping}
-            </Link>
-          )}
-        </div>
-      </section>
-
       {!hydrated ? (
         <section className={styles.emptyState}>
           <h2>{copy.loading}</h2>
@@ -212,14 +175,13 @@ export function CartPageClient({
         <section className={styles.layout}>
           <div className={styles.leftColumn}>
             <article className={styles.sectionCard}>
-              <div className={styles.sectionHeading}>
-                <div>
-                  <p className={styles.sectionLabel}>{copy.cart}</p>
-                  <h2>{copy.cartSummaryTitle}</h2>
-                </div>
+              <div className={styles.compactCartBar}>
                 <span className={styles.lineCount}>
                   {cartLines.length} {copy.linesLabel}
                 </span>
+                <Link href="/shop" className={styles.secondaryLink}>
+                  {copy.continueShopping}
+                </Link>
               </div>
 
               <div className={styles.lineList}>

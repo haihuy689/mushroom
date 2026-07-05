@@ -471,12 +471,16 @@
 }
 
 .statusChip[data-tone="warning"],
-.statusChip[data-tone="processing"] {
+.statusChip[data-tone="pending_payment"],
+.statusChip[data-tone="paid"],
+.statusChip[data-tone="confirmed"],
+.statusChip[data-tone="preparing"] {
   background: #fff4dd;
   color: #996400;
 }
 
-.statusChip[data-tone="danger"] {
+.statusChip[data-tone="danger"],
+.statusChip[data-tone="payment_failed"] {
   background: #fff0ef;
   color: #ba4d44;
 }

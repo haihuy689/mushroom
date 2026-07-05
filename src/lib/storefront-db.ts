@@ -221,6 +221,21 @@ const STOREFRONT_REQUIRED_COLUMNS = [
   { table: "storefront_products", column: "media_note" },
 ] as const;
 
+const STOCK_CONFIRMED_ORDER_STATUSES = new Set<OrderStatus>([
+  "paid",
+  "confirmed",
+  "preparing",
+  "shipping",
+  "delivered",
+]);
+
+function isStockConfirmedOrder(order: Pick<StorefrontOrder, "status" | "txid">) {
+  return Boolean(
+    (order.status && STOCK_CONFIRMED_ORDER_STATUSES.has(order.status)) ||
+      order.txid,
+  );
+}
+
 function withStorefrontTimeout<T>(promise: Promise<T>, label: string) {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -992,13 +1007,22 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
   }
 
   await sql.begin(async (transaction) => {
-    const existingRows = await transaction<{ id: string }[]>`
-      select id
+    const existingRows = await transaction<
+      Array<{ fulfillment_status: string | null; id: string; txid: string | null }>
+    >`
+      select id, fulfillment_status, txid
       from storefront_orders
       where id = ${order.id}
       limit 1
     `;
-    const shouldIncrementSoldCount = existingRows.length === 0;
+    const wasStockConfirmed = existingRows.some(
+      (row) =>
+        (isOrderStatus(row.fulfillment_status) &&
+          STOCK_CONFIRMED_ORDER_STATUSES.has(row.fulfillment_status)) ||
+        Boolean(row.txid),
+    );
+    const shouldIncrementSoldCount =
+      !wasStockConfirmed && isStockConfirmedOrder(order);
 
     await transaction`
       insert into storefront_orders (

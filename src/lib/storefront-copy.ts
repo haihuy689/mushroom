@@ -184,7 +184,7 @@ const en: StorefrontCopy = {
     "We compare your GPS country with the delivery country to reduce fake addresses.",
   locationVerifyTitle: "Address verification",
   locationVerifying: "Checking GPS...",
-  placeOrder: "Place order with Pi",
+  placeOrder: "Pay and place order",
   placingOrder: "Preparing Pi payment...",
   signInToCheckout: "Sign in with Pi",
   checkoutSignedInAs: "Signed in as",
@@ -227,11 +227,12 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     adminPanel: "Qu\u1ea3n tr\u1ecb",
     staffPanel: "Nh\u00e2n vi\u00ean",
     loading: "\u0110ang t\u1ea3i...",
-    inStock: "Con hang",
-    inventoryLabel: "Ton kho",
-    inventoryIssue: "Hay dieu chinh san pham het hang hoac vuot ton kho truoc khi dat hang.",
-    outOfStock: "Het hang",
-    packagingLabel: "Bao bi",
+    inStock: "C\u00f2n h\u00e0ng",
+    inventoryLabel: "T\u1ed3n kho",
+    inventoryIssue:
+      "H\u00e3y \u0111i\u1ec1u ch\u1ec9nh s\u1ea3n ph\u1ea9m h\u1ebft h\u00e0ng ho\u1eb7c v\u01b0\u1ee3t t\u1ed3n kho tr\u01b0\u1edbc khi \u0111\u1eb7t h\u00e0ng.",
+    outOfStock: "H\u1ebft h\u00e0ng",
+    packagingLabel: "Bao b\u00ec",
     shopTitle: "C\u1eeda h\u00e0ng",
     shopLead:
       "Ch\u1ecdn s\u1ea3n ph\u1ea9m, t\u0103ng gi\u1ea3m s\u1ed1 l\u01b0\u1ee3ng r\u1ed3i th\u00eam v\u00e0o gi\u1ecf.",
@@ -251,7 +252,7 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     remove: "X\u00f3a",
     clearCart: "X\u00f3a gi\u1ecf h\u00e0ng",
     total: "T\u1ed5ng c\u1ed9ng",
-    weightLabel: "Khoi luong",
+    weightLabel: "Kh\u1ed1i l\u01b0\u1ee3ng",
     linesLabel: "d\u00f2ng",
     itemsLabel: "m\u00f3n",
     quantityPickerTitle: "Ch\u1ecdn s\u1ed1 l\u01b0\u1ee3ng",
@@ -288,23 +289,23 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
     addressRequired:
       "H\u00e3y ch\u1ecdn ho\u1eb7c l\u01b0u \u0111\u1ecba ch\u1ec9 nh\u1eadn h\u00e0ng tr\u01b0\u1edbc khi \u0111\u1eb7t \u0111\u01a1n.",
     locationGeocodeFailed:
-      "Chua xac dinh duoc quoc gia tu GPS. Ban vui long thu lai.",
+      "Ch\u01b0a x\u00e1c \u0111\u1ecbnh \u0111\u01b0\u1ee3c qu\u1ed1c gia t\u1eeb GPS. B\u1ea1n vui l\u00f2ng th\u1eed l\u1ea1i.",
     locationMismatch:
-      "Quoc gia GPS khong khop voi quoc gia trong dia chi. Hay kiem tra lai dia chi.",
+      "Qu\u1ed1c gia GPS kh\u00f4ng kh\u1edbp v\u1edbi qu\u1ed1c gia trong \u0111\u1ecba ch\u1ec9. H\u00e3y ki\u1ec3m tra l\u1ea1i \u0111\u1ecba ch\u1ec9.",
     locationPermissionDenied:
-      "Ban chua cap quyen vi tri. Hay cho phep xac minh GPS truoc khi thanh toan.",
+      "B\u1ea1n ch\u01b0a c\u1ea5p quy\u1ec1n v\u1ecb tr\u00ed. H\u00e3y cho ph\u00e9p x\u00e1c minh GPS tr\u01b0\u1edbc khi thanh to\u00e1n.",
     locationRequired:
-      "Hay xac minh quoc gia bang GPS truoc khi dat hang.",
+      "H\u00e3y x\u00e1c minh qu\u1ed1c gia b\u1eb1ng GPS tr\u01b0\u1edbc khi \u0111\u1eb7t h\u00e0ng.",
     locationUnavailable:
-      "Trinh duyet hoac thiet bi nay chua ho tro xac minh GPS.",
+      "Tr\u00ecnh duy\u1ec7t ho\u1eb7c thi\u1ebft b\u1ecb n\u00e0y ch\u01b0a h\u1ed7 tr\u1ee3 x\u00e1c minh GPS.",
     locationVerified:
-      "Quoc gia GPS khop voi quoc gia trong dia chi giao hang.",
-    locationVerifyButton: "Xac minh GPS",
+      "Qu\u1ed1c gia GPS kh\u1edbp v\u1edbi qu\u1ed1c gia trong \u0111\u1ecba ch\u1ec9 giao h\u00e0ng.",
+    locationVerifyButton: "X\u00e1c minh GPS",
     locationVerifyLead:
-      "He thong so sanh quoc gia tu GPS voi quoc gia giao hang de han che dia chi ao.",
-    locationVerifyTitle: "Xac minh dia chi",
-    locationVerifying: "Dang kiem tra GPS...",
-    placeOrder: "\u0110\u1eb7t h\u00e0ng b\u1eb1ng Pi",
+      "H\u1ec7 th\u1ed1ng so s\u00e1nh qu\u1ed1c gia t\u1eeb GPS v\u1edbi qu\u1ed1c gia giao h\u00e0ng \u0111\u1ec3 h\u1ea1n ch\u1ebf \u0111\u1ecba ch\u1ec9 \u1ea3o.",
+    locationVerifyTitle: "X\u00e1c minh \u0111\u1ecba ch\u1ec9",
+    locationVerifying: "\u0110ang ki\u1ec3m tra GPS...",
+    placeOrder: "Thanh to\u00e1n v\u00e0 \u0111\u1eb7t h\u00e0ng",
     placingOrder: "\u0110ang chu\u1ea9n b\u1ecb thanh to\u00e1n Pi...",
     signInToCheckout: "\u0110\u0103ng nh\u1eadp b\u1eb1ng Pi",
     checkoutSignedInAs: "\u0110\u00e3 \u0111\u0103ng nh\u1eadp d\u01b0\u1edbi t\u00ean",

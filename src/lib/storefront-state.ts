@@ -563,6 +563,7 @@ export function createStorefrontOrder(
       adminNote: normalizeText(input.adminNote) || undefined,
       username: normalizeText(input.username) || undefined,
       items: input.items,
+      locationVerification: input.locationVerification,
       shippingAddress: input.shippingAddress,
     },
   ])[0];

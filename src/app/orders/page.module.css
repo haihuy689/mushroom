@@ -91,7 +91,7 @@
 
 .summaryGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -191,7 +191,19 @@
   white-space: nowrap;
 }
 
-.statusPill[data-status="processing"] {
+.statusPill[data-status="pending_payment"] {
+  background: rgba(255, 214, 156, 0.56);
+  color: #7a4618;
+}
+
+.statusPill[data-status="payment_failed"] {
+  background: rgba(255, 228, 221, 0.78);
+  color: #9a352c;
+}
+
+.statusPill[data-status="paid"],
+.statusPill[data-status="confirmed"],
+.statusPill[data-status="preparing"] {
   background: rgba(255, 214, 156, 0.56);
   color: #7a4618;
 }
@@ -240,9 +252,31 @@
   color: #29150d;
 }
 
+.paymentNotice {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 248, 232, 0.78);
+  border: 1px solid rgba(83, 50, 27, 0.08);
+}
+
+.paymentNotice[data-status="payment_failed"] {
+  background: rgba(255, 228, 221, 0.78);
+  border-color: rgba(154, 71, 56, 0.24);
+}
+
+.paymentNotice strong {
+  color: #29150d;
+}
+
+.paymentNotice p {
+  margin: 0;
+}
+
 .progressTrack {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -326,7 +360,7 @@
 @media (max-width: 720px) {
   .summaryGrid,
   .progressTrack {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .orderTop {
@@ -335,6 +369,13 @@
 
   .itemRow {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .summaryGrid,
+  .progressTrack {
+    grid-template-columns: 1fr;
   }
 }
 

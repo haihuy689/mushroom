@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { getOrderStatusCounts, resolveOrderStatus } from "@/lib/order-tracking";
+import type { OrderStatus } from "@/lib/order-status";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
 import { useStorefront } from "@/components/storefront-provider";
 import styles from "./page.module.css";
@@ -27,10 +28,14 @@ export function AccountPageClient({
     timeStyle: "short",
   });
 
-  const statusLabelByKey = {
-    processing: orderCopy.processing,
-    shipping: orderCopy.shipping,
+  const statusLabelByKey: Record<OrderStatus, string> = {
+    confirmed: orderCopy.confirmed,
     delivered: orderCopy.delivered,
+    paid: orderCopy.paid,
+    payment_failed: orderCopy.paymentFailed,
+    pending_payment: orderCopy.pendingPayment,
+    preparing: orderCopy.preparing,
+    shipping: orderCopy.shipping,
   };
 
   return (
@@ -68,16 +73,16 @@ export function AccountPageClient({
 
           <div className={styles.statusGrid}>
             <article className={styles.statusCard}>
-              <strong>{hydrated ? statusCounts?.processing ?? 0 : copy.loading}</strong>
-              <span>{orderCopy.processing}</span>
+              <strong>{hydrated ? statusCounts?.pending_payment ?? 0 : copy.loading}</strong>
+              <span>{orderCopy.pendingPayment}</span>
+            </article>
+            <article className={styles.statusCard}>
+              <strong>{hydrated ? statusCounts?.paid ?? 0 : copy.loading}</strong>
+              <span>{orderCopy.paid}</span>
             </article>
             <article className={styles.statusCard}>
               <strong>{hydrated ? statusCounts?.shipping ?? 0 : copy.loading}</strong>
               <span>{orderCopy.shipping}</span>
-            </article>
-            <article className={styles.statusCard}>
-              <strong>{hydrated ? statusCounts?.delivered ?? 0 : copy.loading}</strong>
-              <span>{orderCopy.delivered}</span>
             </article>
           </div>
 
@@ -122,6 +127,14 @@ export function AccountPageClient({
                         {order.quantity} x / {order.totalPi} Pi
                       </span>
                       <span>{addressLabel}</span>
+                      {status === "pending_payment" ||
+                      status === "payment_failed" ? (
+                        <span className={styles.paymentWarning}>
+                          {status === "pending_payment"
+                            ? orderCopy.paymentPendingNotice
+                            : orderCopy.paymentFailedNotice}
+                        </span>
+                      ) : null}
                     </div>
                     <div className={styles.orderMeta}>
                       <span

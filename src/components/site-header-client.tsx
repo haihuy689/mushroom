@@ -40,7 +40,8 @@ type HeaderCopy = Pick<
     | "menuSignedInHint"
     | "orders"
     | "ordersAria"
-    | "processing"
+    | "paid"
+    | "pendingPayment"
     | "shipping"
     | "statusSummaryTitle"
     | "viewAllOrders"
@@ -263,7 +264,11 @@ function AccountMenu({
   const orderCounts = hydrated
     ? getOrderStatusCounts(orders)
     : {
-        processing: 0,
+        pending_payment: 0,
+        payment_failed: 0,
+        paid: 0,
+        confirmed: 0,
+        preparing: 0,
         shipping: 0,
         delivered: 0,
       };
@@ -303,16 +308,16 @@ function AccountMenu({
             </span>
             <div className={styles.accountStatusGrid}>
               <article className={styles.accountStatCard}>
-                <strong>{orderCounts.processing}</strong>
-                <span>{copy.processing}</span>
+                <strong>{orderCounts.pending_payment}</strong>
+                <span>{copy.pendingPayment}</span>
+              </article>
+              <article className={styles.accountStatCard}>
+                <strong>{orderCounts.paid}</strong>
+                <span>{copy.paid}</span>
               </article>
               <article className={styles.accountStatCard}>
                 <strong>{orderCounts.shipping}</strong>
                 <span>{copy.shipping}</span>
-              </article>
-              <article className={styles.accountStatCard}>
-                <strong>{orderCounts.delivered}</strong>
-                <span>{copy.delivered}</span>
               </article>
             </div>
           </div>

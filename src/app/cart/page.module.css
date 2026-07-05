@@ -176,6 +176,7 @@
 }
 
 .sectionHeading,
+.compactCartBar,
 .lineHeader,
 .lineFooter,
 .addressTop {
@@ -186,6 +187,11 @@
 
 .sectionHeading {
   align-items: start;
+}
+
+.compactCartBar {
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .lineCount {
@@ -444,7 +450,8 @@
   .lineHeader,
   .lineFooter,
   .addressTop,
-  .sectionHeading {
+  .sectionHeading,
+  .compactCartBar {
     flex-direction: column;
   }
 

@@ -3,6 +3,7 @@ import type { SiteLocale } from "@/lib/i18n";
 export type OrderCenterCopy = {
   allOrders: string;
   browseShop: string;
+  confirmed: string;
   delivered: string;
   latestOrdersTitle: string;
   menuGuestHint: string;
@@ -18,7 +19,12 @@ export type OrderCenterCopy = {
   ordersPageDescription: string;
   ordersPageTitle: string;
   ordersTitle: string;
-  processing: string;
+  paymentFailedNotice: string;
+  paymentPendingNotice: string;
+  paid: string;
+  paymentFailed: string;
+  pendingPayment: string;
+  preparing: string;
   shipping: string;
   statusSummaryTitle: string;
   updatedLabel: string;
@@ -29,6 +35,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
   en: {
     allOrders: "All",
     browseShop: "Browse shop",
+    confirmed: "Buyer confirmed",
     delivered: "Delivered",
     latestOrdersTitle: "Latest orders",
     menuGuestHint: "Track your cart and orders from one shopper menu.",
@@ -42,12 +49,19 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
       "Your successful Pi orders will appear here for follow-up tracking.",
     ordersEmptyTitle: "No orders yet",
     ordersLead:
-      "This order center keeps your Mushroom.Pi purchases organized with clear stages for processing, shipping, and delivered.",
+      "This order center keeps your Mushroom.Pi purchases organized from payment to preparation, shipping, and delivery.",
     ordersPageDescription:
-      "Track Mushroom.Pi orders by processing, shipping, and delivered states.",
+      "Track Mushroom.Pi orders by payment and delivery states.",
     ordersPageTitle: "Orders | Mushroom.Pi",
     ordersTitle: "Order center",
-    processing: "Processing",
+    paymentFailedNotice:
+      "This order has not been paid successfully. Please return to checkout and create a new Pi payment when you are ready.",
+    paymentPendingNotice:
+      "This order is waiting for Pi payment confirmation. If payment was not completed, please checkout again.",
+    paid: "Paid",
+    paymentFailed: "Payment failed",
+    pendingPayment: "Awaiting payment",
+    preparing: "Preparing",
     shipping: "Shipping",
     statusSummaryTitle: "Order status",
     updatedLabel: "Updated",
@@ -56,6 +70,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
   vi: {
     allOrders: "T\u1ea5t c\u1ea3",
     browseShop: "V\u00e0o shop",
+    confirmed: "Ng\u01b0\u1eddi mua \u0111\u00e3 x\u00e1c nh\u1eadn",
     delivered: "\u0110\u00e3 giao",
     latestOrdersTitle: "\u0110\u01a1n g\u1ea7n \u0111\u00e2y",
     menuGuestHint:
@@ -68,15 +83,22 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     orders: "\u0110\u01a1n h\u00e0ng",
     ordersAria: "M\u1edf \u0111\u01a1n h\u00e0ng",
     ordersEmptyBody:
-      "Khi thanh to\u00e1n Pi th\u00e0nh c\u00f4ng, \u0111\u01a1n s\u1ebd hi\u1ec7n \u1edf \u0111\u00e2y \u0111\u1ec3 theo d\u00f5i.",
+      "\u0110\u01a1n \u0111ang ch\u1edd thanh to\u00e1n, thanh to\u00e1n th\u1ea5t b\u1ea1i ho\u1eb7c \u0111\u00e3 thanh to\u00e1n s\u1ebd hi\u1ec7n \u1edf \u0111\u00e2y \u0111\u1ec3 theo d\u00f5i.",
     ordersEmptyTitle: "Ch\u01b0a c\u00f3 \u0111\u01a1n h\u00e0ng",
     ordersLead:
-      "Trung t\u00e2m n\u00e0y gom c\u00e1c \u0111\u01a1n Mushroom.Pi theo ki\u1ec3u storefront, gi\u00fap ng\u01b0\u1eddi d\u00f9ng nh\u00ecn nhanh \u0111ang x\u1eed l\u00fd, \u0111ang giao hay \u0111\u00e3 giao.",
+      "Theo d\u00f5i \u0111\u01a1n Mushroom.Pi t\u1eeb l\u00fac ch\u1edd thanh to\u00e1n, \u0111\u00e3 thanh to\u00e1n, \u0111ang so\u1ea1n h\u00e0ng, \u0111ang giao \u0111\u1ebfn khi \u0111\u00e3 giao.",
     ordersPageDescription:
-      "Theo d\u00f5i \u0111\u01a1n Mushroom.Pi theo c\u00e1c tr\u1ea1ng th\u00e1i x\u1eed l\u00fd, \u0111ang giao v\u00e0 \u0111\u00e3 giao.",
+      "Theo d\u00f5i \u0111\u01a1n Mushroom.Pi theo c\u00e1c tr\u1ea1ng th\u00e1i thanh to\u00e1n v\u00e0 giao h\u00e0ng.",
     ordersPageTitle: "\u0110\u01a1n h\u00e0ng | Mushroom.Pi",
     ordersTitle: "Trung t\u00e2m \u0111\u01a1n h\u00e0ng",
-    processing: "\u0110ang x\u1eed l\u00fd",
+    paymentFailedNotice:
+      "\u0110\u01a1n n\u00e0y ch\u01b0a thanh to\u00e1n th\u00e0nh c\u00f4ng. H\u00e3y quay l\u1ea1i gi\u1ecf h\u00e0ng v\u00e0 t\u1ea1o thanh to\u00e1n Pi m\u1edbi khi b\u1ea1n s\u1eb5n s\u00e0ng.",
+    paymentPendingNotice:
+      "\u0110\u01a1n n\u00e0y \u0111ang ch\u1edd x\u00e1c nh\u1eadn thanh to\u00e1n Pi. N\u1ebfu b\u1ea1n ch\u01b0a ho\u00e0n t\u1ea5t thanh to\u00e1n, h\u00e3y thanh to\u00e1n l\u1ea1i t\u1eeb gi\u1ecf h\u00e0ng.",
+    paid: "\u0110\u00e3 thanh to\u00e1n",
+    paymentFailed: "Thanh to\u00e1n th\u1ea5t b\u1ea1i",
+    pendingPayment: "Ch\u1edd thanh to\u00e1n",
+    preparing: "\u0110ang so\u1ea1n h\u00e0ng",
     shipping: "\u0110ang giao",
     statusSummaryTitle: "Tr\u1ea1ng th\u00e1i \u0111\u01a1n",
     updatedLabel: "C\u1eadp nh\u1eadt",
@@ -85,6 +107,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
   es: {
     allOrders: "Todos",
     browseShop: "Ver tienda",
+    confirmed: "Confirmado por comprador",
     delivered: "Entregado",
     latestOrdersTitle: "Pedidos recientes",
     menuGuestHint:
@@ -100,12 +123,19 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
       "Tus pedidos pagados con Pi apareceran aqui para seguimiento.",
     ordersEmptyTitle: "Aun no hay pedidos",
     ordersLead:
-      "Este centro organiza las compras de Mushroom.Pi con etapas claras para procesamiento, envio y entrega.",
+      "Este centro organiza tus compras de Mushroom.Pi desde el pago hasta la preparacion, envio y entrega.",
     ordersPageDescription:
       "Sigue los pedidos de Mushroom.Pi por procesamiento, envio y entregado.",
     ordersPageTitle: "Pedidos | Mushroom.Pi",
     ordersTitle: "Centro de pedidos",
-    processing: "Procesando",
+    paymentFailedNotice:
+      "Este pedido no se pago correctamente. Vuelve al checkout y crea un nuevo pago Pi cuando estes listo.",
+    paymentPendingNotice:
+      "Este pedido espera confirmacion de pago Pi. Si no terminaste el pago, vuelve al checkout.",
+    paid: "Pagado",
+    paymentFailed: "Pago fallido",
+    pendingPayment: "Pendiente de pago",
+    preparing: "Preparando",
     shipping: "En camino",
     statusSummaryTitle: "Estado del pedido",
     updatedLabel: "Actualizado",
@@ -114,6 +144,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
   fr: {
     allOrders: "Tous",
     browseShop: "Voir la boutique",
+    confirmed: "Confirmee par l'acheteur",
     delivered: "Livre",
     latestOrdersTitle: "Commandes recentes",
     menuGuestHint:
@@ -129,12 +160,19 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
       "Vos commandes payees avec Pi apparaitront ici pour le suivi.",
     ordersEmptyTitle: "Aucune commande pour le moment",
     ordersLead:
-      "Ce centre regroupe les achats Mushroom.Pi avec des etapes lisibles pour la preparation, l'expedition et la livraison.",
+      "Ce centre regroupe les achats Mushroom.Pi du paiement a la preparation, l'expedition et la livraison.",
     ordersPageDescription:
       "Suivez les commandes Mushroom.Pi par preparation, expedition et livraison.",
     ordersPageTitle: "Commandes | Mushroom.Pi",
     ordersTitle: "Centre de commandes",
-    processing: "Preparation",
+    paymentFailedNotice:
+      "Cette commande n'a pas ete payee correctement. Revenez au checkout et creez un nouveau paiement Pi quand vous etes pret.",
+    paymentPendingNotice:
+      "Cette commande attend la confirmation du paiement Pi. Si le paiement n'est pas termine, revenez au checkout.",
+    paid: "Payee",
+    paymentFailed: "Paiement echoue",
+    pendingPayment: "Paiement en attente",
+    preparing: "Preparation",
     shipping: "Expedition",
     statusSummaryTitle: "Statut des commandes",
     updatedLabel: "Mise a jour",
@@ -143,6 +181,7 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
   zh: {
     allOrders: "\u5168\u90e8",
     browseShop: "\u524d\u5f80\u5546\u5e97",
+    confirmed: "\u4e70\u5bb6\u5df2\u786e\u8ba4",
     delivered: "\u5df2\u9001\u8fbe",
     latestOrdersTitle: "\u6700\u8fd1\u8ba2\u5355",
     menuGuestHint:
@@ -158,12 +197,19 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
       "\u6210\u529f\u7684 Pi \u8ba2\u5355\u4f1a\u51fa\u73b0\u5728\u8fd9\u91cc\u4f9b\u4f60\u7ee7\u7eed\u8ddf\u8e2a\u3002",
     ordersEmptyTitle: "\u8fd8\u6ca1\u6709\u8ba2\u5355",
     ordersLead:
-      "\u8fd9\u4e2a\u8ba2\u5355\u4e2d\u5fc3\u4ee5 storefront \u65b9\u5f0f\u6574\u7406 Mushroom.Pi \u7684\u8d2d\u7269\u8bb0\u5f55\uff0c\u65b9\u4fbf\u67e5\u770b\u5904\u7406\u4e2d\u3001\u8fd0\u9001\u4e2d\u548c\u5df2\u9001\u8fbe\u3002",
+      "\u8fd9\u4e2a\u8ba2\u5355\u4e2d\u5fc3\u4f1a\u4ece\u652f\u4ed8\u3001\u5907\u8d27\u3001\u914d\u9001\u5230\u9001\u8fbe\u6574\u7406 Mushroom.Pi \u8ba2\u5355\u3002",
     ordersPageDescription:
       "\u6309\u5904\u7406\u4e2d\u3001\u8fd0\u9001\u4e2d\u3001\u5df2\u9001\u8fbe\u8ddf\u8e2a Mushroom.Pi \u8ba2\u5355\u3002",
     ordersPageTitle: "\u8ba2\u5355 | Mushroom.Pi",
     ordersTitle: "\u8ba2\u5355\u4e2d\u5fc3",
-    processing: "\u5904\u7406\u4e2d",
+    paymentFailedNotice:
+      "\u8fd9\u7b14\u8ba2\u5355\u5c1a\u672a\u6210\u529f\u652f\u4ed8\u3002\u8bf7\u56de\u5230\u7ed3\u8d26\u9875\u91cd\u65b0\u53d1\u8d77 Pi \u652f\u4ed8\u3002",
+    paymentPendingNotice:
+      "\u8fd9\u7b14\u8ba2\u5355\u6b63\u5728\u7b49\u5f85 Pi \u652f\u4ed8\u786e\u8ba4\u3002\u5982\u679c\u5c1a\u672a\u5b8c\u6210\u652f\u4ed8\uff0c\u8bf7\u56de\u5230\u7ed3\u8d26\u9875\u3002",
+    paid: "\u5df2\u652f\u4ed8",
+    paymentFailed: "\u652f\u4ed8\u5931\u8d25",
+    pendingPayment: "\u5f85\u652f\u4ed8",
+    preparing: "\u5907\u8d27\u4e2d",
     shipping: "\u914d\u9001\u4e2d",
     statusSummaryTitle: "\u8ba2\u5355\u72b6\u6001",
     updatedLabel: "\u66f4\u65b0",

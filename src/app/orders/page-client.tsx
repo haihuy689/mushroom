@@ -9,7 +9,10 @@ import {
   getOrderStatusStepIndex,
   resolveOrderStatus,
 } from "@/lib/order-tracking";
-import type { OrderStatus } from "@/lib/order-status";
+import {
+  TRACKABLE_ORDER_STATUSES,
+  type OrderStatus,
+} from "@/lib/order-status";
 import { useStorefront } from "@/components/storefront-provider";
 import styles from "./page.module.css";
 
@@ -58,9 +61,24 @@ export function OrdersPageClient({
       count: hydrated ? orders.length : 0,
     },
     {
-      key: "processing",
-      label: copy.processing,
-      count: statusCounts?.processing ?? 0,
+      key: "pending_payment",
+      label: copy.pendingPayment,
+      count: statusCounts?.pending_payment ?? 0,
+    },
+    {
+      key: "payment_failed",
+      label: copy.paymentFailed,
+      count: statusCounts?.payment_failed ?? 0,
+    },
+    {
+      key: "paid",
+      label: copy.paid,
+      count: statusCounts?.paid ?? 0,
+    },
+    {
+      key: "preparing",
+      label: copy.preparing,
+      count: statusCounts?.preparing ?? 0,
     },
     {
       key: "shipping",
@@ -75,10 +93,15 @@ export function OrdersPageClient({
   ];
 
   const statusLabelByKey: Record<OrderStatus, string> = {
-    processing: copy.processing,
+    confirmed: copy.confirmed,
+    paid: copy.paid,
+    payment_failed: copy.paymentFailed,
+    pending_payment: copy.pendingPayment,
+    preparing: copy.preparing,
     shipping: copy.shipping,
     delivered: copy.delivered,
   };
+  const loadingLabel = locale === "vi" ? "\u0110ang t\u1ea3i..." : "Loading...";
 
   return (
     <div className={styles.page}>
@@ -93,15 +116,19 @@ export function OrdersPageClient({
           <p className={styles.summaryLabel}>{copy.statusSummaryTitle}</p>
           <div className={styles.summaryGrid}>
             <article className={styles.summaryCard}>
-              <strong>{hydrated ? statusCounts?.processing ?? 0 : copy.processing}</strong>
-              <span>{copy.processing}</span>
+              <strong>{hydrated ? statusCounts?.pending_payment ?? 0 : loadingLabel}</strong>
+              <span>{copy.pendingPayment}</span>
             </article>
             <article className={styles.summaryCard}>
-              <strong>{hydrated ? statusCounts?.shipping ?? 0 : copy.shipping}</strong>
+              <strong>{hydrated ? statusCounts?.paid ?? 0 : loadingLabel}</strong>
+              <span>{copy.paid}</span>
+            </article>
+            <article className={styles.summaryCard}>
+              <strong>{hydrated ? statusCounts?.shipping ?? 0 : loadingLabel}</strong>
               <span>{copy.shipping}</span>
             </article>
             <article className={styles.summaryCard}>
-              <strong>{hydrated ? statusCounts?.delivered ?? 0 : copy.delivered}</strong>
+              <strong>{hydrated ? statusCounts?.delivered ?? 0 : loadingLabel}</strong>
               <span>{copy.delivered}</span>
             </article>
           </div>
@@ -126,7 +153,7 @@ export function OrdersPageClient({
 
         {!hydrated ? (
           <div className={styles.emptyState}>
-            <h2>Loading...</h2>
+            <h2>{loadingLabel}</h2>
             <p>{copy.ordersLead}</p>
           </div>
         ) : visibleOrders.length === 0 ? (
@@ -167,7 +194,7 @@ export function OrdersPageClient({
                   <div className={styles.orderTop}>
                     <div>
                       <span className={styles.orderCode}>
-                        {copy.orderCodeLabel} #{order.id.slice(-8).toUpperCase()}
+                        {copy.orderCodeLabel} #{order.id}
                       </span>
                       <h2>{headline}</h2>
                       <p>
@@ -207,9 +234,21 @@ export function OrdersPageClient({
                     </ul>
                   ) : null}
 
-                  <div className={styles.progressTrack}>
-                    {(["processing", "shipping", "delivered"] as OrderStatus[]).map(
-                      (step, index) => (
+                  {status === "pending_payment" || status === "payment_failed" ? (
+                    <div className={styles.paymentNotice} data-status={status}>
+                      <strong>{statusLabelByKey[status]}</strong>
+                      <p>
+                        {status === "pending_payment"
+                          ? copy.paymentPendingNotice
+                          : copy.paymentFailedNotice}
+                      </p>
+                      <Link href="/cart" className={styles.secondaryLink}>
+                        {copy.openCart}
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className={styles.progressTrack}>
+                      {TRACKABLE_ORDER_STATUSES.map((step, index) => (
                         <div
                           key={step}
                           className={styles.progressStep}
@@ -219,9 +258,9 @@ export function OrdersPageClient({
                           <span className={styles.progressDot} />
                           <strong>{statusLabelByKey[step]}</strong>
                         </div>
-                      ),
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </article>
               );
             })}

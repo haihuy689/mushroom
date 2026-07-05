@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStorefront, type StorefrontAddress } from "@/components/storefront-provider";
+import type { OrderStatus } from "@/lib/order-status";
 import type { Product } from "@/lib/pi-types";
 import type { PiCheckoutCopy } from "@/lib/public-site-copy";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
@@ -157,6 +158,23 @@ async function postJson<T>(
   return data;
 }
 
+function createOrderCode() {
+  const now = new Date();
+  const datePart = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("");
+  const timePart = [
+    String(now.getHours()).padStart(2, "0"),
+    String(now.getMinutes()).padStart(2, "0"),
+    String(now.getSeconds()).padStart(2, "0"),
+  ].join("");
+  const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+
+  return `MP-${datePart}-${timePart}-${randomPart}`;
+}
+
 export function CartCheckoutCard({
   copy,
   hasInventoryIssue = false,
@@ -282,18 +300,68 @@ export function CartCheckoutCard({
       return;
     }
 
+    const orderCode = createOrderCode();
+    const frozenLines = lines.map((line) => ({
+      productId: line.product.id,
+      productName: line.product.name,
+      quantity: line.quantity,
+      totalPi: line.lineTotalPi,
+    }));
+    const frozenAddress = selectedAddress;
+    const frozenLocationVerification = activeLocationVerification;
+    const baseOrder = {
+      id: orderCode,
+      productId: lines.length === 1 ? lines[0].product.id : "mushroom-cart",
+      productName:
+        lines.length === 1 ? lines[0].product.name : `Mushroom.Pi ${orderCode}`,
+      quantity: totalItems,
+      totalPi,
+      username: viewer.username,
+      shopperUid: viewer.uid,
+      items: frozenLines,
+      locationVerification: frozenLocationVerification,
+      shippingAddress: {
+        fullName: frozenAddress.fullName,
+        phone: frozenAddress.phone,
+        line1: frozenAddress.line1,
+        line2: frozenAddress.line2,
+        ward: frozenAddress.ward,
+        district: frozenAddress.district,
+        city: frozenAddress.city,
+        country: frozenAddress.country,
+        note: frozenAddress.note,
+      },
+    };
+    const recordOrderStatus = (
+      status: OrderStatus,
+      paymentId?: string,
+      txid?: string,
+    ) => {
+      recordOrder({
+        ...baseOrder,
+        paymentId,
+        status,
+        statusUpdatedAt: new Date().toISOString(),
+        statusUpdatedBy: "Pi Network Testnet",
+        txid,
+      });
+    };
+
+    recordOrderStatus("pending_payment");
     setPaymentBusy(true);
     setMessage(null);
 
     window.Pi.createPayment(
       {
         amount: totalPi,
-        memo: `Mushroom.Pi cart order (${totalItems} items)`,
+        memo: orderCode,
         metadata: {
           lineCount: lines.length,
           itemCount: totalItems,
+          orderCode,
+          orderId: orderCode,
           productId: "mushroom-cart",
-          productName: "Mushroom.Pi Cart",
+          productName: `Mushroom.Pi ${orderCode}`,
           surface: "mushroom-pi-cart",
           testMode: true,
         },
@@ -306,7 +374,9 @@ export function CartCheckoutCard({
               { paymentId },
               piCopy.approvalFailed,
             );
+            recordOrderStatus("pending_payment", paymentId);
           } catch (error) {
+            recordOrderStatus("payment_failed", paymentId);
             setPaymentBusy(false);
             setMessage({
               kind: "error",
@@ -322,34 +392,7 @@ export function CartCheckoutCard({
               piCopy.completionFailed,
             );
 
-            recordOrder({
-              paymentId,
-              productId: lines.length === 1 ? lines[0].product.id : "mushroom-cart",
-              productName:
-                lines.length === 1 ? lines[0].product.name : "Mushroom.Pi Cart",
-              quantity: totalItems,
-              totalPi,
-              txid,
-              username: viewer.username,
-              items: lines.map((line) => ({
-                productId: line.product.id,
-                productName: line.product.name,
-                quantity: line.quantity,
-                totalPi: line.lineTotalPi,
-              })),
-              locationVerification: activeLocationVerification,
-              shippingAddress: {
-                fullName: selectedAddress.fullName,
-                phone: selectedAddress.phone,
-                line1: selectedAddress.line1,
-                line2: selectedAddress.line2,
-                ward: selectedAddress.ward,
-                district: selectedAddress.district,
-                city: selectedAddress.city,
-                country: selectedAddress.country,
-                note: selectedAddress.note,
-              },
-            });
+            recordOrderStatus("paid", paymentId, txid);
 
             clearCart();
             setPaymentBusy(false);
@@ -364,9 +407,11 @@ export function CartCheckoutCard({
               kind: "error",
               text: error instanceof Error ? error.message : piCopy.completionFailed,
             });
+            recordOrderStatus("payment_failed", paymentId);
           }
         },
         onCancel: (paymentId) => {
+          recordOrderStatus("payment_failed", paymentId);
           setPaymentBusy(false);
           setMessage({
             kind: "error",
@@ -374,6 +419,7 @@ export function CartCheckoutCard({
           });
         },
         onError: (error) => {
+          recordOrderStatus("payment_failed");
           setPaymentBusy(false);
           setMessage({
             kind: "error",
@@ -471,7 +517,6 @@ export function CartCheckoutCard({
       <div className={styles.top}>
         <div>
           <p className={styles.eyebrow}>{copy.checkoutTitle}</p>
-          <h2>{copy.cartSummaryTitle}</h2>
         </div>
       </div>
 
@@ -480,19 +525,7 @@ export function CartCheckoutCard({
           <span>{copy.total}</span>
           <strong>{totalPi} Pi</strong>
         </div>
-        <div className={styles.summaryMeta}>
-          {lines.length} {copy.linesLabel} / {totalItems} {copy.itemsLabel}
-        </div>
       </div>
-
-      <p className={styles.lead}>{copy.checkoutLead}</p>
-
-      {viewer ? (
-        <div className={styles.viewerCard}>
-          <span>{copy.checkoutSignedInAs}</span>
-          <strong>{viewer.username ?? viewer.uid}</strong>
-        </div>
-      ) : null}
 
       {selectedAddress ? (
         <div className={styles.addressCard}>
@@ -519,7 +552,7 @@ export function CartCheckoutCard({
               ? copy.locationVerified
               : activeLocationVerification?.status === "mismatch"
                 ? copy.locationMismatch
-                : copy.locationVerifyLead}
+                : copy.locationRequired}
           </strong>
           {activeLocationVerification ? (
             <p>
@@ -589,8 +622,6 @@ export function CartCheckoutCard({
           {paymentBusy ? copy.placingOrder : copy.placeOrder}
         </button>
       </div>
-
-      <p className={styles.hint}>{copy.checkoutHint}</p>
     </section>
   );
 }

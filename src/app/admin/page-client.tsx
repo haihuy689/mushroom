@@ -464,7 +464,13 @@ export function AdminPageClient({
     () => staff.filter((member) => !member.isActive),
     [staff],
   );
-  const openOrders = orderCounts.processing + orderCounts.shipping;
+  const openOrders =
+    orderCounts.pending_payment +
+    orderCounts.payment_failed +
+    orderCounts.paid +
+    orderCounts.confirmed +
+    orderCounts.preparing +
+    orderCounts.shipping;
   const totalSalesPi = useMemo(
     () =>
       orders.reduce((total, order) => total + Number(order.totalPi || 0), 0),
@@ -480,8 +486,12 @@ export function AdminPageClient({
   );
 
   const statusLabelByKey: Record<OrderStatus, string> = {
+    confirmed: orderCopy.confirmed,
     delivered: orderCopy.delivered,
-    processing: orderCopy.processing,
+    paid: orderCopy.paid,
+    payment_failed: orderCopy.paymentFailed,
+    pending_payment: orderCopy.pendingPayment,
+    preparing: orderCopy.preparing,
     shipping: orderCopy.shipping,
   };
 
@@ -2559,7 +2569,8 @@ export function AdminPageClient({
                       <h4>{orderCopy.orders}</h4>
                     </div>
                     <div className={styles.inlineMetrics}>
-                      <span>{orderCopy.processing}: {orderCounts.processing}</span>
+                      <span>{orderCopy.pendingPayment}: {orderCounts.pending_payment}</span>
+                      <span>{orderCopy.paid}: {orderCounts.paid}</span>
                       <span>{orderCopy.shipping}: {orderCounts.shipping}</span>
                       <span>{orderCopy.delivered}: {orderCounts.delivered}</span>
                     </div>
