@@ -6,9 +6,12 @@ export type StorefrontProductRecord = {
   category: string;
   compareAtPi: number | null;
   costPi: number | null;
+  actualSoldCount: number;
+  baseSoldCount: number;
   createdAt: string;
   description: string;
   format: string;
+  galleryImageUrls: string[];
   id: string;
   imageUrl: string;
   inventoryCount: number;
@@ -18,11 +21,13 @@ export type StorefrontProductRecord = {
   name: string;
   packaging: string;
   pricePi: number;
+  mediaNote: string;
   slug: string;
   sourceProductId: string | null;
   sku: string;
   tagline: string;
   updatedAt: string;
+  videoUrl: string;
   weightUnit: string | null;
   weightValue: number | null;
 };
@@ -41,6 +46,19 @@ const DEFAULT_WEIGHT_UNIT = "g";
 
 function normalizeText(value: string | null | undefined) {
   return value?.trim() ?? "";
+}
+
+function normalizeStringList(value: string[] | string | null | undefined) {
+  const values = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? value.split(/\r?\n/)
+      : [];
+
+  return values
+    .map((item) => normalizeText(item))
+    .filter(Boolean)
+    .slice(0, 12);
 }
 
 function normalizeInteger(value: number | string | null | undefined) {
@@ -141,8 +159,11 @@ export function createEmptyStorefrontProductInput(): StorefrontProductInput {
     category: DEFAULT_CATEGORY,
     compareAtPi: null,
     costPi: null,
+    actualSoldCount: 0,
+    baseSoldCount: 0,
     description: "",
     format: DEFAULT_FORMAT,
+    galleryImageUrls: [],
     id: "",
     imageUrl: "",
     inventoryCount: 0,
@@ -152,10 +173,12 @@ export function createEmptyStorefrontProductInput(): StorefrontProductInput {
     name: "",
     packaging: "",
     pricePi: 0,
+    mediaNote: "",
     slug: "",
     sourceProductId: null,
     sku: "",
     tagline: "",
+    videoUrl: "",
     weightUnit: DEFAULT_WEIGHT_UNIT,
     weightValue: null,
   };
@@ -190,8 +213,11 @@ export function normalizeStorefrontProductInput(
     category: normalizeText(input.category) || DEFAULT_CATEGORY,
     compareAtPi: normalizeNullableDecimal(input.compareAtPi),
     costPi: normalizeNullableDecimal(input.costPi),
+    actualSoldCount: normalizeInteger(input.actualSoldCount),
+    baseSoldCount: normalizeInteger(input.baseSoldCount),
     description: normalizeText(input.description),
     format: normalizeText(input.format) || DEFAULT_FORMAT,
+    galleryImageUrls: normalizeStringList(input.galleryImageUrls),
     id,
     imageUrl: normalizeText(input.imageUrl),
     inventoryCount: normalizeInteger(input.inventoryCount),
@@ -201,10 +227,12 @@ export function normalizeStorefrontProductInput(
     name,
     packaging: normalizeText(input.packaging),
     pricePi: normalizeDecimal(input.pricePi),
+    mediaNote: normalizeText(input.mediaNote),
     slug: slug || id,
     sourceProductId,
     sku,
     tagline: normalizeText(input.tagline),
+    videoUrl: normalizeText(input.videoUrl),
     weightUnit: normalizeText(input.weightUnit) || null,
     weightValue: normalizeWeightValue(input.weightValue),
   } satisfies StorefrontProductInput;
@@ -238,8 +266,11 @@ export function mapProductRecordToProduct(
     category: product.category,
     compareAtPi: product.compareAtPi ?? undefined,
     costPi: product.costPi ?? undefined,
+    actualSoldCount: product.actualSoldCount,
+    baseSoldCount: product.baseSoldCount,
     description: product.description,
     format: product.format,
+    galleryImageUrls: product.galleryImageUrls,
     id: product.id,
     imageUrl: product.imageUrl || undefined,
     inventoryCount: product.inventoryCount,
@@ -249,10 +280,12 @@ export function mapProductRecordToProduct(
     name: product.name,
     packaging: product.packaging || undefined,
     pricePi: product.pricePi,
+    mediaNote: product.mediaNote || undefined,
     slug: product.slug,
     sourceProductId: product.sourceProductId ?? undefined,
     sku: product.sku || undefined,
     tagline: product.tagline,
+    videoUrl: product.videoUrl || undefined,
     weightUnit: product.weightUnit ?? undefined,
     weightValue: product.weightValue ?? undefined,
   };

@@ -120,9 +120,12 @@ type ProductRow = {
   category: string;
   compare_at_pi: string | number | null;
   cost_pi: string | number | null;
+  actual_sold_count: number;
+  base_sold_count: number;
   created_at: string;
   description: string;
   format: string;
+  gallery_image_urls: unknown;
   id: string;
   image_url: string;
   inventory_count: number;
@@ -132,18 +135,19 @@ type ProductRow = {
   name: string;
   packaging: string;
   price_pi: string | number;
+  media_note: string;
   slug: string;
   source_product_id: string | null;
   sku: string;
   tagline: string;
   updated_at: string;
+  video_url: string;
   weight_unit: string | null;
   weight_value: string | number | null;
 };
 
 declare global {
   var __mushroomStorefrontSchemaPromise: Promise<boolean> | undefined;
-  var __mushroomStorefrontProductSeedPromise: Promise<boolean> | undefined;
 }
 
 const STOREFRONT_DB_TIMEOUT_MS = 8000;
@@ -182,6 +186,11 @@ const STOREFRONT_REQUIRED_COLUMNS = [
   { table: "storefront_products", column: "image_url" },
   { table: "storefront_products", column: "is_featured" },
   { table: "storefront_products", column: "low_stock_threshold" },
+  { table: "storefront_products", column: "base_sold_count" },
+  { table: "storefront_products", column: "actual_sold_count" },
+  { table: "storefront_products", column: "gallery_image_urls" },
+  { table: "storefront_products", column: "video_url" },
+  { table: "storefront_products", column: "media_note" },
 ] as const;
 
 function withStorefrontTimeout<T>(promise: Promise<T>, label: string) {
@@ -234,22 +243,6 @@ async function hasStorefrontCoreSchema(sql: NonNullable<ReturnType<typeof getSql
         columnSet.has(`${entry.table}:${entry.column}`),
       )
     );
-  } catch {
-    return false;
-  }
-}
-
-async function hasStorefrontSeedProducts(sql: NonNullable<ReturnType<typeof getSql>>) {
-  try {
-    const rows = await sql<{ exists: boolean }[]>`
-      select exists (
-        select 1
-        from storefront_products
-        limit 1
-      ) as exists
-    `;
-
-    return rows[0]?.exists === true;
   } catch {
     return false;
   }
@@ -420,10 +413,15 @@ export async function ensureStorefrontSchema() {
               price_pi numeric(18, 4) not null,
               compare_at_pi numeric(18, 4),
               cost_pi numeric(18, 4),
+              base_sold_count integer not null default 0,
+              actual_sold_count integer not null default 0,
               badge text not null default '',
               accent text not null default '#c38a33',
               packaging text not null default '',
               image_url text not null default '',
+              gallery_image_urls jsonb not null default '[]'::jsonb,
+              video_url text not null default '',
+              media_note text not null default '',
               weight_value numeric(10, 2),
               weight_unit text,
               inventory_count integer not null default 0,
@@ -449,6 +447,26 @@ export async function ensureStorefrontSchema() {
           await transaction`
             alter table storefront_products
             add column if not exists image_url text not null default ''
+          `;
+          await transaction`
+            alter table storefront_products
+            add column if not exists base_sold_count integer not null default 0
+          `;
+          await transaction`
+            alter table storefront_products
+            add column if not exists actual_sold_count integer not null default 0
+          `;
+          await transaction`
+            alter table storefront_products
+            add column if not exists gallery_image_urls jsonb not null default '[]'::jsonb
+          `;
+          await transaction`
+            alter table storefront_products
+            add column if not exists video_url text not null default ''
+          `;
+          await transaction`
+            alter table storefront_products
+            add column if not exists media_note text not null default ''
           `;
           await transaction`
             alter table storefront_products
@@ -479,6 +497,18 @@ export async function ensureStorefrontSchema() {
   }
 }
 
+function normalizeProductMediaList(value: unknown) {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .slice(0, 12);
+  }
+
+  return [];
+}
+
 function mapProductRow(row: ProductRow): StorefrontProductRecord {
   return {
     accent: row.accent,
@@ -487,9 +517,12 @@ function mapProductRow(row: ProductRow): StorefrontProductRecord {
     compareAtPi:
       row.compare_at_pi === null ? null : Number(row.compare_at_pi),
     costPi: row.cost_pi === null ? null : Number(row.cost_pi),
+    actualSoldCount: row.actual_sold_count,
+    baseSoldCount: row.base_sold_count,
     createdAt: row.created_at,
     description: row.description,
     format: row.format,
+    galleryImageUrls: normalizeProductMediaList(row.gallery_image_urls),
     id: row.id,
     imageUrl: row.image_url,
     inventoryCount: row.inventory_count,
@@ -499,11 +532,13 @@ function mapProductRow(row: ProductRow): StorefrontProductRecord {
     name: row.name,
     packaging: row.packaging,
     pricePi: Number(row.price_pi),
+    mediaNote: row.media_note,
     slug: row.slug,
     sourceProductId: row.source_product_id,
     sku: row.sku,
     tagline: row.tagline,
     updatedAt: row.updated_at,
+    videoUrl: row.video_url,
     weightUnit: row.weight_unit,
     weightValue:
       row.weight_value === null ? null : Number(row.weight_value),
@@ -536,8 +571,11 @@ function getFallbackStorefrontProductRecords() {
       category: product.category,
       compareAtPi: product.compareAtPi ?? null,
       costPi: product.costPi ?? null,
+      actualSoldCount: product.actualSoldCount ?? 0,
+      baseSoldCount: product.baseSoldCount ?? 0,
       description: product.description,
       format: product.format,
+      galleryImageUrls: product.galleryImageUrls ?? [],
       id: product.id,
       imageUrl: product.imageUrl ?? "",
       inventoryCount:
@@ -548,10 +586,12 @@ function getFallbackStorefrontProductRecords() {
       name: product.name,
       packaging: product.packaging ?? product.format,
       pricePi: product.pricePi,
+      mediaNote: product.mediaNote ?? "",
       slug: product.slug,
       sourceProductId: product.id,
       sku: product.sku ?? "",
       tagline: product.tagline,
+      videoUrl: product.videoUrl ?? "",
       weightUnit: product.weightUnit ?? "g",
       weightValue: product.weightValue ?? null,
     });
@@ -562,127 +602,6 @@ function getFallbackStorefrontProductRecords() {
       updatedAt: timestamp,
     } satisfies StorefrontProductRecord;
   });
-}
-
-async function ensureDefaultStorefrontProductsSeeded() {
-  if (!(await ensureStorefrontSchema())) {
-    return false;
-  }
-
-  if (!globalThis.__mushroomStorefrontProductSeedPromise) {
-    const sql = getSql();
-
-    if (!sql) {
-      return false;
-    }
-
-    const seedProducts = getProducts(defaultLocale).map((product) =>
-      normalizeStorefrontProductInput({
-        accent: product.accent,
-        badge: product.badge,
-        category: product.category,
-        compareAtPi: product.compareAtPi ?? null,
-        costPi: product.costPi ?? null,
-        description: product.description,
-        format: product.format,
-        id: product.id,
-        imageUrl: product.imageUrl ?? "",
-        inventoryCount:
-          typeof product.inventoryCount === "number" ? product.inventoryCount : 24,
-        isActive: product.isActive !== false,
-        isFeatured: product.isFeatured === true,
-        lowStockThreshold: product.lowStockThreshold ?? 5,
-        name: product.name,
-        packaging: product.packaging ?? product.format,
-        pricePi: product.pricePi,
-        slug: product.slug,
-        sourceProductId: product.id,
-        sku: product.sku ?? "",
-        tagline: product.tagline,
-        weightUnit: product.weightUnit ?? "g",
-        weightValue: product.weightValue ?? null,
-      }),
-    );
-
-    globalThis.__mushroomStorefrontProductSeedPromise = withStorefrontTimeout(
-      (async () => {
-        if (await hasStorefrontSeedProducts(sql)) {
-          return true;
-        }
-
-        await sql.begin(async (transaction) => {
-          for (const product of seedProducts) {
-            await transaction`
-              insert into storefront_products (
-                id,
-                source_product_id,
-                slug,
-                name,
-                sku,
-                tagline,
-                description,
-                category,
-                format,
-                price_pi,
-                compare_at_pi,
-                cost_pi,
-                badge,
-                accent,
-                packaging,
-                image_url,
-                weight_value,
-                weight_unit,
-                inventory_count,
-                low_stock_threshold,
-                is_active,
-                is_featured,
-                created_at,
-                updated_at
-              )
-              values (
-                ${product.id},
-                ${product.sourceProductId},
-                ${product.slug},
-                ${product.name},
-                ${product.sku},
-                ${product.tagline},
-                ${product.description},
-                ${product.category},
-                ${product.format},
-                ${product.pricePi},
-                ${product.compareAtPi},
-                ${product.costPi},
-                ${product.badge},
-                ${product.accent},
-                ${product.packaging},
-                ${product.imageUrl},
-                ${product.weightValue},
-                ${product.weightUnit},
-                ${product.inventoryCount},
-                ${product.lowStockThreshold},
-                ${product.isActive},
-                ${product.isFeatured},
-                now(),
-                now()
-              )
-              on conflict (id) do nothing
-            `;
-          }
-        });
-
-        return true;
-      })(),
-      "Storefront product seed",
-    );
-  }
-
-  try {
-    await globalThis.__mushroomStorefrontProductSeedPromise;
-    return true;
-  } catch {
-    globalThis.__mushroomStorefrontProductSeedPromise = undefined;
-    return false;
-  }
 }
 
 async function upsertStorefrontUser(user: PiVerifiedUser) {
@@ -945,6 +864,14 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
   }
 
   await sql.begin(async (transaction) => {
+    const existingRows = await transaction<{ id: string }[]>`
+      select id
+      from storefront_orders
+      where id = ${order.id}
+      limit 1
+    `;
+    const shouldIncrementSoldCount = existingRows.length === 0;
+
     await transaction`
       insert into storefront_orders (
         id,
@@ -1049,6 +976,22 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
           ${item.totalPi}
         )
       `;
+    }
+
+    if (shouldIncrementSoldCount) {
+      for (const item of order.items ?? []) {
+        if (item.quantity <= 0) {
+          continue;
+        }
+
+        await transaction`
+          update storefront_products
+          set
+            actual_sold_count = actual_sold_count + ${item.quantity},
+            updated_at = now()
+          where id = ${item.productId}
+        `;
+      }
     }
   });
 }
@@ -1369,6 +1312,10 @@ export async function readStorefrontProductRecordsDirect() {
     return null as StorefrontProductRecord[] | null;
   }
 
+  if (!(await ensureStorefrontSchema())) {
+    return null as StorefrontProductRecord[] | null;
+  }
+
   const sql = postgres(databaseUrl, {
     connect_timeout: 5,
     idle_timeout: 5,
@@ -1392,10 +1339,15 @@ export async function readStorefrontProductRecordsDirect() {
           price_pi,
           compare_at_pi,
           cost_pi,
+          base_sold_count,
+          actual_sold_count,
           badge,
           accent,
           packaging,
           image_url,
+          gallery_image_urls,
+          video_url,
+          media_note,
           weight_value,
           weight_unit,
           inventory_count,
@@ -1423,7 +1375,7 @@ export async function listStorefrontActiveProductRecords() {
 }
 
 export async function saveStorefrontProduct(input: Partial<StorefrontProductInput>) {
-  if (!(await ensureDefaultStorefrontProductsSeeded())) {
+  if (!(await ensureStorefrontSchema())) {
     throw new Error("Database is not configured.");
   }
 
@@ -1449,10 +1401,15 @@ export async function saveStorefrontProduct(input: Partial<StorefrontProductInpu
       price_pi,
       compare_at_pi,
       cost_pi,
+      base_sold_count,
+      actual_sold_count,
       badge,
       accent,
       packaging,
       image_url,
+      gallery_image_urls,
+      video_url,
+      media_note,
       weight_value,
       weight_unit,
       inventory_count,
@@ -1475,10 +1432,15 @@ export async function saveStorefrontProduct(input: Partial<StorefrontProductInpu
       ${product.pricePi},
       ${product.compareAtPi},
       ${product.costPi},
+      ${product.baseSoldCount},
+      ${product.actualSoldCount},
       ${product.badge},
       ${product.accent},
       ${product.packaging},
       ${product.imageUrl},
+      ${sql.json(product.galleryImageUrls)},
+      ${product.videoUrl},
+      ${product.mediaNote},
       ${product.weightValue},
       ${product.weightUnit},
       ${product.inventoryCount},
@@ -1501,10 +1463,15 @@ export async function saveStorefrontProduct(input: Partial<StorefrontProductInpu
       price_pi = excluded.price_pi,
       compare_at_pi = excluded.compare_at_pi,
       cost_pi = excluded.cost_pi,
+      base_sold_count = excluded.base_sold_count,
+      actual_sold_count = storefront_products.actual_sold_count,
       badge = excluded.badge,
       accent = excluded.accent,
       packaging = excluded.packaging,
       image_url = excluded.image_url,
+      gallery_image_urls = excluded.gallery_image_urls,
+      video_url = excluded.video_url,
+      media_note = excluded.media_note,
       weight_value = excluded.weight_value,
       weight_unit = excluded.weight_unit,
       inventory_count = excluded.inventory_count,
@@ -1525,10 +1492,15 @@ export async function saveStorefrontProduct(input: Partial<StorefrontProductInpu
       price_pi,
       compare_at_pi,
       cost_pi,
+      base_sold_count,
+      actual_sold_count,
       badge,
       accent,
       packaging,
       image_url,
+      gallery_image_urls,
+      video_url,
+      media_note,
       weight_value,
       weight_unit,
       inventory_count,

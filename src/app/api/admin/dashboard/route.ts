@@ -31,9 +31,12 @@ type ProductRow = {
   category: string;
   compare_at_pi: string | number | null;
   cost_pi: string | number | null;
+  actual_sold_count: number;
+  base_sold_count: number;
   created_at: string;
   description: string;
   format: string;
+  gallery_image_urls: unknown;
   id: string;
   image_url: string;
   inventory_count: number;
@@ -43,11 +46,13 @@ type ProductRow = {
   name: string;
   packaging: string;
   price_pi: string | number;
+  media_note: string;
   slug: string;
   source_product_id: string | null;
   sku: string;
   tagline: string;
   updated_at: string;
+  video_url: string;
   weight_unit: string | null;
   weight_value: string | number | null;
 };
@@ -131,6 +136,18 @@ function mapStaffRows(rows: StaffRow[]): StorefrontStaffMember[] {
   }));
 }
 
+function normalizeProductMediaList(value: unknown) {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .slice(0, 12);
+  }
+
+  return [];
+}
+
 function mapProductRows(rows: ProductRow[]): StorefrontProductRecord[] {
   return rows.map((row) => ({
     accent: row.accent,
@@ -139,9 +156,12 @@ function mapProductRows(rows: ProductRow[]): StorefrontProductRecord[] {
     compareAtPi:
       row.compare_at_pi === null ? null : Number(row.compare_at_pi),
     costPi: row.cost_pi === null ? null : Number(row.cost_pi),
+    actualSoldCount: row.actual_sold_count,
+    baseSoldCount: row.base_sold_count,
     createdAt: row.created_at,
     description: row.description,
     format: row.format,
+    galleryImageUrls: normalizeProductMediaList(row.gallery_image_urls),
     id: row.id,
     imageUrl: row.image_url,
     inventoryCount: row.inventory_count,
@@ -151,11 +171,13 @@ function mapProductRows(rows: ProductRow[]): StorefrontProductRecord[] {
     name: row.name,
     packaging: row.packaging,
     pricePi: Number(row.price_pi),
+    mediaNote: row.media_note,
     slug: row.slug,
     sourceProductId: row.source_product_id,
     sku: row.sku,
     tagline: row.tagline,
     updatedAt: row.updated_at,
+    videoUrl: row.video_url,
     weightUnit: row.weight_unit,
     weightValue:
       row.weight_value === null ? null : Number(row.weight_value),
@@ -327,10 +349,15 @@ export async function GET() {
                   price_pi,
                   compare_at_pi,
                   cost_pi,
+                  base_sold_count,
+                  actual_sold_count,
                   badge,
                   accent,
                   packaging,
                   image_url,
+                  gallery_image_urls,
+                  video_url,
+                  media_note,
                   weight_value,
                   weight_unit,
                   inventory_count,

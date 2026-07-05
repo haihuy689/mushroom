@@ -305,6 +305,12 @@
   font-size: 1.06rem;
 }
 
+.productTrust {
+  color: rgba(43, 22, 13, 0.62);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .productActions {
   margin-top: 4px;
 }

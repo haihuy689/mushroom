@@ -213,8 +213,12 @@ function getRating(product: Product) {
 }
 
 function getSoldCount(product: Product) {
-  const seed = product.id.split("").reduce((sum, letter) => sum + letter.charCodeAt(0), 0);
-  return 240 + (seed % 820);
+  const baseSoldCount =
+    typeof product.baseSoldCount === "number" ? product.baseSoldCount : 0;
+  const actualSoldCount =
+    typeof product.actualSoldCount === "number" ? product.actualSoldCount : 0;
+
+  return Math.max(0, Math.round(baseSoldCount + actualSoldCount));
 }
 
 function sortProducts(products: Product[], sortMode: SortMode) {

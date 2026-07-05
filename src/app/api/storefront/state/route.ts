@@ -1,3 +1,4 @@
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { getStorefrontSessionUser } from "@/lib/storefront-session";
 import {
@@ -16,6 +17,7 @@ import {
   type StorefrontCartItem,
   type StorefrontOrder,
 } from "@/lib/storefront-state";
+import { STOREFRONT_PRODUCT_RECORDS_TAG } from "@/lib/storefront-catalog";
 
 type SyncSessionRequest = {
   action: "syncSession";
@@ -144,6 +146,10 @@ export async function POST(request: Request) {
           sessionUser,
           createStorefrontOrder(body.order),
         );
+
+        revalidateTag(STOREFRONT_PRODUCT_RECORDS_TAG, "max");
+        revalidatePath("/");
+        revalidatePath("/shop");
 
         return NextResponse.json({
           ok: true,

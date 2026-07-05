@@ -21,11 +21,14 @@ export type AdminCenterCopy = {
   adminPageDescription: string;
   adminPageTitle: string;
   adminTitle: string;
+  actualSoldCountLabel: string;
+  baseSoldCountLabel: string;
   catalogManagerLead: string;
   catalogManagerTitle: string;
   catalogValueLabel: string;
   comparePriceLabel: string;
   costPriceLabel: string;
+  coverImageHelp: string;
   customerLabel: string;
   dashboardLoading: string;
   dashboardRetry: string;
@@ -37,6 +40,8 @@ export type AdminCenterCopy = {
   emptyStaff: string;
   featuredProductLabel: string;
   featuredProductsLabel: string;
+  galleryImagesHelp: string;
+  galleryImagesLabel: string;
   imageUrlLabel: string;
   inactiveStaffLabel: string;
   inventoryLabel: string;
@@ -65,6 +70,7 @@ export type AdminCenterCopy = {
   packagingLabel: string;
   paymentIdLabel: string;
   priceLabel: string;
+  mediaNoteLabel: string;
   productAccentLabel: string;
   productActiveLabel: string;
   productBadgeLabel: string;
@@ -113,8 +119,11 @@ export type AdminCenterCopy = {
   statusLabel: string;
   teamOverviewTitle: string;
   totalSalesLabel: string;
+  totalSoldCountLabel: string;
   trackingCodeLabel: string;
   txidLabel: string;
+  videoUrlHelp: string;
+  videoUrlLabel: string;
   weightUnitLabel: string;
   weightValueLabel: string;
 };
@@ -144,12 +153,15 @@ const en: AdminCenterCopy = {
     "Operational admin area for Mushroom.Pi products, inventory, employees, and orders.",
   adminPageTitle: "Admin | Mushroom.Pi",
   adminTitle: "Operations dashboard",
+  actualSoldCountLabel: "Real sold count",
+  baseSoldCountLabel: "Starting sold count",
   catalogManagerLead:
     "Create products, control visibility, maintain pricing, and keep inventory data ready for real fulfillment.",
   catalogManagerTitle: "Product management",
   catalogValueLabel: "Catalog value",
   comparePriceLabel: "Compare price (Pi)",
   costPriceLabel: "Cost price (Pi)",
+  coverImageHelp: "Cover image. Recommended ratio 4:3, about 1200 x 900px.",
   customerLabel: "Customer",
   dashboardLoading: "Loading admin data...",
   dashboardRetry: "Reload data",
@@ -160,9 +172,11 @@ const en: AdminCenterCopy = {
   emptyOrders: "No orders yet.",
   emptyProducts: "No products available yet.",
   emptyStaff: "No employees added yet.",
-  featuredProductLabel: "Featured product",
+  featuredProductLabel: "Show on homepage",
   featuredProductsLabel: "Featured",
-  imageUrlLabel: "Image URL",
+  galleryImagesHelp: "One URL per line for inner product images.",
+  galleryImagesLabel: "Inner image URLs",
+  imageUrlLabel: "Cover image URL",
   inactiveStaffLabel: "Inactive staff",
   inventoryLabel: "Inventory",
   internalNoteLabel: "Internal note",
@@ -193,6 +207,7 @@ const en: AdminCenterCopy = {
   packagingLabel: "Packaging",
   paymentIdLabel: "Payment ID",
   priceLabel: "Price (Pi)",
+  mediaNoteLabel: "Media note",
   productAccentLabel: "Accent background",
   productActiveLabel: "Visible in storefront",
   productBadgeLabel: "Badge",
@@ -242,8 +257,11 @@ const en: AdminCenterCopy = {
   statusLabel: "Status",
   teamOverviewTitle: "Team overview",
   totalSalesLabel: "Total Pi",
+  totalSoldCountLabel: "Displayed sold count",
   trackingCodeLabel: "Tracking code",
   txidLabel: "Transaction ID",
+  videoUrlHelp: "Use a product demo video URL, YouTube, or hosted MP4.",
+  videoUrlLabel: "Product video URL",
   weightUnitLabel: "Weight unit",
   weightValueLabel: "Weight value",
 };
@@ -274,12 +292,15 @@ const vi: AdminCenterCopy = {
     "Khu quan tri van hanh cho san pham, ton kho, nhan vien va don hang cua Mushroom.Pi.",
   adminPageTitle: "Quan tri | Mushroom.Pi",
   adminTitle: "Bang dieu hanh",
+  actualSoldCountLabel: "So ban thuc te",
+  baseSoldCountLabel: "So da ban nen",
   catalogManagerLead:
     "Tao san pham, dieu khien hien thi, cap nhat gia ban va giu du lieu ton kho san sang cho van hanh that.",
   catalogManagerTitle: "Quan ly san pham",
   catalogValueLabel: "Gia tri ton kho",
   comparePriceLabel: "Gia so sanh (Pi)",
   costPriceLabel: "Gia von (Pi)",
+  coverImageHelp: "Anh bia san pham. Nen dung ti le 4:3, khoang 1200 x 900px.",
   customerLabel: "Khach hang",
   dashboardLoading: "Dang tai du lieu quan tri...",
   dashboardRetry: "Tai lai du lieu",
@@ -290,9 +311,11 @@ const vi: AdminCenterCopy = {
   emptyOrders: "Chua co don hang nao.",
   emptyProducts: "Chua co san pham nao.",
   emptyStaff: "Chua co nhan vien nao.",
-  featuredProductLabel: "San pham noi bat",
+  featuredProductLabel: "Hien thi o trang chu",
   featuredProductsLabel: "Noi bat",
-  imageUrlLabel: "Duong dan hinh anh",
+  galleryImagesHelp: "Moi dong la mot URL anh ben trong san pham.",
+  galleryImagesLabel: "URL anh ben trong",
+  imageUrlLabel: "URL anh bia",
   inactiveStaffLabel: "Nhan vien tam dung",
   inventoryLabel: "Ton kho",
   internalNoteLabel: "Ghi chu noi bo",
@@ -323,6 +346,7 @@ const vi: AdminCenterCopy = {
   packagingLabel: "Bao bi",
   paymentIdLabel: "Ma payment",
   priceLabel: "Gia ban (Pi)",
+  mediaNoteLabel: "Ghi chu media",
   productAccentLabel: "Nen nhan dien",
   productActiveLabel: "Dang hien tren shop",
   productBadgeLabel: "Nhan",
@@ -375,8 +399,11 @@ const vi: AdminCenterCopy = {
   statusLabel: "Trang thai",
   teamOverviewTitle: "Tong quan doi ngu",
   totalSalesLabel: "Tong Pi",
+  totalSoldCountLabel: "So da ban hien thi",
   trackingCodeLabel: "Ma van don",
   txidLabel: "Ma giao dich",
+  videoUrlHelp: "Dung URL video gioi thieu san pham, YouTube hoac MP4 da host.",
+  videoUrlLabel: "URL video san pham",
   weightUnitLabel: "Don vi khoi luong",
   weightValueLabel: "Khoi luong",
 };

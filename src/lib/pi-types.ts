@@ -69,6 +69,8 @@ export interface Product {
   pricePi: number;
   compareAtPi?: number;
   costPi?: number;
+  baseSoldCount?: number;
+  actualSoldCount?: number;
   badge: string;
   accent: string;
   inventoryCount?: number;
@@ -77,6 +79,9 @@ export interface Product {
   lowStockThreshold?: number;
   packaging?: string;
   imageUrl?: string;
+  galleryImageUrls?: string[];
+  videoUrl?: string;
+  mediaNote?: string;
   weightValue?: number;
   weightUnit?: string;
 }

@@ -13,6 +13,7 @@ import { getRequestLocale } from "@/lib/request-locale";
 import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import { getStorefrontCopy } from "@/lib/storefront-copy";
 import type { SiteLocale } from "@/lib/i18n";
+import type { Product } from "@/lib/pi-types";
 import styles from "./page.module.css";
 
 type HomeThemeCopy = {
@@ -230,12 +231,33 @@ function FeatureIcon({
   );
 }
 
+const soldLabels: Record<SiteLocale, string> = {
+  en: "Sold",
+  es: "Vendidos",
+  fr: "Vendus",
+  vi: "Đã bán",
+  zh: "已售",
+};
+
+function getDisplayedSoldCount(product: Product) {
+  const baseSoldCount =
+    typeof product.baseSoldCount === "number" ? product.baseSoldCount : 0;
+  const actualSoldCount =
+    typeof product.actualSoldCount === "number" ? product.actualSoldCount : 0;
+
+  return Math.max(0, Math.round(baseSoldCount + actualSoldCount));
+}
+
 export default async function Home() {
   const locale = await getRequestLocale();
   const siteCopy = getPublicSiteCopy(locale);
   const storefrontCopy = getStorefrontCopy(locale);
   const products = await getStorefrontProducts(locale);
-  const featuredProducts = products.slice(0, 4);
+  const homepageProducts = products
+    .filter((product) => product.isFeatured === true)
+    .slice(0, 4);
+  const featuredProducts =
+    homepageProducts.length > 0 ? homepageProducts : products.slice(0, 4);
   const homeCopy = getHomeThemeCopy(locale, siteCopy);
   const benefitIcons: BenefitIconName[] = ["leaf", "truck", "pi", "shield"];
   const stepIcons: BenefitIconName[] = ["basket", "pi", "checklist"];
@@ -307,6 +329,10 @@ export default async function Home() {
                 <h3>{product.name}</h3>
                 <p>{product.tagline}</p>
                 <strong>{product.pricePi} Pi</strong>
+                <span className={styles.productTrust}>
+                  {soldLabels[locale] ?? soldLabels.en}{" "}
+                  {getDisplayedSoldCount(product).toLocaleString(locale)}
+                </span>
                 <div className={styles.productActions}>
                   <AddToCartButton
                     addLabel={storefrontCopy.addToCart}

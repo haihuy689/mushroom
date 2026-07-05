@@ -136,8 +136,11 @@ function toProductEditor(product: StorefrontProductRecord): StorefrontProductInp
     category: product.category,
     compareAtPi: product.compareAtPi,
     costPi: product.costPi,
+    actualSoldCount: product.actualSoldCount,
+    baseSoldCount: product.baseSoldCount,
     description: product.description,
     format: product.format,
+    galleryImageUrls: product.galleryImageUrls,
     id: product.id,
     imageUrl: product.imageUrl,
     inventoryCount: product.inventoryCount,
@@ -147,10 +150,12 @@ function toProductEditor(product: StorefrontProductRecord): StorefrontProductInp
     name: product.name,
     packaging: product.packaging,
     pricePi: product.pricePi,
+    mediaNote: product.mediaNote,
     slug: product.slug,
     sourceProductId: product.sourceProductId,
     sku: product.sku,
     tagline: product.tagline,
+    videoUrl: product.videoUrl,
     weightUnit: product.weightUnit,
     weightValue: product.weightValue,
   };
@@ -193,6 +198,15 @@ function readFieldValue(
   }
 
   return target.value;
+}
+
+function getDisplayedSoldCount(
+  product: Pick<StorefrontProductInput, "actualSoldCount" | "baseSoldCount">,
+) {
+  return Math.max(
+    0,
+    Math.round((product.baseSoldCount ?? 0) + (product.actualSoldCount ?? 0)),
+  );
 }
 
 function normalizeIdentityKey(value: string) {
@@ -741,7 +755,7 @@ export function AdminPageClient({
 
   const handleProductEditorChange = (
     field: keyof StorefrontProductInput,
-    value: boolean | number | string | null,
+    value: boolean | number | string | string[] | null,
   ) => {
     setProductEditor((current) => ({
       ...current,
@@ -1404,6 +1418,9 @@ export function AdminPageClient({
                               <span>
                                 {copy.inventoryLabel}: {product.inventoryCount}
                               </span>
+                              <span>
+                                {copy.totalSoldCountLabel}: {getDisplayedSoldCount(product)}
+                              </span>
                             </div>
                           </button>
                         );
@@ -1586,6 +1603,36 @@ export function AdminPageClient({
                           />
                         </label>
                         <label className={styles.field}>
+                          <span>{copy.baseSoldCountLabel}</span>
+                          <input
+                            min="0"
+                            step="1"
+                            type="number"
+                            value={productEditor.baseSoldCount}
+                            onChange={(event) =>
+                              handleProductEditorChange(
+                                "baseSoldCount",
+                                readFieldValue(event),
+                              )
+                            }
+                          />
+                        </label>
+                        <label className={styles.field}>
+                          <span>{copy.actualSoldCountLabel}</span>
+                          <input
+                            readOnly
+                            type="number"
+                            value={productEditor.actualSoldCount}
+                          />
+                        </label>
+                        <label className={`${styles.field} ${styles.fullField}`}>
+                          <span>{copy.totalSoldCountLabel}</span>
+                          <input
+                            readOnly
+                            value={getDisplayedSoldCount(productEditor)}
+                          />
+                        </label>
+                        <label className={styles.field}>
                           <span>{copy.packagingLabel}</span>
                           <input
                             value={productEditor.packaging}
@@ -1647,6 +1694,50 @@ export function AdminPageClient({
                             onChange={(event) =>
                               handleProductEditorChange(
                                 "imageUrl",
+                                readFieldValue(event),
+                              )
+                            }
+                          />
+                          <small>{copy.coverImageHelp}</small>
+                        </label>
+                        <label className={`${styles.field} ${styles.fullField}`}>
+                          <span>{copy.galleryImagesLabel}</span>
+                          <textarea
+                            rows={4}
+                            value={(productEditor.galleryImageUrls ?? []).join("\n")}
+                            onChange={(event) =>
+                              handleProductEditorChange(
+                                "galleryImageUrls",
+                                event.target.value
+                                  .split(/\r?\n/)
+                                  .map((item) => item.trim())
+                                  .filter(Boolean),
+                              )
+                            }
+                          />
+                          <small>{copy.galleryImagesHelp}</small>
+                        </label>
+                        <label className={`${styles.field} ${styles.fullField}`}>
+                          <span>{copy.videoUrlLabel}</span>
+                          <input
+                            value={productEditor.videoUrl}
+                            onChange={(event) =>
+                              handleProductEditorChange(
+                                "videoUrl",
+                                readFieldValue(event),
+                              )
+                            }
+                          />
+                          <small>{copy.videoUrlHelp}</small>
+                        </label>
+                        <label className={`${styles.field} ${styles.fullField}`}>
+                          <span>{copy.mediaNoteLabel}</span>
+                          <textarea
+                            rows={3}
+                            value={productEditor.mediaNote}
+                            onChange={(event) =>
+                              handleProductEditorChange(
+                                "mediaNote",
                                 readFieldValue(event),
                               )
                             }

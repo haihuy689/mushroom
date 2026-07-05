@@ -38,6 +38,13 @@ const readCachedStorefrontProductRecords = unstable_cache(
 function withOperationalDefaults(product: Product): Product {
   return {
     ...product,
+    actualSoldCount:
+      typeof product.actualSoldCount === "number" ? product.actualSoldCount : 0,
+    baseSoldCount:
+      typeof product.baseSoldCount === "number" ? product.baseSoldCount : 0,
+    galleryImageUrls: Array.isArray(product.galleryImageUrls)
+      ? product.galleryImageUrls
+      : [],
     inventoryCount:
       typeof product.inventoryCount === "number" ? product.inventoryCount : 24,
     isActive: product.isActive !== false,
@@ -46,8 +53,10 @@ function withOperationalDefaults(product: Product): Product {
       typeof product.lowStockThreshold === "number"
         ? product.lowStockThreshold
         : 5,
+    mediaNote: product.mediaNote ?? undefined,
     packaging: product.packaging ?? "",
     sku: product.sku ?? "",
+    videoUrl: product.videoUrl ?? undefined,
     weightUnit: product.weightUnit ?? undefined,
     weightValue: product.weightValue ?? undefined,
   };
@@ -131,40 +140,25 @@ export async function getStorefrontProducts(locale: SiteLocale) {
     return staticProducts;
   }
 
-  const mergedProducts = new Map<string, Product>(
-    staticProducts.map((product) => [product.id, product]),
-  );
+  const catalogProducts: Product[] = [];
 
   for (const productRecord of dbProducts) {
+    if (!productRecord.isActive) {
+      continue;
+    }
+
     const staticProductId = productRecord.sourceProductId ?? productRecord.id;
     const staticProduct = staticById.get(staticProductId);
+    const product = withOperationalDefaults(mapProductRecordToProduct(productRecord));
 
     if (staticProduct) {
-      if (!productRecord.isActive) {
-        mergedProducts.delete(staticProduct.id);
-        continue;
-      }
-
-      mergedProducts.set(
-        staticProduct.id,
+      catalogProducts.push(
         withLocalizedStaticCopy(
           {
-            ...staticProduct,
-            accent: productRecord.accent || staticProduct.accent,
-            badge: productRecord.badge || staticProduct.badge,
-            compareAtPi: productRecord.compareAtPi ?? staticProduct.compareAtPi,
-            costPi: productRecord.costPi ?? staticProduct.costPi,
-            imageUrl: productRecord.imageUrl || staticProduct.imageUrl,
-            inventoryCount: productRecord.inventoryCount,
-            isActive: productRecord.isActive,
-            isFeatured: productRecord.isFeatured,
-            lowStockThreshold: productRecord.lowStockThreshold,
-            packaging: productRecord.packaging || undefined,
-            pricePi: productRecord.pricePi,
-            sourceProductId: productRecord.sourceProductId ?? staticProduct.id,
-            sku: productRecord.sku || staticProduct.sku,
-            weightUnit: productRecord.weightUnit ?? undefined,
-            weightValue: productRecord.weightValue ?? undefined,
+            ...product,
+            imageUrl: product.imageUrl || staticProduct.imageUrl,
+            sourceProductId: product.sourceProductId ?? staticProduct.id,
+            sku: product.sku || staticProduct.sku,
           },
           staticProduct,
           locale,
@@ -173,13 +167,8 @@ export async function getStorefrontProducts(locale: SiteLocale) {
       continue;
     }
 
-    if (!productRecord.isActive) {
-      mergedProducts.delete(productRecord.id);
-      continue;
-    }
-
-    mergedProducts.set(productRecord.id, mapProductRecordToProduct(productRecord));
+    catalogProducts.push(product);
   }
 
-  return Array.from(mergedProducts.values()).filter((product) => product.isActive !== false);
+  return catalogProducts;
 }
