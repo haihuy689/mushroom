@@ -256,12 +256,15 @@
 .detailGrid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  grid-template-columns: minmax(0, 1fr) minmax(22rem, 28rem);
 }
 
 .panel {
   display: grid;
   gap: 1rem;
+  align-content: start;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .widePanel {
@@ -341,41 +344,30 @@
 
 .productTable {
   display: grid;
-  gap: 0.55rem;
-}
-
-.productTableHeader,
-.productTableRow {
-  display: grid;
-  grid-template-columns:
-    minmax(18rem, 1.7fr)
-    minmax(12rem, 1.15fr)
-    minmax(6.5rem, 0.58fr)
-    minmax(6rem, 0.55fr)
-    minmax(6rem, 0.55fr)
-    minmax(6rem, 0.55fr);
-  gap: 0.8rem;
-  align-items: center;
+  gap: 0.75rem;
+  max-height: min(72vh, 58rem);
+  min-width: 0;
+  overflow: auto;
+  padding-right: 0.15rem;
 }
 
 .productTableHeader {
-  color: #7c6b57;
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  padding: 0 0.75rem;
-  text-transform: uppercase;
+  display: none;
 }
 
 .productTableRow {
   width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.85rem;
   border: 1px solid rgba(70, 64, 40, 0.12);
   border-radius: 1.1rem;
-  background: #fffdf8;
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.98), rgba(248, 243, 232, 0.92));
   color: #392416;
   cursor: pointer;
   font: inherit;
-  padding: 0.8rem;
+  padding: 0.9rem;
   text-align: left;
   transition:
     transform 140ms ease,
@@ -402,14 +394,37 @@
   gap: 0.35rem;
 }
 
-.productTableRow > strong {
-  color: #25170d;
+.productTableMeta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
 }
 
-.productTableRow > span {
-  color: #6f6254;
-  font-size: 0.9rem;
-  font-weight: 800;
+.productTableMeta span {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  border: 1px solid rgba(70, 64, 40, 0.1);
+  border-radius: 0.85rem;
+  background: rgba(255, 253, 248, 0.82);
+  padding: 0.58rem 0.65rem;
+}
+
+.productTableMeta small {
+  color: #7c6b57;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+}
+
+.productTableMeta strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #25170d;
+  font-size: 0.88rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rowValue {
@@ -817,5 +832,9 @@
 
   .productTableProduct {
     grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .productTableMeta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

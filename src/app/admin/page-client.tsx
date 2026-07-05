@@ -1525,14 +1525,6 @@ export function AdminPageClient({
                     <p className={styles.emptyState}>{copy.emptyProducts}</p>
                   ) : (
                     <div className={styles.productTable}>
-                      <div className={styles.productTableHeader}>
-                        <span>{copy.productNameLabel}</span>
-                        <span>{copy.statusLabel}</span>
-                        <span>{copy.priceLabel}</span>
-                        <span>{copy.inventoryLabel}</span>
-                        <span>{copy.totalSoldCountLabel}</span>
-                        <span>{copy.featuredProductLabel}</span>
-                      </div>
                       {products.map((product) => {
                         const inventoryTone =
                           product.inventoryCount <= 0
@@ -1580,12 +1572,26 @@ export function AdminPageClient({
                                   : copy.productSystemLabel}
                               </span>
                             </div>
-                            <strong>{formatPi(product.pricePi)}</strong>
-                            <span>{product.inventoryCount} / {product.lowStockThreshold}</span>
-                            <span>{getDisplayedSoldCount(product)}</span>
-                            <span className={styles.statusChip} data-tone={product.isFeatured ? "accent" : "neutral"}>
-                              {product.isFeatured ? copy.featuredProductsLabel : "-"}
-                            </span>
+                            <div className={styles.productTableMeta}>
+                              <span>
+                                <small>{copy.priceLabel}</small>
+                                <strong>{formatPi(product.pricePi)}</strong>
+                              </span>
+                              <span>
+                                <small>{copy.inventoryLabel}</small>
+                                <strong>{product.inventoryCount} / {product.lowStockThreshold}</strong>
+                              </span>
+                              <span>
+                                <small>{copy.totalSoldCountLabel}</small>
+                                <strong>{getDisplayedSoldCount(product)}</strong>
+                              </span>
+                              <span>
+                                <small>{copy.featuredProductLabel}</small>
+                                <strong>
+                                  {product.isFeatured ? copy.featuredProductsLabel : "-"}
+                                </strong>
+                              </span>
+                            </div>
                           </button>
                         );
                       })}
