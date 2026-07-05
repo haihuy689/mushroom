@@ -9,7 +9,6 @@ import {
   type StorefrontAdminAccess,
   type StorefrontStaffMember,
 } from "@/lib/admin-access";
-import { defaultLocale } from "@/lib/i18n";
 import { isOrderStatus, type OrderStatus } from "@/lib/order-status";
 import type { PiVerifiedUser } from "@/lib/pi-types";
 import {
@@ -17,7 +16,6 @@ import {
   type StorefrontProductInput,
   type StorefrontProductRecord,
 } from "@/lib/storefront-product";
-import { getProducts } from "@/lib/site-data";
 import { getSql, isDatabaseConfigured } from "@/lib/db";
 import {
   emptyStorefrontState,
@@ -559,49 +557,6 @@ function mapStaffRow(row: StaffRow): StorefrontStaffMember {
     note: row.note,
     role: row.role,
   };
-}
-
-function getFallbackStorefrontProductRecords() {
-  const timestamp = new Date().toISOString();
-
-  return getProducts(defaultLocale).map((product) => {
-    const normalized = normalizeStorefrontProductInput({
-      accent: product.accent,
-      badge: product.badge,
-      category: product.category,
-      compareAtPi: product.compareAtPi ?? null,
-      costPi: product.costPi ?? null,
-      actualSoldCount: product.actualSoldCount ?? 0,
-      baseSoldCount: product.baseSoldCount ?? 0,
-      description: product.description,
-      format: product.format,
-      galleryImageUrls: product.galleryImageUrls ?? [],
-      id: product.id,
-      imageUrl: product.imageUrl ?? "",
-      inventoryCount:
-        typeof product.inventoryCount === "number" ? product.inventoryCount : 24,
-      isActive: product.isActive !== false,
-      isFeatured: product.isFeatured === true,
-      lowStockThreshold: product.lowStockThreshold ?? 5,
-      name: product.name,
-      packaging: product.packaging ?? product.format,
-      pricePi: product.pricePi,
-      mediaNote: product.mediaNote ?? "",
-      slug: product.slug,
-      sourceProductId: product.id,
-      sku: product.sku ?? "",
-      tagline: product.tagline,
-      videoUrl: product.videoUrl ?? "",
-      weightUnit: product.weightUnit ?? "g",
-      weightValue: product.weightValue ?? null,
-    });
-
-    return {
-      ...normalized,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    } satisfies StorefrontProductRecord;
-  });
 }
 
 async function upsertStorefrontUser(user: PiVerifiedUser) {
@@ -1302,7 +1257,7 @@ export async function listStorefrontProductRecords() {
     return directRecords;
   }
 
-  return getFallbackStorefrontProductRecords();
+  return [];
 }
 
 export async function readStorefrontProductRecordsDirect() {
@@ -1324,6 +1279,14 @@ export async function readStorefrontProductRecordsDirect() {
   });
 
   try {
+    await withStorefrontTimeout(
+      sql`
+        delete from storefront_products
+        where source_product_id is not null
+      `,
+      "Legacy storefront product cleanup",
+    );
+
     const rows = await withStorefrontTimeout(
       sql<ProductRow[]>`
         select

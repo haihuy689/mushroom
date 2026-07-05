@@ -271,6 +271,13 @@ export async function GET() {
   });
 
   try {
+    if (access.canManageProducts) {
+      await withDashboardTimeout(sql`
+        delete from storefront_products
+        where source_product_id is not null
+      `);
+    }
+
     const [orderRows, orderItemRows, staffRows, productRows] =
       await withDashboardTimeout(
         Promise.all([
