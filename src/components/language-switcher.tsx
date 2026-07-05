@@ -2,7 +2,11 @@
 
 import { useRef, useState } from "react";
 import type { SiteLocale } from "@/lib/i18n";
-import { getLocaleOption, localeOptions } from "@/lib/i18n";
+import {
+  LOCALE_COOKIE_NAME,
+  getLocaleOption,
+  localeOptions,
+} from "@/lib/i18n";
 import styles from "./site-chrome.module.css";
 
 type LanguageSwitcherProps = {
@@ -21,6 +25,11 @@ function FlagChip({ locale }: { locale: SiteLocale }) {
   );
 }
 
+function writeLocaleCookie(locale: SiteLocale) {
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${LOCALE_COOKIE_NAME}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+}
+
 export function LanguageSwitcher({
   currentLocale,
   compact = false,
@@ -33,7 +42,7 @@ export function LanguageSwitcher({
     localeOptions.find((option) => option.code === currentLocale) ??
     localeOptions[0];
 
-  const selectLocale = (locale: SiteLocale) => {
+  const selectLocale = async (locale: SiteLocale) => {
     if (locale === currentLocale) {
       detailsRef.current?.removeAttribute("open");
       return;
@@ -41,14 +50,35 @@ export function LanguageSwitcher({
 
     setPendingLocale(locale);
     detailsRef.current?.removeAttribute("open");
+    writeLocaleCookie(locale);
 
-    const returnTo = `${window.location.pathname}${window.location.search}`;
-    const searchParams = new URLSearchParams({
-      locale,
-      returnTo,
-    });
+    try {
+      const response = await fetch("/api/preferences/locale", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ locale }),
+        cache: "no-store",
+        credentials: "same-origin",
+      });
 
-    window.location.assign(`/api/preferences/locale?${searchParams.toString()}`);
+      if (!response.ok) {
+        throw new Error("Unable to save locale preference.");
+      }
+
+      window.location.reload();
+    } catch {
+      const returnTo = `${window.location.pathname}${window.location.search}`;
+      const searchParams = new URLSearchParams({
+        locale,
+        returnTo,
+      });
+
+      window.location.assign(
+        `/api/preferences/locale?${searchParams.toString()}`,
+      );
+    }
   };
 
   return (

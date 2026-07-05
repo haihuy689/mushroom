@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Cormorant_Garamond, Space_Grotesk } from "next/font/google";
+import { Noto_Sans } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { StorefrontProvider } from "@/components/storefront-provider";
@@ -8,16 +8,10 @@ import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
 import "./globals.css";
 
-const bodyFont = Space_Grotesk({
-  subsets: ["latin"],
+const bodyFont = Noto_Sans({
+  subsets: ["latin", "latin-ext", "vietnamese"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-body",
-  display: "swap",
-});
-
-const displayFont = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["600", "700"],
-  variable: "--font-display",
   display: "swap",
 });
 
@@ -44,10 +38,7 @@ export default async function RootLayout({
   const locale = await getRequestLocale();
 
   return (
-    <html
-      lang={locale}
-      className={`${bodyFont.variable} ${displayFont.variable}`}
-    >
+    <html lang={locale} className={bodyFont.variable}>
       <body>
         <Script
           src="https://sdk.minepi.com/pi-sdk.js"

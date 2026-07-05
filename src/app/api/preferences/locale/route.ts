@@ -9,7 +9,7 @@ function applyLocaleCookie(response: NextResponse, locale: string) {
   response.cookies.set({
     name: LOCALE_COOKIE_NAME,
     value: locale,
-    httpOnly: true,
+    httpOnly: false,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
@@ -17,6 +17,7 @@ function applyLocaleCookie(response: NextResponse, locale: string) {
   });
 
   response.headers.set("Cache-Control", "no-store, no-cache, max-age=0");
+  response.headers.set("Vary", "Cookie, Accept-Language, X-Vercel-IP-Country");
 
   return response;
 }
@@ -51,7 +52,18 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as { locale?: string };
+  let body: { locale?: string };
+
+  try {
+    body = (await request.json()) as { locale?: string };
+  } catch {
+    return NextResponse.json(
+      {
+        error: "Invalid JSON.",
+      },
+      { status: 400 },
+    );
+  }
 
   if (!isSupportedLocale(body.locale)) {
     return NextResponse.json(
