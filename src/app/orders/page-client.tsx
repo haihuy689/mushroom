@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
-import type { PiVerifiedUser } from "@/lib/pi-types";
+import type { PiAuthResult, PiVerifiedUser } from "@/lib/pi-types";
 import type { PiCheckoutCopy } from "@/lib/public-site-copy";
 import {
   getOrderStatusCounts,
@@ -29,6 +29,7 @@ type OrdersPageClientProps = {
 };
 
 type OrderFilter = "all" | OrderStatus;
+const PI_SCOPES = ["username", "payments"] as const;
 
 async function postJson<T>(
   path: string,
@@ -85,7 +86,6 @@ export function OrdersPageClient({
     recordOrder,
     refreshStorefrontState,
     sdkReady,
-    signInWithPi,
     setViewer,
     viewer,
   } = useStorefront();
@@ -104,6 +104,21 @@ export function OrdersPageClient({
   const [retryingOrderId, setRetryingOrderId] = useState<string | null>(null);
   const [refreshingOrders, setRefreshingOrders] = useState(false);
   const refreshingOrdersRef = useRef(false);
+
+  const authenticateForOrderPersistence = useCallback(async () => {
+    if (!window.Pi) {
+      return null;
+    }
+
+    const authResult: PiAuthResult = await window.Pi.authenticate(
+      [...PI_SCOPES],
+      async () => undefined,
+    );
+
+    setViewer(authResult.user);
+
+    return authResult;
+  }, [setViewer]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -192,6 +207,7 @@ export function OrdersPageClient({
       }
 
       let hasServerSession = false;
+      let orderAuth: PiAuthResult | null = null;
 
       try {
         const sessionUser = await getCurrentPiSession();
@@ -205,8 +221,8 @@ export function OrdersPageClient({
       }
 
       if (!hasServerSession && !quiet) {
-        const verified = await signInWithPi();
-        hasServerSession = Boolean(verified);
+        orderAuth = await authenticateForOrderPersistence();
+        hasServerSession = Boolean(orderAuth?.accessToken);
       }
 
       if (!hasServerSession) {
@@ -222,7 +238,10 @@ export function OrdersPageClient({
         return;
       }
 
-      const refreshed = await refreshStorefrontState();
+      const refreshed = await refreshStorefrontState(
+        orderAuth?.accessToken,
+        orderAuth?.user,
+      );
 
       if (!quiet) {
         setSyncMessage({
@@ -235,11 +254,11 @@ export function OrdersPageClient({
       setRefreshingOrders(false);
     },
     [
+      authenticateForOrderPersistence,
       copy.syncFailed,
       copy.syncSuccess,
       refreshStorefrontState,
       setViewer,
-      signInWithPi,
       viewer,
     ],
   );
@@ -261,6 +280,7 @@ export function OrdersPageClient({
   const recordExistingOrderStatus = async (
     order: StorefrontOrder,
     status: OrderStatus,
+    orderAuth?: PiAuthResult | null,
     paymentId?: string,
     txid?: string,
   ) => {
@@ -277,8 +297,10 @@ export function OrdersPageClient({
     await postJson(
       "/api/storefront/state",
       {
+        accessToken: orderAuth?.accessToken,
         action: "recordOrder",
         order: nextOrder,
+        user: orderAuth?.user,
       },
       copy.syncFailed,
     );
@@ -314,6 +336,7 @@ export function OrdersPageClient({
 
     let activeViewer = viewer;
     let hasServerSession = false;
+    let orderAuth: PiAuthResult | null = null;
 
     try {
       const sessionUser = await getCurrentPiSession();
@@ -328,8 +351,9 @@ export function OrdersPageClient({
     }
 
     if (!hasServerSession) {
-      activeViewer = await signInWithPi();
-      hasServerSession = Boolean(activeViewer);
+      orderAuth = await authenticateForOrderPersistence();
+      activeViewer = orderAuth?.user ?? null;
+      hasServerSession = Boolean(orderAuth?.accessToken);
     }
 
     if (!activeViewer || !hasServerSession) {
@@ -367,11 +391,17 @@ export function OrdersPageClient({
               { paymentId },
               piCopy.approvalFailed,
             );
-            await recordExistingOrderStatus(order, "pending_payment", paymentId);
+            await recordExistingOrderStatus(
+              order,
+              "pending_payment",
+              orderAuth,
+              paymentId,
+            );
           } catch (error) {
             await recordExistingOrderStatus(
               order,
               "payment_failed",
+              orderAuth,
               paymentId,
             ).catch(() => undefined);
             setRetryingOrderId(null);
@@ -389,7 +419,13 @@ export function OrdersPageClient({
               { paymentId, txid },
               piCopy.completionFailed,
             );
-            await recordExistingOrderStatus(order, "paid", paymentId, txid);
+            await recordExistingOrderStatus(
+              order,
+              "paid",
+              orderAuth,
+              paymentId,
+              txid,
+            );
             clearCart();
             setRetryingOrderId(null);
             setPaymentMessage({
@@ -401,6 +437,7 @@ export function OrdersPageClient({
             await recordExistingOrderStatus(
               order,
               "payment_failed",
+              orderAuth,
               paymentId,
             ).catch(() => undefined);
             setRetryingOrderId(null);
@@ -415,6 +452,7 @@ export function OrdersPageClient({
           void recordExistingOrderStatus(
             order,
             "payment_failed",
+            orderAuth,
             paymentId,
           ).catch(() => undefined);
           setRetryingOrderId(null);
@@ -428,6 +466,7 @@ export function OrdersPageClient({
           void recordExistingOrderStatus(
             order,
             "payment_failed",
+            orderAuth,
             payment?.identifier,
           ).catch(() => undefined);
           setRetryingOrderId(null);

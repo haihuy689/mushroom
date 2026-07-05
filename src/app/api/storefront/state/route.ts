@@ -1,6 +1,11 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
-import { getStorefrontSessionUser } from "@/lib/storefront-session";
+import { PiApiError, verifyPiUser } from "@/lib/pi-server";
+import type { PiAuthUser, PiVerifiedUser } from "@/lib/pi-types";
+import {
+  applyStorefrontSession,
+  getStorefrontSessionUser,
+} from "@/lib/storefront-session";
 import {
   persistStorefrontAddresses,
   persistStorefrontCart,
@@ -42,10 +47,20 @@ type RecordOrderRequest = {
 };
 
 type StorefrontRequestBody =
-  | SyncSessionRequest
-  | SetCartRequest
-  | SetAddressesRequest
-  | RecordOrderRequest;
+  (
+    | SyncSessionRequest
+    | SetCartRequest
+    | SetAddressesRequest
+    | RecordOrderRequest
+  ) & {
+    accessToken?: string;
+    user?: PiAuthUser;
+  };
+
+type ResolvedStorefrontUser = {
+  fromAccessToken: boolean;
+  user: PiVerifiedUser;
+};
 
 function unauthorizedResponse() {
   return NextResponse.json(
@@ -65,6 +80,56 @@ function badRequestResponse(message: string) {
   );
 }
 
+function mergePiIdentity(
+  verifiedUser: PiVerifiedUser,
+  fallbackUser?: PiAuthUser,
+): PiVerifiedUser {
+  if (!fallbackUser?.uid || fallbackUser.uid !== verifiedUser.uid) {
+    return verifiedUser;
+  }
+
+  return {
+    ...verifiedUser,
+    username: fallbackUser.username ?? verifiedUser.username,
+    wallet_address: fallbackUser.wallet_address ?? verifiedUser.wallet_address,
+  };
+}
+
+async function resolveStorefrontUser(
+  body: StorefrontRequestBody,
+): Promise<ResolvedStorefrontUser | null> {
+  const sessionUser = await getStorefrontSessionUser();
+
+  if (sessionUser) {
+    return {
+      fromAccessToken: false,
+      user: sessionUser,
+    };
+  }
+
+  if (!body.accessToken) {
+    return null;
+  }
+
+  return {
+    fromAccessToken: true,
+    user: mergePiIdentity(await verifyPiUser(body.accessToken), body.user),
+  };
+}
+
+function storefrontJson(
+  payload: Record<string, unknown>,
+  resolvedUser: ResolvedStorefrontUser,
+) {
+  const response = NextResponse.json(payload);
+
+  if (!resolvedUser.fromAccessToken) {
+    return response;
+  }
+
+  return applyStorefrontSession(response, resolvedUser.user);
+}
+
 function isCartItemsPayload(value: unknown): value is StorefrontCartItem[] {
   return Array.isArray(value) && value.every(isStorefrontCartItem);
 }
@@ -74,14 +139,15 @@ function isAddressesPayload(value: unknown): value is StorefrontAddress[] {
 }
 
 export async function POST(request: Request) {
-  const sessionUser = await getStorefrontSessionUser();
-
-  if (!sessionUser) {
-    return unauthorizedResponse();
-  }
-
   try {
     const body = (await request.json()) as StorefrontRequestBody;
+    const resolvedUser = await resolveStorefrontUser(body);
+
+    if (!resolvedUser) {
+      return unauthorizedResponse();
+    }
+
+    const sessionUser = resolvedUser.user;
 
     switch (body.action) {
       case "syncSession": {
@@ -102,7 +168,7 @@ export async function POST(request: Request) {
 
         const response = await syncStorefrontSession(sessionUser, state);
 
-        return NextResponse.json(response);
+        return storefrontJson(response, resolvedUser);
       }
 
       case "setCart": {
@@ -115,10 +181,13 @@ export async function POST(request: Request) {
           body.cartItems,
         );
 
-        return NextResponse.json({
-          ok: true,
-          ...response,
-        });
+        return storefrontJson(
+          {
+            ok: true,
+            ...response,
+          },
+          resolvedUser,
+        );
       }
 
       case "setAddresses": {
@@ -131,10 +200,13 @@ export async function POST(request: Request) {
           body.addresses,
         );
 
-        return NextResponse.json({
-          ok: true,
-          ...response,
-        });
+        return storefrontJson(
+          {
+            ok: true,
+            ...response,
+          },
+          resolvedUser,
+        );
       }
 
       case "recordOrder": {
@@ -147,20 +219,42 @@ export async function POST(request: Request) {
           createStorefrontOrder(body.order),
         );
 
+        if (!response.databaseConfigured) {
+          return NextResponse.json(
+            {
+              error: "Database is not configured.",
+            },
+            { status: 503 },
+          );
+        }
+
         revalidateTag(STOREFRONT_PRODUCT_RECORDS_TAG, "max");
         revalidatePath("/");
         revalidatePath("/shop");
 
-        return NextResponse.json({
-          ok: true,
-          ...response,
-        });
+        return storefrontJson(
+          {
+            ok: true,
+            ...response,
+          },
+          resolvedUser,
+        );
       }
 
       default:
         return badRequestResponse("Unsupported storefront action.");
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof PiApiError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          details: error.details,
+        },
+        { status: error.status },
+      );
+    }
+
     return NextResponse.json(
       {
         error: "Unexpected storefront sync error.",

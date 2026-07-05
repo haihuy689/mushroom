@@ -1311,22 +1311,25 @@ function mapOrderRows(
 }
 
 async function readAllStorefrontOrders() {
+  if (!(await ensureStorefrontSchema())) {
+    throw new Error("Database is not configured.");
+  }
+
   const sql = getSql();
 
   if (!sql) {
-    return [] as StorefrontOrder[];
+    throw new Error("Database is not configured.");
   }
 
-  try {
-    const [orderRows, orderItemRows] = await Promise.all([
-      sql<OrderRow[]>`
-        select
-          admin_note,
-          id,
-          pi_uid,
-          product_id,
-          product_name,
-          quantity,
+  const [orderRows, orderItemRows] = await Promise.all([
+    sql<OrderRow[]>`
+      select
+        admin_note,
+        id,
+        pi_uid,
+        product_id,
+        product_name,
+        quantity,
         total_pi,
         created_at::text,
         delivered_at::text,
@@ -1338,48 +1341,45 @@ async function readAllStorefrontOrders() {
         shipping_carrier,
         shipper_name,
         status_updated_at::text,
-          status_updated_by,
-          tracking_code,
-          username,
-          shipping_full_name,
-          shipping_phone,
-          shipping_line1,
-          shipping_line2,
-          shipping_ward,
-          shipping_district,
-          shipping_city,
-          shipping_country,
-          shipping_note,
-          location_status,
-          location_checked_at::text,
-          location_country_code,
-          location_country_name,
-          location_address_country,
-          location_latitude,
-          location_longitude,
-          location_accuracy_meters,
-          location_message
-        from storefront_orders
-        order by created_at desc
-        limit 80
-      `,
-      sql<OrderItemRow[]>`
-        select
-          item.order_id,
-          item.product_id,
-          item.product_name,
-          item.quantity,
-          item.total_pi
-        from storefront_order_items item
-        inner join storefront_orders parent on parent.id = item.order_id
-        order by parent.created_at desc, item.product_name asc
-      `,
-    ]);
+        status_updated_by,
+        tracking_code,
+        username,
+        shipping_full_name,
+        shipping_phone,
+        shipping_line1,
+        shipping_line2,
+        shipping_ward,
+        shipping_district,
+        shipping_city,
+        shipping_country,
+        shipping_note,
+        location_status,
+        location_checked_at::text,
+        location_country_code,
+        location_country_name,
+        location_address_country,
+        location_latitude,
+        location_longitude,
+        location_accuracy_meters,
+        location_message
+      from storefront_orders
+      order by created_at desc
+      limit 80
+    `,
+    sql<OrderItemRow[]>`
+      select
+        item.order_id,
+        item.product_id,
+        item.product_name,
+        item.quantity,
+        item.total_pi
+      from storefront_order_items item
+      inner join storefront_orders parent on parent.id = item.order_id
+      order by parent.created_at desc, item.product_name asc
+    `,
+  ]);
 
-    return mapOrderRows(orderRows, orderItemRows, 80);
-  } catch {
-    return [] as StorefrontOrder[];
-  }
+  return mapOrderRows(orderRows, orderItemRows, 80);
 }
 
 async function isStorefrontStaff(user: PiVerifiedUser | null) {

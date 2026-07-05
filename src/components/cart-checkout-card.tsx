@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStorefront, type StorefrontAddress } from "@/components/storefront-provider";
 import type { OrderStatus } from "@/lib/order-status";
-import type { PiVerifiedUser, Product } from "@/lib/pi-types";
+import type { PiAuthResult, PiVerifiedUser, Product } from "@/lib/pi-types";
 import type { PiCheckoutCopy } from "@/lib/public-site-copy";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
 import type {
@@ -60,6 +60,7 @@ const COUNTRY_CODE_BY_NAME: Record<string, string> = {
   vietnam: "VN",
   vn: "VN",
 };
+const PI_SCOPES = ["username", "payments"] as const;
 
 function normalizeCountryText(value: string | null | undefined) {
   return (value ?? "")
@@ -285,6 +286,21 @@ export function CartCheckoutCard({
     }
   };
 
+  const authenticateForOrderPersistence = async () => {
+    if (!window.Pi) {
+      return null;
+    }
+
+    const authResult: PiAuthResult = await window.Pi.authenticate(
+      [...PI_SCOPES],
+      async () => undefined,
+    );
+
+    setViewer(authResult.user);
+
+    return authResult;
+  };
+
   const handleCheckout = async () => {
     if (!window.Pi) {
       setMessage({
@@ -336,6 +352,7 @@ export function CartCheckoutCard({
 
     let activeViewer = viewer;
     let hasServerSession = false;
+    let orderAuth: PiAuthResult | null = null;
 
     try {
       const sessionUser = await getCurrentPiSession();
@@ -350,8 +367,17 @@ export function CartCheckoutCard({
     }
 
     if (!hasServerSession) {
-      activeViewer = await signInWithPi();
-      hasServerSession = Boolean(activeViewer);
+      try {
+        orderAuth = await authenticateForOrderPersistence();
+        activeViewer = orderAuth?.user ?? null;
+        hasServerSession = Boolean(orderAuth?.accessToken);
+      } catch (error) {
+        setMessage({
+          kind: "error",
+          text: error instanceof Error ? error.message : piCopy.authRequired,
+        });
+        return;
+      }
     }
 
     if (!activeViewer || !hasServerSession) {
@@ -415,7 +441,9 @@ export function CartCheckoutCard({
             "/api/storefront/state",
             {
               action: "recordOrder",
+              accessToken: orderAuth?.accessToken,
               order,
+              user: orderAuth?.user,
             },
             piCopy.completionFailed,
           );
@@ -731,7 +759,6 @@ export function CartCheckoutCard({
             paymentBusy ||
             hasInventoryIssue ||
             !locationMatched ||
-            !viewer ||
             !selectedAddress ||
             !serverConfigured ||
             lines.length === 0

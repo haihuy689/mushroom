@@ -16,7 +16,19 @@ export async function GET() {
     );
   }
 
-  return NextResponse.json({
-    items: await listStorefrontOrdersForAdmin(),
-  });
+  try {
+    return NextResponse.json({
+      items: await listStorefrontOrdersForAdmin(),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load admin orders right now.",
+      },
+      { status: 503 },
+    );
+  }
 }

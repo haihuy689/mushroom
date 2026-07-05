@@ -14,7 +14,7 @@ import {
   guestAdminAccess,
   type StorefrontAdminAccess,
 } from "@/lib/admin-access";
-import type { PiAuthResult, PiVerifiedUser } from "@/lib/pi-types";
+import type { PiAuthResult, PiAuthUser, PiVerifiedUser } from "@/lib/pi-types";
 import {
   createStorefrontAddress,
   createStorefrontOrder,
@@ -54,7 +54,10 @@ type StorefrontContextValue = {
   updateCartQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   recordOrder: (order: StorefrontOrderInput) => void;
-  refreshStorefrontState: () => Promise<boolean>;
+  refreshStorefrontState: (
+    accessToken?: string,
+    user?: PiAuthUser,
+  ) => Promise<boolean>;
   saveAddress: (address: StorefrontAddressInput) => string;
   setDefaultAddress: (addressId: string) => void;
 };
@@ -816,7 +819,10 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const refreshStorefrontState = useCallback(async () => {
+  const refreshStorefrontState = useCallback(async (
+    accessToken?: string,
+    user?: PiAuthUser,
+  ) => {
     const targetViewerUid = viewerRef.current?.uid;
 
     if (!targetViewerUid) {
@@ -825,8 +831,10 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
 
     try {
       const response = await postStorefrontState<StorefrontStateResponse>({
+        accessToken,
         action: "syncSession",
         ...stateSnapshotRef.current,
+        user,
       });
 
       if (viewerRef.current?.uid !== targetViewerUid) {
