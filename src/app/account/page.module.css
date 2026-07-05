@@ -7,7 +7,7 @@
   gap: 16px;
 }
 
-.hero,
+.accountBar,
 .grid {
   position: relative;
   overflow: clip;
@@ -20,7 +20,7 @@
   backdrop-filter: blur(14px);
 }
 
-.hero::before,
+.accountBar::before,
 .grid::before {
   content: "";
   position: absolute;
@@ -29,6 +29,13 @@
     radial-gradient(circle at top right, rgba(109, 25, 142, 0.08), transparent 28%),
     radial-gradient(circle at 10% 10%, rgba(95, 127, 53, 0.12), transparent 24%);
   pointer-events: none;
+}
+
+.accountBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
 }
 
 .eyebrow,
@@ -43,7 +50,7 @@
   font-weight: 900;
 }
 
-.hero h1,
+.accountBar h1,
 .card h2 {
   position: relative;
   z-index: 1;
@@ -52,17 +59,17 @@
   letter-spacing: -0.04em;
 }
 
-.hero h1 {
-  font-size: clamp(2.8rem, 6vw, 4.6rem);
-  line-height: 0.92;
+.accountBar h1 {
+  margin-top: 6px;
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  line-height: 1;
   color: #2b160d;
+  word-break: break-word;
 }
 
-.lead,
 .card p,
 .orderItem span,
-.metaList dt,
-.metaList dd {
+.addressItem span {
   position: relative;
   z-index: 1;
   color: var(--text-soft);
@@ -88,27 +95,6 @@
 
 .card h2 {
   font-size: clamp(1.8rem, 4vw, 3rem);
-}
-
-.metaList {
-  display: grid;
-  gap: 12px;
-  margin: 0;
-}
-
-.metaList div {
-  display: grid;
-  gap: 4px;
-}
-
-.metaList dt {
-  font-size: 0.84rem;
-  font-weight: 700;
-}
-
-.metaList dd {
-  margin: 0;
-  word-break: break-word;
 }
 
 .statusGrid {
@@ -288,15 +274,20 @@
     gap: 12px;
   }
 
-  .hero,
+  .accountBar,
   .grid,
   .card {
     padding: 18px;
     border-radius: 24px;
   }
 
-  .hero h1 {
-    font-size: clamp(2.35rem, 12vw, 3.8rem);
+  .accountBar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .accountBar h1 {
+    font-size: clamp(1.6rem, 8vw, 2.2rem);
   }
 
   .statusGrid {

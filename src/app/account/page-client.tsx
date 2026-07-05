@@ -98,36 +98,32 @@ export function AccountPageClient({
 
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
-        <p className={styles.eyebrow}>{copy.account}</p>
-        <h1>{copy.accountTitle}</h1>
-        <p className={styles.lead}>{copy.accountLead}</p>
+      <section className={styles.accountBar}>
+        <div>
+          <p className={styles.eyebrow}>{copy.account}</p>
+          <h1>
+            {hydrated
+              ? viewer?.username ?? viewer?.uid ?? copy.guestLabel
+              : copy.loading}
+          </h1>
+        </div>
+
+        <div className={styles.actionRow}>
+          <Link href="/cart" className={styles.primaryLink}>
+            {copy.cartShortcut} ({cartCount})
+          </Link>
+          <Link href="/orders" className={styles.secondaryLink}>
+            {orderCopy.orders}
+          </Link>
+          <Link href="/shop" className={styles.secondaryLink}>
+            {copy.browseShop}
+          </Link>
+        </div>
       </section>
 
       <section className={styles.grid}>
         <article className={styles.card}>
-          <p className={styles.cardLabel}>{copy.statusTitle}</p>
-          <h2>
-            {hydrated
-              ? viewer?.username ?? viewer?.uid ?? copy.guestLabel
-              : copy.loading}
-          </h2>
-          <p>{hydrated ? (viewer ? copy.statusSignedIn : copy.statusGuest) : copy.loading}</p>
-
-          <dl className={styles.metaList}>
-            <div>
-              <dt>{copy.usernameLabel}</dt>
-              <dd>
-                {hydrated
-                  ? viewer?.username ?? viewer?.uid ?? copy.guestLabel
-                  : copy.loading}
-              </dd>
-            </div>
-            <div>
-              <dt>{copy.walletLabel}</dt>
-              <dd>{hydrated ? viewer?.wallet_address ?? "--" : copy.loading}</dd>
-            </div>
-          </dl>
+          <p className={styles.cardLabel}>{orderCopy.orders}</p>
 
           <div className={styles.statusGrid}>
             <article className={styles.statusCard}>
@@ -142,18 +138,6 @@ export function AccountPageClient({
               <strong>{hydrated ? statusCounts?.shipping ?? 0 : copy.loading}</strong>
               <span>{orderCopy.shipping}</span>
             </article>
-          </div>
-
-          <div className={styles.actionRow}>
-            <Link href="/cart" className={styles.primaryLink}>
-              {copy.cartShortcut} ({cartCount})
-            </Link>
-            <Link href="/orders" className={styles.secondaryLink}>
-              {orderCopy.orders}
-            </Link>
-            <Link href="/shop" className={styles.secondaryLink}>
-              {copy.browseShop}
-            </Link>
           </div>
         </article>
 
@@ -210,16 +194,9 @@ export function AccountPageClient({
           )}
         </article>
 
-        <article className={styles.card}>
-          <p className={styles.cardLabel}>{copy.addressBookTitle}</p>
-          <h2>{hydrated ? addresses.length : copy.loading}</h2>
-          <p>{copy.addressBookLead}</p>
-
-          {!hydrated ? (
-            <p>{copy.loading}</p>
-          ) : addresses.length === 0 ? (
-            <p>{copy.noAddresses}</p>
-          ) : (
+        {hydrated && addresses.length > 0 ? (
+          <article className={styles.card}>
+            <p className={styles.cardLabel}>{copy.addressBookTitle}</p>
             <ul className={styles.addressList}>
               {addresses.map((address) => (
                 <li key={address.id} className={styles.addressItem}>
@@ -245,8 +222,8 @@ export function AccountPageClient({
                 </li>
               ))}
             </ul>
-          )}
-        </article>
+          </article>
+        ) : null}
       </section>
     </div>
   );
