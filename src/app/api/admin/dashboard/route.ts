@@ -8,7 +8,7 @@ import { ensureStorefrontSchema } from "@/lib/storefront-db";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
 import { getDatabaseUrl } from "@/lib/db";
 
-const ADMIN_DASHBOARD_TIMEOUT_MS = 5000;
+const ADMIN_DASHBOARD_TIMEOUT_MS = 20000;
 
 export const preferredRegion = "sin1";
 

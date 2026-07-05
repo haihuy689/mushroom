@@ -438,13 +438,29 @@ export function AdminPageClient({
   const hasCredentialSession =
     credentialAuthOverride ?? initialCredentialSessionActive;
   const canAccessAdmin =
-    credentialAuthOverride === false ? false : initialAccess.canAccessAdmin;
+    credentialAuthOverride === true
+      ? true
+      : credentialAuthOverride === false
+        ? false
+        : initialAccess.canAccessAdmin;
   const canManageOrders =
-    credentialAuthOverride === false ? false : initialAccess.canManageOrders;
+    credentialAuthOverride === true
+      ? true
+      : credentialAuthOverride === false
+        ? false
+        : initialAccess.canManageOrders;
   const canManageProducts =
-    credentialAuthOverride === false ? false : initialAccess.canManageProducts;
+    credentialAuthOverride === true
+      ? true
+      : credentialAuthOverride === false
+        ? false
+        : initialAccess.canManageProducts;
   const canManageStaff =
-    credentialAuthOverride === false ? false : initialAccess.canManageStaff;
+    credentialAuthOverride === true
+      ? true
+      : credentialAuthOverride === false
+        ? false
+        : initialAccess.canManageStaff;
 
   const dateFormatter = useMemo(
     () =>
@@ -689,7 +705,7 @@ export function AdminPageClient({
 
     try {
       const data = await readJson<DashboardSnapshot>("/api/admin/dashboard", {
-        timeoutMs: 12000,
+        timeoutMs: 30000,
       });
 
       setOrders(data.orders);
@@ -869,7 +885,12 @@ export function AdminPageClient({
 
       setCredentialAuthOverride(true);
       setAdminPassword("");
-      window.location.replace("/admin");
+      setDashboardReady(false);
+      setDashboardRequested(false);
+      setMessage({
+        kind: "success",
+        text: copy.saveSuccess,
+      });
     } catch (error) {
       setMessage({
         kind: "error",

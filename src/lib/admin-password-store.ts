@@ -5,6 +5,7 @@ import { getSql } from "@/lib/db";
 
 const ADMIN_PASSWORD_HASH_PREFIX = "scrypt";
 const ADMIN_PASSWORD_KEY_LENGTH = 64;
+const ADMIN_PASSWORD_LOOKUP_TIMEOUT_MS = 2500;
 
 type AdminPasswordRow = {
   password_hash: string;
@@ -62,13 +63,32 @@ async function ensureAdminPasswordTable() {
   return true;
 }
 
+function withAdminPasswordLookupTimeout<T>(promise: Promise<T>) {
+  return new Promise<T | null>((resolve) => {
+    const timer = setTimeout(() => {
+      resolve(null);
+    }, ADMIN_PASSWORD_LOOKUP_TIMEOUT_MS);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      () => {
+        clearTimeout(timer);
+        resolve(null);
+      },
+    );
+  });
+}
+
 export async function verifyStoredAdminPassword(
   username: string,
   password: string,
 ) {
   const usernameKey = normalizeAdminUsername(username);
 
-  if (!usernameKey || !(await ensureAdminPasswordTable())) {
+  if (!usernameKey) {
     return null as boolean | null;
   }
 
@@ -78,12 +98,16 @@ export async function verifyStoredAdminPassword(
     return null as boolean | null;
   }
 
-  const rows = await sql<AdminPasswordRow[]>`
-    select password_hash
-    from storefront_admin_credentials
-    where username_key = ${usernameKey}
-    limit 1
-  `;
+  const rows = await withAdminPasswordLookupTimeout(sql<AdminPasswordRow[]>`
+      select password_hash
+      from storefront_admin_credentials
+      where username_key = ${usernameKey}
+      limit 1
+    `);
+
+  if (!rows) {
+    return null as boolean | null;
+  }
 
   if (!rows[0]) {
     return null as boolean | null;
