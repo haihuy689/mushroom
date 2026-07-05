@@ -311,6 +311,17 @@
   font-weight: 800;
 }
 
+.emptyProducts {
+  margin: 0;
+  border: 1px dashed rgba(70, 64, 40, 0.16);
+  border-radius: 1.1rem;
+  background: rgba(255, 253, 248, 0.74);
+  color: rgba(43, 22, 13, 0.7);
+  font-weight: 800;
+  padding: 1rem;
+  text-align: center;
+}
+
 .productActions {
   margin-top: 4px;
 }

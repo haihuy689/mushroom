@@ -883,7 +883,10 @@ export function AdminPageClient({
         items: StorefrontProductRecord[];
       }>("/api/admin/products", {
         method: "POST",
-        body: JSON.stringify(productEditor),
+        body: JSON.stringify({
+          ...productEditor,
+          sourceProductId: null,
+        }),
       });
 
       setProducts(data.items);
@@ -892,7 +895,7 @@ export function AdminPageClient({
       setProductEditor(toProductEditor(data.item));
       setMessage({
         kind: "success",
-        text: copy.saveSuccess,
+        text: copy.saveProductSuccess,
       });
     } catch (error) {
       setMessage({
@@ -1474,7 +1477,15 @@ export function AdminPageClient({
                   {products.length === 0 ? (
                     <p className={styles.emptyState}>{copy.emptyProducts}</p>
                   ) : (
-                    <div className={styles.selectionList}>
+                    <div className={styles.productTable}>
+                      <div className={styles.productTableHeader}>
+                        <span>{copy.productNameLabel}</span>
+                        <span>{copy.statusLabel}</span>
+                        <span>{copy.priceLabel}</span>
+                        <span>{copy.inventoryLabel}</span>
+                        <span>{copy.totalSoldCountLabel}</span>
+                        <span>{copy.featuredProductLabel}</span>
+                      </div>
                       {products.map((product) => {
                         const inventoryTone =
                           product.inventoryCount <= 0
@@ -1482,55 +1493,52 @@ export function AdminPageClient({
                             : product.inventoryCount <= product.lowStockThreshold
                               ? "warning"
                               : "success";
-                        const isCustomProduct = !product.sourceProductId;
+                        const isAdminProduct = !product.sourceProductId;
 
                         return (
                           <button
                             key={product.id}
                             type="button"
-                            className={styles.selectionRow}
+                            className={styles.productTableRow}
                             data-active={selectedProductId === product.id}
                             onClick={() => handleSelectProduct(product)}
                           >
-                            <ProductThumbnail
-                              accent={product.accent}
-                              compact
-                              imageUrl={product.imageUrl || undefined}
-                              name={product.name}
-                              productId={product.id}
-                            />
-                            <div className={styles.selectionCopy}>
+                            <div className={styles.productTableProduct}>
+                              <ProductThumbnail
+                                accent={product.accent}
+                                compact
+                                imageUrl={product.imageUrl || undefined}
+                                name={product.name}
+                                productId={product.id}
+                              />
                               <div className={styles.selectionTitle}>
                                 <strong>{product.name}</strong>
                                 <span>{product.sku || product.slug}</span>
                               </div>
-                              <div className={styles.tagRow}>
-                                <span className={styles.statusChip} data-tone={product.isActive ? "success" : "muted"}>
-                                  {product.isActive
-                                    ? copy.productLiveStatus
-                                    : copy.productHiddenStatus}
-                                </span>
-                                <span className={styles.statusChip} data-tone={inventoryTone}>
-                                  {product.inventoryCount > 0
-                                    ? copy.productInStockStatus
-                                    : copy.productOutOfStockStatus}
-                                </span>
-                                <span className={styles.statusChip} data-tone={isCustomProduct ? "accent" : "neutral"}>
-                                  {isCustomProduct
-                                    ? copy.productCustomLabel
-                                    : copy.productSystemLabel}
-                                </span>
-                              </div>
                             </div>
-                            <div className={styles.selectionMeta}>
-                              <strong>{formatPi(product.pricePi)}</strong>
-                              <span>
-                                {copy.inventoryLabel}: {product.inventoryCount}
+                            <div className={styles.productTableStatus}>
+                              <span className={styles.statusChip} data-tone={product.isActive ? "success" : "muted"}>
+                                {product.isActive
+                                  ? copy.productLiveStatus
+                                  : copy.productHiddenStatus}
                               </span>
-                              <span>
-                                {copy.totalSoldCountLabel}: {getDisplayedSoldCount(product)}
+                              <span className={styles.statusChip} data-tone={inventoryTone}>
+                                {product.inventoryCount > 0
+                                  ? copy.productInStockStatus
+                                  : copy.productOutOfStockStatus}
+                              </span>
+                              <span className={styles.statusChip} data-tone={isAdminProduct ? "accent" : "neutral"}>
+                                {isAdminProduct
+                                  ? copy.productCustomLabel
+                                  : copy.productSystemLabel}
                               </span>
                             </div>
+                            <strong>{formatPi(product.pricePi)}</strong>
+                            <span>{product.inventoryCount} / {product.lowStockThreshold}</span>
+                            <span>{getDisplayedSoldCount(product)}</span>
+                            <span className={styles.statusChip} data-tone={product.isFeatured ? "accent" : "neutral"}>
+                              {product.isFeatured ? copy.featuredProductsLabel : "-"}
+                            </span>
                           </button>
                         );
                       })}

@@ -239,6 +239,14 @@ const soldLabels: Record<SiteLocale, string> = {
   zh: "已售",
 };
 
+const emptyFeaturedLabels: Record<SiteLocale, string> = {
+  en: "Featured products are being updated.",
+  es: "Los productos destacados se están actualizando.",
+  fr: "Les produits en vedette sont en cours de mise à jour.",
+  vi: "Sản phẩm nổi bật đang được cập nhật.",
+  zh: "精选商品正在更新。",
+};
+
 function getDisplayedSoldCount(product: Product) {
   const baseSoldCount =
     typeof product.baseSoldCount === "number" ? product.baseSoldCount : 0;
@@ -253,11 +261,9 @@ export default async function Home() {
   const siteCopy = getPublicSiteCopy(locale);
   const storefrontCopy = getStorefrontCopy(locale);
   const products = await getStorefrontProducts(locale);
-  const homepageProducts = products
+  const featuredProducts = products
     .filter((product) => product.isFeatured === true)
     .slice(0, 4);
-  const featuredProducts =
-    homepageProducts.length > 0 ? homepageProducts : products.slice(0, 4);
   const homeCopy = getHomeThemeCopy(locale, siteCopy);
   const benefitIcons: BenefitIconName[] = ["leaf", "truck", "pi", "shield"];
   const stepIcons: BenefitIconName[] = ["basket", "pi", "checklist"];
@@ -355,6 +361,12 @@ export default async function Home() {
             </article>
           ))}
         </div>
+
+        {featuredProducts.length === 0 ? (
+          <p className={styles.emptyProducts}>
+            {emptyFeaturedLabels[locale] ?? emptyFeaturedLabels.en}
+          </p>
+        ) : null}
       </section>
 
       <section className={styles.stepsSection}>

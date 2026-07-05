@@ -97,6 +97,7 @@ export type AdminCenterCopy = {
   saveError: string;
   saveOrderButton: string;
   saveProductButton: string;
+  saveProductSuccess: string;
   saveStaffButton: string;
   saveSuccess: string;
   savingLabel: string;
@@ -220,7 +221,7 @@ const en: AdminCenterCopy = {
   productActiveLabel: "Visible in storefront",
   productBadgeLabel: "Badge",
   productCategoryLabel: "Category",
-  productCustomLabel: "Custom product",
+  productCustomLabel: "Admin product",
   productDescriptionLabel: "Description",
   productFormatLabel: "Format",
   productHiddenStatus: "Hidden",
@@ -229,7 +230,7 @@ const en: AdminCenterCopy = {
   productNameLabel: "Product name",
   productOutOfStockStatus: "Out of stock",
   productSlugLabel: "Slug",
-  productSystemLabel: "System product",
+  productSystemLabel: "Old sample",
   productTaglineLabel: "Short tagline",
   productsRefresh: "Refresh products",
   productsTab: "Products",
@@ -240,6 +241,8 @@ const en: AdminCenterCopy = {
   saveError: "Unable to save changes right now.",
   saveOrderButton: "Save order",
   saveProductButton: "Save product",
+  saveProductSuccess:
+    "Product saved. It appears in the shop when storefront visibility is on, and on the homepage when homepage visibility is on.",
   saveStaffButton: "Save employee",
   saveSuccess: "Saved.",
   savingLabel: "Saving...",
@@ -365,7 +368,7 @@ const vi: AdminCenterCopy = {
   productActiveLabel: "Dang hien tren shop",
   productBadgeLabel: "Nhan",
   productCategoryLabel: "Danh muc",
-  productCustomLabel: "San pham tu tao",
+  productCustomLabel: "San pham quan tri",
   productDescriptionLabel: "Mo ta",
   productFormatLabel: "Quy cach",
   productHiddenStatus: "Dang an",
@@ -374,7 +377,7 @@ const vi: AdminCenterCopy = {
   productNameLabel: "Ten san pham",
   productOutOfStockStatus: "Het hang",
   productSlugLabel: "Slug",
-  productSystemLabel: "San pham he thong",
+  productSystemLabel: "Mau cu",
   productTaglineLabel: "Mo ta ngan",
   productsRefresh: "Tai lai san pham",
   productsTab: "San pham",
@@ -385,6 +388,8 @@ const vi: AdminCenterCopy = {
   saveError: "Hien chua luu duoc thay doi.",
   saveOrderButton: "Luu don hang",
   saveProductButton: "Luu san pham",
+  saveProductSuccess:
+    "Da luu san pham. San pham se hien o cua hang khi bat hien thi tren shop, va hien o trang chu khi bat hien thi o trang chu.",
   saveStaffButton: "Luu nhan vien",
   saveSuccess: "Da luu.",
   savingLabel: "Dang luu...",

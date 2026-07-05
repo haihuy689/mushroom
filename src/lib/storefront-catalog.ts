@@ -140,9 +140,14 @@ export async function getStorefrontProducts(locale: SiteLocale) {
     return staticProducts;
   }
 
+  const customProducts = dbProducts.filter(
+    (productRecord) => !productRecord.sourceProductId,
+  );
+  const publicProductRecords =
+    customProducts.length > 0 ? customProducts : dbProducts;
   const catalogProducts: Product[] = [];
 
-  for (const productRecord of dbProducts) {
+  for (const productRecord of publicProductRecords) {
     if (!productRecord.isActive) {
       continue;
     }

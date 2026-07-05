@@ -367,7 +367,7 @@ export async function GET() {
                   created_at::text,
                   updated_at::text
                 from storefront_products
-                order by source_product_id nulls last, updated_at desc, name asc
+                order by source_product_id nulls first, updated_at desc, name asc
               `
             : Promise.resolve([]),
         ]),
