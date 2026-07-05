@@ -83,8 +83,12 @@ type StaffEditor = {
 
 type OrderEditor = {
   adminNote: string;
+  deliveredAt: string;
+  fulfillmentStaff: string;
   id: string;
+  receivedBy: string;
   shippingCarrier: string;
+  shipperName: string;
   status: OrderStatus;
   trackingCode: string;
 };
@@ -259,11 +263,43 @@ function toStaffEditor(member: StorefrontStaffMember): StaffEditor {
 function toOrderEditor(order: StorefrontOrder): OrderEditor {
   return {
     adminNote: order.adminNote ?? "",
+    deliveredAt: toDateTimeLocalValue(order.deliveredAt),
+    fulfillmentStaff: order.fulfillmentStaff ?? "",
     id: order.id,
+    receivedBy: order.receivedBy ?? "",
     shippingCarrier: order.shippingCarrier ?? "",
+    shipperName: order.shipperName ?? "",
     status: resolveOrderStatus(order),
     trackingCode: order.trackingCode ?? "",
   };
+}
+
+function toDateTimeLocalValue(value: string | undefined) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const pad = (part: number) => String(part).padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function fromDateTimeLocalValue(value: string) {
+  if (!value.trim()) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? value : date.toISOString();
 }
 
 function readFieldValue(
@@ -1305,7 +1341,11 @@ export function AdminPageClient({
           method: "PATCH",
           body: JSON.stringify({
             adminNote: orderEditor.adminNote,
+            deliveredAt: fromDateTimeLocalValue(orderEditor.deliveredAt),
+            fulfillmentStaff: orderEditor.fulfillmentStaff,
+            receivedBy: orderEditor.receivedBy,
             shippingCarrier: orderEditor.shippingCarrier,
+            shipperName: orderEditor.shipperName,
             status: orderEditor.status,
             trackingCode: orderEditor.trackingCode,
           }),
@@ -2593,7 +2633,7 @@ export function AdminPageClient({
                           >
                             <div className={styles.selectionCopy}>
                               <div className={styles.selectionTitle}>
-                                <strong>#{order.id.slice(-8).toUpperCase()}</strong>
+                                <strong>#{order.id}</strong>
                                 <span>{order.username ?? order.shopperUid ?? "--"}</span>
                               </div>
                               <div className={styles.tagRow}>
@@ -2605,6 +2645,9 @@ export function AdminPageClient({
                             <div className={styles.selectionMeta}>
                               <strong>{formatPi(order.totalPi)}</strong>
                               <span>{dateFormatter.format(new Date(order.createdAt))}</span>
+                              {order.fulfillmentStaff ? (
+                                <span>{copy.fulfillmentStaffLabel}: {order.fulfillmentStaff}</span>
+                              ) : null}
                             </div>
                           </button>
                         );
@@ -2619,7 +2662,7 @@ export function AdminPageClient({
                       <p className={styles.sectionEyebrow}>{copy.orderManagerTitle}</p>
                       <h4>
                         {selectedOrder
-                          ? `#${selectedOrder.id.slice(-8).toUpperCase()}`
+                          ? `#${selectedOrder.id}`
                           : copy.orderManagerTitle}
                       </h4>
                     </div>
@@ -2637,12 +2680,16 @@ export function AdminPageClient({
                           </strong>
                         </div>
                         <div className={styles.summaryCard}>
-                          <span>{copy.paymentIdLabel}</span>
-                          <strong>{selectedOrder.paymentId ?? "--"}</strong>
+                          <span>{copy.statusLabel}</span>
+                          <strong>{statusLabelByKey[resolveOrderStatus(selectedOrder)]}</strong>
                         </div>
                         <div className={styles.summaryCard}>
-                          <span>{copy.txidLabel}</span>
-                          <strong>{selectedOrder.txid ?? "--"}</strong>
+                          <span>{copy.latestSync}</span>
+                          <strong>
+                            {dateFormatter.format(
+                              new Date(selectedOrder.statusUpdatedAt ?? selectedOrder.createdAt),
+                            )}
+                          </strong>
                         </div>
                         <div className={styles.summaryCard}>
                           <span>{copy.priceLabel}</span>
@@ -2674,6 +2721,18 @@ export function AdminPageClient({
                           </select>
                         </label>
                         <label className={styles.field}>
+                          <span>{copy.fulfillmentStaffLabel}</span>
+                          <input
+                            value={orderEditor.fulfillmentStaff}
+                            onChange={(event) =>
+                              handleOrderEditorChange(
+                                "fulfillmentStaff",
+                                String(readFieldValue(event)),
+                              )
+                            }
+                          />
+                        </label>
+                        <label className={styles.field}>
                           <span>{copy.shippingCarrierLabel}</span>
                           <input
                             value={orderEditor.shippingCarrier}
@@ -2686,12 +2745,49 @@ export function AdminPageClient({
                           />
                         </label>
                         <label className={styles.field}>
+                          <span>{copy.shipperNameLabel}</span>
+                          <input
+                            value={orderEditor.shipperName}
+                            onChange={(event) =>
+                              handleOrderEditorChange(
+                                "shipperName",
+                                String(readFieldValue(event)),
+                              )
+                            }
+                          />
+                        </label>
+                        <label className={styles.field}>
                           <span>{copy.trackingCodeLabel}</span>
                           <input
                             value={orderEditor.trackingCode}
                             onChange={(event) =>
                               handleOrderEditorChange(
                                 "trackingCode",
+                                String(readFieldValue(event)),
+                              )
+                            }
+                          />
+                        </label>
+                        <label className={styles.field}>
+                          <span>{copy.deliveredAtLabel}</span>
+                          <input
+                            type="datetime-local"
+                            value={orderEditor.deliveredAt}
+                            onChange={(event) =>
+                              handleOrderEditorChange(
+                                "deliveredAt",
+                                String(readFieldValue(event)),
+                              )
+                            }
+                          />
+                        </label>
+                        <label className={styles.field}>
+                          <span>{copy.receivedByLabel}</span>
+                          <input
+                            value={orderEditor.receivedBy}
+                            onChange={(event) =>
+                              handleOrderEditorChange(
+                                "receivedBy",
                                 String(readFieldValue(event)),
                               )
                             }
@@ -2710,6 +2806,47 @@ export function AdminPageClient({
                             }
                           />
                         </label>
+                      </div>
+
+                      <div className={styles.infoBlock}>
+                        <strong>{copy.orderPaymentTitle}</strong>
+                        <div className={styles.infoGrid}>
+                          <span>{copy.paymentIdLabel}: {selectedOrder.paymentId ?? "--"}</span>
+                          <span>{copy.txidLabel}: {selectedOrder.txid ?? "--"}</span>
+                          <span>{copy.priceLabel}: {formatPi(selectedOrder.totalPi)}</span>
+                          <span>
+                            {copy.orderCodeLabel}: {selectedOrder.id}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={styles.infoBlock}>
+                        <strong>{copy.deliveryProgressTitle}</strong>
+                        <div className={styles.infoGrid}>
+                          <span>
+                            {copy.fulfillmentStaffLabel}:{" "}
+                            {selectedOrder.fulfillmentStaff ?? "--"}
+                          </span>
+                          <span>
+                            {copy.shipperNameLabel}: {selectedOrder.shipperName ?? "--"}
+                          </span>
+                          <span>
+                            {copy.shippingCarrierLabel}:{" "}
+                            {selectedOrder.shippingCarrier ?? "--"}
+                          </span>
+                          <span>
+                            {copy.trackingCodeLabel}: {selectedOrder.trackingCode ?? "--"}
+                          </span>
+                          <span>
+                            {copy.deliveredAtLabel}:{" "}
+                            {selectedOrder.deliveredAt
+                              ? dateFormatter.format(new Date(selectedOrder.deliveredAt))
+                              : "--"}
+                          </span>
+                          <span>
+                            {copy.receivedByLabel}: {selectedOrder.receivedBy ?? "--"}
+                          </span>
+                        </div>
                       </div>
 
                       {selectedOrder.shippingAddress ? (

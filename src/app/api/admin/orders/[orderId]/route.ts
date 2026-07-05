@@ -22,7 +22,11 @@ export async function PATCH(
 
   const body = (await request.json()) as {
     adminNote?: string;
+    deliveredAt?: string;
+    fulfillmentStaff?: string;
+    receivedBy?: string;
     shippingCarrier?: string;
+    shipperName?: string;
     status?: string;
     trackingCode?: string;
   };
@@ -43,7 +47,11 @@ export async function PATCH(
       orderId,
       {
         adminNote: body.adminNote,
+        deliveredAt: body.deliveredAt,
+        fulfillmentStaff: body.fulfillmentStaff,
+        receivedBy: body.receivedBy,
         shippingCarrier: body.shippingCarrier,
+        shipperName: body.shipperName,
         status: body.status,
         trackingCode: body.trackingCode,
       },

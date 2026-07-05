@@ -64,13 +64,17 @@ type OrderRow = {
   product_id: string;
   product_name: string;
   quantity: number;
+  delivered_at: string | null;
   total_pi: string | number;
   created_at: string;
   txid: string | null;
   payment_id: string | null;
+  assigned_staff: string | null;
   pi_uid: string;
+  received_by: string | null;
   fulfillment_status: string | null;
   shipping_carrier: string | null;
+  shipper_name: string | null;
   status_updated_at: string | null;
   status_updated_by: string | null;
   tracking_code: string | null;
@@ -217,10 +221,14 @@ function mapOrderRows(
     quantity: row.quantity,
     totalPi: Number(row.total_pi),
     createdAt: row.created_at,
+    deliveredAt: row.delivered_at ?? undefined,
+    fulfillmentStaff: row.assigned_staff ?? undefined,
     shopperUid: row.pi_uid,
     txid: row.txid ?? undefined,
     paymentId: row.payment_id ?? undefined,
+    receivedBy: row.received_by ?? undefined,
     shippingCarrier: row.shipping_carrier ?? undefined,
+    shipperName: row.shipper_name ?? undefined,
     status: isOrderStatus(row.fulfillment_status)
       ? row.fulfillment_status
       : undefined,
@@ -320,10 +328,14 @@ export async function GET() {
               quantity,
               total_pi,
               created_at::text,
+              delivered_at::text,
               txid,
               payment_id,
+              assigned_staff,
               fulfillment_status,
+              received_by,
               shipping_carrier,
+              shipper_name,
               status_updated_at::text,
               status_updated_by,
               tracking_code,

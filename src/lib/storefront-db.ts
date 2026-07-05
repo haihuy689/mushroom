@@ -61,13 +61,17 @@ type OrderRow = {
   product_id: string;
   product_name: string;
   quantity: number;
+  delivered_at: string | null;
   total_pi: string | number;
   created_at: string;
   txid: string | null;
   payment_id: string | null;
+  assigned_staff: string | null;
   pi_uid: string;
+  received_by: string | null;
   fulfillment_status: string | null;
   shipping_carrier: string | null;
+  shipper_name: string | null;
   status_updated_at: string | null;
   status_updated_by: string | null;
   tracking_code: string | null;
@@ -189,6 +193,10 @@ const STOREFRONT_REQUIRED_COLUMNS = [
   { table: "storefront_orders", column: "status_updated_at" },
   { table: "storefront_orders", column: "status_updated_by" },
   { table: "storefront_orders", column: "shipping_carrier" },
+  { table: "storefront_orders", column: "shipper_name" },
+  { table: "storefront_orders", column: "assigned_staff" },
+  { table: "storefront_orders", column: "delivered_at" },
+  { table: "storefront_orders", column: "received_by" },
   { table: "storefront_orders", column: "tracking_code" },
   { table: "storefront_orders", column: "admin_note" },
   { table: "storefront_orders", column: "location_status" },
@@ -385,6 +393,22 @@ export async function ensureStorefrontSchema() {
           await transaction`
             alter table storefront_orders
             add column if not exists shipping_carrier text
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists shipper_name text
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists assigned_staff text
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists delivered_at timestamptz
+          `;
+          await transaction`
+            alter table storefront_orders
+            add column if not exists received_by text
           `;
           await transaction`
             alter table storefront_orders
@@ -841,10 +865,14 @@ async function readStorefrontState(piUid: string) {
         quantity,
         total_pi,
         created_at::text,
+        delivered_at::text,
         txid,
         payment_id,
+        assigned_staff,
         fulfillment_status,
+        received_by,
         shipping_carrier,
+        shipper_name,
         status_updated_at::text,
         status_updated_by,
         tracking_code,
@@ -1033,10 +1061,14 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
         quantity,
         total_pi,
         created_at,
+        delivered_at,
         txid,
         payment_id,
+        assigned_staff,
         fulfillment_status,
+        received_by,
         shipping_carrier,
+        shipper_name,
         status_updated_at,
         status_updated_by,
         tracking_code,
@@ -1069,10 +1101,14 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
         ${order.quantity},
         ${order.totalPi},
         ${order.createdAt},
+        ${order.deliveredAt ?? null},
         ${order.txid ?? null},
         ${order.paymentId ?? null},
+        ${order.fulfillmentStaff ?? null},
         ${order.status ?? null},
+        ${order.receivedBy ?? null},
         ${order.shippingCarrier ?? null},
+        ${order.shipperName ?? null},
         ${order.statusUpdatedAt ?? null},
         ${order.statusUpdatedBy ?? null},
         ${order.trackingCode ?? null},
@@ -1104,10 +1140,14 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
         quantity = excluded.quantity,
         total_pi = excluded.total_pi,
         created_at = excluded.created_at,
+        delivered_at = coalesce(excluded.delivered_at, storefront_orders.delivered_at),
         txid = excluded.txid,
         payment_id = excluded.payment_id,
+        assigned_staff = coalesce(excluded.assigned_staff, storefront_orders.assigned_staff),
         fulfillment_status = excluded.fulfillment_status,
+        received_by = coalesce(excluded.received_by, storefront_orders.received_by),
         shipping_carrier = coalesce(storefront_orders.shipping_carrier, excluded.shipping_carrier),
+        shipper_name = coalesce(excluded.shipper_name, storefront_orders.shipper_name),
         status_updated_at = excluded.status_updated_at,
         status_updated_by = excluded.status_updated_by,
         tracking_code = coalesce(storefront_orders.tracking_code, excluded.tracking_code),
@@ -1167,6 +1207,7 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
           update storefront_products
           set
             actual_sold_count = actual_sold_count + ${item.quantity},
+            inventory_count = greatest(0, inventory_count - ${item.quantity}),
             updated_at = now()
           where id = ${item.productId}
         `;
@@ -1212,10 +1253,14 @@ function mapOrderRows(
       quantity: row.quantity,
       totalPi: Number(row.total_pi),
       createdAt: row.created_at,
+      deliveredAt: row.delivered_at ?? undefined,
+      fulfillmentStaff: row.assigned_staff ?? undefined,
       shopperUid: row.pi_uid,
       txid: row.txid ?? undefined,
       paymentId: row.payment_id ?? undefined,
+      receivedBy: row.received_by ?? undefined,
       shippingCarrier: row.shipping_carrier ?? undefined,
+      shipperName: row.shipper_name ?? undefined,
       status: isOrderStatus(row.fulfillment_status)
         ? row.fulfillment_status
         : undefined,
@@ -1282,13 +1327,17 @@ async function readAllStorefrontOrders() {
           product_id,
           product_name,
           quantity,
-          total_pi,
-          created_at::text,
-          txid,
-          payment_id,
-          fulfillment_status,
-          shipping_carrier,
-          status_updated_at::text,
+        total_pi,
+        created_at::text,
+        delivered_at::text,
+        txid,
+        payment_id,
+        assigned_staff,
+        fulfillment_status,
+        received_by,
+        shipping_carrier,
+        shipper_name,
+        status_updated_at::text,
           status_updated_by,
           tracking_code,
           username,
@@ -1921,7 +1970,11 @@ export async function listStorefrontOrdersForAdmin() {
 
 type StorefrontOrderAdminUpdate = {
   adminNote?: string | null;
+  deliveredAt?: string | null;
+  fulfillmentStaff?: string | null;
+  receivedBy?: string | null;
   shippingCarrier?: string | null;
+  shipperName?: string | null;
   status?: OrderStatus;
   trackingCode?: string | null;
 };
@@ -1941,68 +1994,117 @@ export async function updateStorefrontOrderRecord(
     throw new Error("Database is not configured.");
   }
 
-  const updatedRows = await sql<OrderRow[]>`
-    update storefront_orders
-    set
-      fulfillment_status = ${update.status ?? null},
-      shipping_carrier = ${update.shippingCarrier?.trim() || null},
-      status_updated_at = now(),
-      status_updated_by = ${actorUsername},
-      tracking_code = ${update.trackingCode?.trim() || null},
-      admin_note = ${update.adminNote?.trim() || null}
-    where id = ${orderId}
-    returning
-      admin_note,
-      id,
-      pi_uid,
-      product_id,
-      product_name,
-      quantity,
-      total_pi,
-      created_at::text,
-      txid,
-      payment_id,
-      fulfillment_status,
-      shipping_carrier,
-      status_updated_at::text,
-      status_updated_by,
-      tracking_code,
-      username,
-      shipping_full_name,
-      shipping_phone,
-      shipping_line1,
-      shipping_line2,
-      shipping_ward,
-      shipping_district,
-      shipping_city,
-      shipping_country,
-      shipping_note,
-      location_status,
-      location_checked_at::text,
-      location_country_code,
-      location_country_name,
-      location_address_country,
-      location_latitude,
-      location_longitude,
-      location_accuracy_meters,
-      location_message
-  `;
+  const { itemRows, updatedRows } = await sql.begin(async (transaction) => {
+    const existingRows = await transaction<
+      Array<{ fulfillment_status: string | null; txid: string | null }>
+    >`
+      select fulfillment_status, txid
+      from storefront_orders
+      where id = ${orderId}
+      limit 1
+    `;
+    const wasStockConfirmed = existingRows.some(
+      (row) =>
+        (isOrderStatus(row.fulfillment_status) &&
+          STOCK_CONFIRMED_ORDER_STATUSES.has(row.fulfillment_status)) ||
+        Boolean(row.txid),
+    );
+    const nextIsStockConfirmed = Boolean(
+      update.status && STOCK_CONFIRMED_ORDER_STATUSES.has(update.status),
+    );
+    const updatedOrderRows = await transaction<OrderRow[]>`
+      update storefront_orders
+      set
+        fulfillment_status = ${update.status ?? null},
+        assigned_staff = ${update.fulfillmentStaff?.trim() || null},
+        shipping_carrier = ${update.shippingCarrier?.trim() || null},
+        shipper_name = ${update.shipperName?.trim() || null},
+        delivered_at = ${update.deliveredAt?.trim() || null},
+        received_by = ${update.receivedBy?.trim() || null},
+        status_updated_at = now(),
+        status_updated_by = ${actorUsername},
+        tracking_code = ${update.trackingCode?.trim() || null},
+        admin_note = ${update.adminNote?.trim() || null}
+      where id = ${orderId}
+      returning
+        admin_note,
+        id,
+        pi_uid,
+        product_id,
+        product_name,
+        quantity,
+        total_pi,
+        created_at::text,
+        delivered_at::text,
+        txid,
+        payment_id,
+        assigned_staff,
+        fulfillment_status,
+        received_by,
+        shipping_carrier,
+        shipper_name,
+        status_updated_at::text,
+        status_updated_by,
+        tracking_code,
+        username,
+        shipping_full_name,
+        shipping_phone,
+        shipping_line1,
+        shipping_line2,
+        shipping_ward,
+        shipping_district,
+        shipping_city,
+        shipping_country,
+        shipping_note,
+        location_status,
+        location_checked_at::text,
+        location_country_code,
+        location_country_name,
+        location_address_country,
+        location_latitude,
+        location_longitude,
+        location_accuracy_meters,
+        location_message
+    `;
 
-  if (updatedRows.length === 0) {
-    throw new Error("Order not found.");
-  }
+    if (updatedOrderRows.length === 0) {
+      throw new Error("Order not found.");
+    }
 
-  const itemRows = await sql<OrderItemRow[]>`
-    select
-      order_id,
-      product_id,
-      product_name,
-      quantity,
-      total_pi
-    from storefront_order_items
-    where order_id = ${orderId}
-    order by product_name asc
-  `;
+    const orderItemRows = await transaction<OrderItemRow[]>`
+      select
+        order_id,
+        product_id,
+        product_name,
+        quantity,
+        total_pi
+      from storefront_order_items
+      where order_id = ${orderId}
+      order by product_name asc
+    `;
+
+    if (!wasStockConfirmed && nextIsStockConfirmed) {
+      for (const item of orderItemRows) {
+        if (item.quantity <= 0) {
+          continue;
+        }
+
+        await transaction`
+          update storefront_products
+          set
+            actual_sold_count = actual_sold_count + ${item.quantity},
+            inventory_count = greatest(0, inventory_count - ${item.quantity}),
+            updated_at = now()
+          where id = ${item.product_id}
+        `;
+      }
+    }
+
+    return {
+      itemRows: orderItemRows,
+      updatedRows: updatedOrderRows,
+    };
+  });
 
   return mapOrderRows(updatedRows, itemRows, 1)[0];
 }

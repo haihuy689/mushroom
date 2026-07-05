@@ -33,6 +33,8 @@ export type AdminCenterCopy = {
   dashboardLoading: string;
   dashboardRetry: string;
   dashboardSlowError: string;
+  deliveredAtLabel: string;
+  deliveryProgressTitle: string;
   deleteProductButton: string;
   deleteProductConfirm: string;
   deleteProductSuccess: string;
@@ -65,6 +67,7 @@ export type AdminCenterCopy = {
   orderAddress: string;
   orderCodeLabel: string;
   orderItems: string;
+  orderPaymentTitle: string;
   orderManagerLead: string;
   orderManagerTitle: string;
   ordersTab: string;
@@ -108,6 +111,7 @@ export type AdminCenterCopy = {
   productsTab: string;
   reactivateStaff: string;
   recentOrdersTitle: string;
+  receivedByLabel: string;
   refreshOrders: string;
   removeStaff: string;
   saveError: string;
@@ -121,10 +125,12 @@ export type AdminCenterCopy = {
   selectProductPrompt: string;
   selectStaffPrompt: string;
   shippingCarrierLabel: string;
+  shipperNameLabel: string;
   skuLabel: string;
   staffActiveLabel: string;
   staffAddedBy: string;
   staffFullNameLabel: string;
+  fulfillmentStaffLabel: string;
   staffIdentityLabel: string;
   staffManageOrdersLabel: string;
   staffManageProductsLabel: string;
@@ -190,6 +196,8 @@ const en: AdminCenterCopy = {
   dashboardRetry: "Reload data",
   dashboardSlowError:
     "Admin data is responding slowly right now. Please try reloading.",
+  deliveredAtLabel: "Delivered at",
+  deliveryProgressTitle: "Fulfillment progress",
   deleteProductButton: "Delete product",
   deleteProductConfirm:
     "Delete this product from the shop? Existing orders will be kept.",
@@ -201,6 +209,7 @@ const en: AdminCenterCopy = {
   emptyStaff: "No employees added yet.",
   featuredProductLabel: "Show on homepage",
   featuredProductsLabel: "Featured",
+  fulfillmentStaffLabel: "Packing employee",
   galleryImagesHelp: "One URL per line for inner product images.",
   galleryImagesLabel: "Inner image URLs",
   imageUrlLabel: "Cover image URL",
@@ -225,6 +234,7 @@ const en: AdminCenterCopy = {
   orderAddress: "Delivery address",
   orderCodeLabel: "Order code",
   orderItems: "Items",
+  orderPaymentTitle: "Payment details",
   orderManagerLead:
     "Track each order with status, shipping carrier, tracking code, and internal notes for fulfillment.",
   orderManagerTitle: "Order management",
@@ -272,6 +282,7 @@ const en: AdminCenterCopy = {
   productsTab: "Products",
   reactivateStaff: "Reactivate",
   recentOrdersTitle: "Recent orders",
+  receivedByLabel: "Received by",
   refreshOrders: "Refresh orders",
   removeStaff: "Deactivate",
   saveError: "Unable to save changes right now.",
@@ -286,6 +297,7 @@ const en: AdminCenterCopy = {
   selectProductPrompt: "Select a product from the list or start a new one to edit the catalog.",
   selectStaffPrompt: "Select an employee from the list or create a new one to manage permissions.",
   shippingCarrierLabel: "Shipping carrier",
+  shipperNameLabel: "Shipper",
   skuLabel: "SKU",
   staffActiveLabel: "Active employee",
   staffAddedBy: "Added by",
@@ -357,6 +369,8 @@ const vi: AdminCenterCopy = {
   dashboardRetry: "Tải lại dữ liệu",
   dashboardSlowError:
     "Dữ liệu quản trị đang phản hồi chậm. Bạn vui lòng tải lại sau ít giây.",
+  deliveredAtLabel: "Thời điểm giao thành công",
+  deliveryProgressTitle: "Tiến độ xử lý đơn",
   deleteProductButton: "Xóa sản phẩm",
   deleteProductConfirm:
     "Xóa sản phẩm này khỏi cửa hàng? Lịch sử đơn hàng cũ vẫn được giữ lại.",
@@ -368,6 +382,7 @@ const vi: AdminCenterCopy = {
   emptyStaff: "Chưa có nhân viên nào.",
   featuredProductLabel: "Hiển thị ở trang chủ",
   featuredProductsLabel: "Nổi bật",
+  fulfillmentStaffLabel: "Nhân viên soạn hàng",
   galleryImagesHelp: "Mỗi dòng là một URL ảnh bên trong sản phẩm.",
   galleryImagesLabel: "URL ảnh bên trong",
   imageUrlLabel: "URL ảnh bìa",
@@ -392,6 +407,7 @@ const vi: AdminCenterCopy = {
   orderAddress: "Địa chỉ nhận hàng",
   orderCodeLabel: "Mã đơn",
   orderItems: "Sản phẩm",
+  orderPaymentTitle: "Thông tin thanh toán",
   orderManagerLead:
     "Theo dõi đơn hàng với trạng thái, đơn vị giao hàng, mã vận đơn và ghi chú nội bộ cho khâu giao nhận.",
   orderManagerTitle: "Quản lý đơn hàng",
@@ -439,6 +455,7 @@ const vi: AdminCenterCopy = {
   productsTab: "Sản phẩm",
   reactivateStaff: "Kích hoạt lại",
   recentOrdersTitle: "Đơn gần đây",
+  receivedByLabel: "Người nhận hàng",
   refreshOrders: "Tải lại đơn",
   removeStaff: "Tạm dừng",
   saveError: "Hiện chưa lưu được thay đổi.",
@@ -456,6 +473,7 @@ const vi: AdminCenterCopy = {
   selectStaffPrompt:
     "Chọn một nhân viên trong danh sách hoặc tạo mới để quản lý quyền.",
   shippingCarrierLabel: "Đơn vị giao hàng",
+  shipperNameLabel: "Shipper / người giao",
   skuLabel: "SKU",
   staffActiveLabel: "Đang hoạt động",
   staffAddedBy: "Thêm bởi",

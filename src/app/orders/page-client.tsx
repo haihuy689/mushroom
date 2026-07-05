@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
+import type { PiCheckoutCopy } from "@/lib/public-site-copy";
 import {
   getOrderStatusCounts,
   getOrderStatusStepIndex,
@@ -13,23 +14,70 @@ import {
   TRACKABLE_ORDER_STATUSES,
   type OrderStatus,
 } from "@/lib/order-status";
-import { useStorefront } from "@/components/storefront-provider";
+import {
+  useStorefront,
+  type StorefrontOrder,
+} from "@/components/storefront-provider";
 import styles from "./page.module.css";
 
 type OrdersPageClientProps = {
   locale: SiteLocale;
   copy: OrderCenterCopy;
+  piCopy: PiCheckoutCopy;
+  serverConfigured: boolean;
 };
 
 type OrderFilter = "all" | OrderStatus;
 
+async function postJson<T>(
+  path: string,
+  payload: Record<string, unknown>,
+  fallbackError: string,
+) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json()) as T & { error?: string };
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.error === "string" ? data.error : fallbackError,
+    );
+  }
+
+  return data;
+}
+
 export function OrdersPageClient({
   locale,
   copy,
+  piCopy,
+  serverConfigured,
 }: OrdersPageClientProps) {
-  const { cartCount, hydrated, orders } = useStorefront();
+  const {
+    authBusy,
+    cartCount,
+    clearCart,
+    hydrated,
+    orders,
+    recordOrder,
+    sdkReady,
+    signInWithPi,
+    viewer,
+  } = useStorefront();
   const [activeFilter, setActiveFilter] = useState<OrderFilter>("all");
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [paymentMessage, setPaymentMessage] = useState<{
+    kind: "error" | "success";
+    orderId: string;
+    text: string;
+  } | null>(null);
+  const [retryingOrderId, setRetryingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -102,6 +150,149 @@ export function OrdersPageClient({
     delivered: copy.delivered,
   };
   const loadingLabel = locale === "vi" ? "\u0110ang t\u1ea3i..." : "Loading...";
+
+  const recordExistingOrderStatus = (
+    order: StorefrontOrder,
+    status: OrderStatus,
+    paymentId?: string,
+    txid?: string,
+  ) => {
+    recordOrder({
+      ...order,
+      paymentId,
+      status,
+      statusUpdatedAt: new Date().toISOString(),
+      statusUpdatedBy: "Pi Network Testnet",
+      txid,
+    });
+  };
+
+  const handleRetryPayment = async (order: StorefrontOrder) => {
+    if (!window.Pi) {
+      setPaymentMessage({
+        kind: "error",
+        orderId: order.id,
+        text: piCopy.sdkUnavailable,
+      });
+      return;
+    }
+
+    if (!sdkReady) {
+      setPaymentMessage({
+        kind: "error",
+        orderId: order.id,
+        text: piCopy.sdkNotReady,
+      });
+      return;
+    }
+
+    if (!serverConfigured) {
+      setPaymentMessage({
+        kind: "error",
+        orderId: order.id,
+        text: piCopy.missingServerKey,
+      });
+      return;
+    }
+
+    let activeViewer = viewer;
+
+    if (!activeViewer) {
+      activeViewer = await signInWithPi();
+    }
+
+    if (!activeViewer) {
+      setPaymentMessage({
+        kind: "error",
+        orderId: order.id,
+        text: piCopy.authRequired,
+      });
+      return;
+    }
+
+    setRetryingOrderId(order.id);
+    setPaymentMessage(null);
+
+    window.Pi.createPayment(
+      {
+        amount: order.totalPi,
+        memo: order.id,
+        metadata: {
+          itemCount: order.quantity,
+          lineCount: order.items?.length ?? 1,
+          orderCode: order.id,
+          orderId: order.id,
+          productId: order.productId,
+          productName: order.productName,
+          surface: "mushroom-pi-order-retry",
+          testMode: true,
+        },
+      },
+      {
+        onReadyForServerApproval: async (paymentId) => {
+          try {
+            await postJson(
+              "/api/pi/payments/approve",
+              { paymentId },
+              piCopy.approvalFailed,
+            );
+            recordExistingOrderStatus(order, "pending_payment", paymentId);
+          } catch (error) {
+            recordExistingOrderStatus(order, "payment_failed", paymentId);
+            setRetryingOrderId(null);
+            setPaymentMessage({
+              kind: "error",
+              orderId: order.id,
+              text: error instanceof Error ? error.message : piCopy.approvalFailed,
+            });
+          }
+        },
+        onReadyForServerCompletion: async (paymentId, txid) => {
+          try {
+            await postJson(
+              "/api/pi/payments/complete",
+              { paymentId, txid },
+              piCopy.completionFailed,
+            );
+            recordExistingOrderStatus(order, "paid", paymentId, txid);
+            clearCart();
+            setRetryingOrderId(null);
+            setPaymentMessage({
+              kind: "success",
+              orderId: order.id,
+              text: copy.retryPaymentSuccess,
+            });
+          } catch (error) {
+            recordExistingOrderStatus(order, "payment_failed", paymentId);
+            setRetryingOrderId(null);
+            setPaymentMessage({
+              kind: "error",
+              orderId: order.id,
+              text: error instanceof Error ? error.message : piCopy.completionFailed,
+            });
+          }
+        },
+        onCancel: (paymentId) => {
+          recordExistingOrderStatus(order, "payment_failed", paymentId);
+          setRetryingOrderId(null);
+          setPaymentMessage({
+            kind: "error",
+            orderId: order.id,
+            text: `[${paymentId}] ${piCopy.cancelled}`,
+          });
+        },
+        onError: (error, payment) => {
+          recordExistingOrderStatus(order, "payment_failed", payment?.identifier);
+          setRetryingOrderId(null);
+          setPaymentMessage({
+            kind: "error",
+            orderId: order.id,
+            text: `${piCopy.paymentError}: ${error.message}`,
+          });
+        },
+      },
+    );
+  };
 
   return (
     <div className={styles.page}>
@@ -242,9 +433,26 @@ export function OrdersPageClient({
                           ? copy.paymentPendingNotice
                           : copy.paymentFailedNotice}
                       </p>
-                      <Link href="/cart" className={styles.secondaryLink}>
-                        {copy.openCart}
-                      </Link>
+                      {paymentMessage?.orderId === order.id ? (
+                        <div
+                          className={styles.inlineMessage}
+                          data-kind={paymentMessage.kind}
+                        >
+                          {paymentMessage.text}
+                        </div>
+                      ) : null}
+                      <button
+                        type="button"
+                        className={styles.secondaryLink}
+                        disabled={retryingOrderId !== null || authBusy}
+                        onClick={() => {
+                          void handleRetryPayment(order);
+                        }}
+                      >
+                        {retryingOrderId === order.id
+                          ? copy.retryingPayment
+                          : copy.retryPayment}
+                      </button>
                     </div>
                   ) : (
                     <div className={styles.progressTrack}>

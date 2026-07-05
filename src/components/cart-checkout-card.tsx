@@ -7,7 +7,10 @@ import type { OrderStatus } from "@/lib/order-status";
 import type { Product } from "@/lib/pi-types";
 import type { PiCheckoutCopy } from "@/lib/public-site-copy";
 import type { StorefrontCopy } from "@/lib/storefront-copy";
-import type { StorefrontLocationVerification } from "@/lib/storefront-state";
+import type {
+  StorefrontLocationVerification,
+  StorefrontOrder,
+} from "@/lib/storefront-state";
 import { PiNetworkIcon } from "./brand-icons";
 import styles from "./cart-checkout-card.module.css";
 
@@ -175,6 +178,21 @@ function createOrderCode() {
   return `MP-${datePart}-${timePart}-${randomPart}`;
 }
 
+function orderMatchesCheckoutLines(order: StorefrontOrder, lines: CheckoutLine[]) {
+  if (!order.items || order.items.length !== lines.length) {
+    return false;
+  }
+
+  return lines.every((line) =>
+    order.items?.some(
+      (item) =>
+        item.productId === line.product.id &&
+        item.quantity === line.quantity &&
+        Number(item.totalPi.toFixed(4)) === Number(line.lineTotalPi.toFixed(4)),
+    ),
+  );
+}
+
 export function CartCheckoutCard({
   copy,
   hasInventoryIssue = false,
@@ -188,6 +206,7 @@ export function CartCheckoutCard({
     authBusy,
     authError,
     clearCart,
+    orders,
     recordOrder,
     sdkReady,
     signInWithPi,
@@ -300,7 +319,17 @@ export function CartCheckoutCard({
       return;
     }
 
-    const orderCode = createOrderCode();
+    const reusableOrder = orders.find((order) => {
+      const status = order.status;
+
+      return (
+        (status === "pending_payment" || status === "payment_failed") &&
+        Number(order.totalPi.toFixed(4)) === totalPi &&
+        order.quantity === totalItems &&
+        orderMatchesCheckoutLines(order, lines)
+      );
+    });
+    const orderCode = reusableOrder?.id ?? createOrderCode();
     const frozenLines = lines.map((line) => ({
       productId: line.product.id,
       productName: line.product.name,
@@ -313,9 +342,11 @@ export function CartCheckoutCard({
       id: orderCode,
       productId: lines.length === 1 ? lines[0].product.id : "mushroom-cart",
       productName:
-        lines.length === 1 ? lines[0].product.name : `Mushroom.Pi ${orderCode}`,
+        reusableOrder?.productName ??
+        (lines.length === 1 ? lines[0].product.name : `Mushroom.Pi ${orderCode}`),
       quantity: totalItems,
       totalPi,
+      createdAt: reusableOrder?.createdAt,
       username: viewer.username,
       shopperUid: viewer.uid,
       items: frozenLines,

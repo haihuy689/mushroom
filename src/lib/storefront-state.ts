@@ -59,10 +59,14 @@ export type StorefrontOrder = {
   quantity: number;
   totalPi: number;
   createdAt: string;
+  deliveredAt?: string;
+  fulfillmentStaff?: string;
   shopperUid?: string;
   txid?: string;
   paymentId?: string;
+  receivedBy?: string;
   shippingCarrier?: string;
+  shipperName?: string;
   status?: OrderStatus;
   statusUpdatedAt?: string;
   statusUpdatedBy?: string;
@@ -247,6 +251,14 @@ export function isStorefrontOrder(value: unknown): value is StorefrontOrder {
     typeof candidate.createdAt === "string" &&
     (candidate.shopperUid === undefined ||
       typeof candidate.shopperUid === "string") &&
+    (candidate.deliveredAt === undefined ||
+      typeof candidate.deliveredAt === "string") &&
+    (candidate.fulfillmentStaff === undefined ||
+      typeof candidate.fulfillmentStaff === "string") &&
+    (candidate.receivedBy === undefined ||
+      typeof candidate.receivedBy === "string") &&
+    (candidate.shipperName === undefined ||
+      typeof candidate.shipperName === "string") &&
     (candidate.status === undefined || isOrderStatus(candidate.status)) &&
     (candidate.statusUpdatedAt === undefined ||
       typeof candidate.statusUpdatedAt === "string") &&
@@ -470,10 +482,14 @@ export function normalizeOrders(
       quantity: Math.max(1, Math.round(order.quantity)),
       totalPi: Number(order.totalPi.toFixed(4)),
       createdAt: toIsoDate(order.createdAt),
+      deliveredAt: order.deliveredAt ? toIsoDate(order.deliveredAt) : undefined,
+      fulfillmentStaff: normalizeText(order.fulfillmentStaff) || undefined,
       shopperUid: normalizeText(order.shopperUid) || undefined,
       txid: normalizeText(order.txid) || undefined,
       paymentId: normalizeText(order.paymentId) || undefined,
+      receivedBy: normalizeText(order.receivedBy) || undefined,
       shippingCarrier: normalizeText(order.shippingCarrier) || undefined,
+      shipperName: normalizeText(order.shipperName) || undefined,
       status: order.status,
       statusUpdatedAt: order.statusUpdatedAt
         ? toIsoDate(order.statusUpdatedAt)
@@ -552,10 +568,14 @@ export function createStorefrontOrder(
       quantity: Math.max(1, Math.round(input.quantity)),
       totalPi: Number(input.totalPi.toFixed(4)),
       createdAt: toIsoDate(input.createdAt),
+      deliveredAt: input.deliveredAt,
+      fulfillmentStaff: normalizeText(input.fulfillmentStaff) || undefined,
       shopperUid: normalizeText(input.shopperUid) || undefined,
       txid: normalizeText(input.txid) || undefined,
       paymentId: normalizeText(input.paymentId) || undefined,
+      receivedBy: normalizeText(input.receivedBy) || undefined,
       shippingCarrier: normalizeText(input.shippingCarrier) || undefined,
+      shipperName: normalizeText(input.shipperName) || undefined,
       status: input.status,
       statusUpdatedAt: input.statusUpdatedAt,
       statusUpdatedBy: normalizeText(input.statusUpdatedBy) || undefined,

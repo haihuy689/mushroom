@@ -25,6 +25,9 @@ export type OrderCenterCopy = {
   paymentFailed: string;
   pendingPayment: string;
   preparing: string;
+  retryPayment: string;
+  retryPaymentSuccess: string;
+  retryingPayment: string;
   shipping: string;
   statusSummaryTitle: string;
   updatedLabel: string;
@@ -62,6 +65,9 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     paymentFailed: "Payment failed",
     pendingPayment: "Awaiting payment",
     preparing: "Preparing",
+    retryPayment: "Pay this order",
+    retryPaymentSuccess: "Payment completed for this order.",
+    retryingPayment: "Opening Pi payment...",
     shipping: "Shipping",
     statusSummaryTitle: "Order status",
     updatedLabel: "Updated",
@@ -99,6 +105,9 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     paymentFailed: "Thanh to\u00e1n th\u1ea5t b\u1ea1i",
     pendingPayment: "Ch\u1edd thanh to\u00e1n",
     preparing: "\u0110ang so\u1ea1n h\u00e0ng",
+    retryPayment: "Thanh to\u00e1n \u0111\u01a1n n\u00e0y",
+    retryPaymentSuccess: "\u0110\u00e3 thanh to\u00e1n th\u00e0nh c\u00f4ng cho \u0111\u01a1n n\u00e0y.",
+    retryingPayment: "\u0110ang m\u1edf thanh to\u00e1n Pi...",
     shipping: "\u0110ang giao",
     statusSummaryTitle: "Tr\u1ea1ng th\u00e1i \u0111\u01a1n",
     updatedLabel: "C\u1eadp nh\u1eadt",
@@ -136,6 +145,9 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     paymentFailed: "Pago fallido",
     pendingPayment: "Pendiente de pago",
     preparing: "Preparando",
+    retryPayment: "Pagar este pedido",
+    retryPaymentSuccess: "Pago completado para este pedido.",
+    retryingPayment: "Abriendo pago Pi...",
     shipping: "En camino",
     statusSummaryTitle: "Estado del pedido",
     updatedLabel: "Actualizado",
@@ -173,6 +185,9 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     paymentFailed: "Paiement echoue",
     pendingPayment: "Paiement en attente",
     preparing: "Preparation",
+    retryPayment: "Payer cette commande",
+    retryPaymentSuccess: "Paiement termine pour cette commande.",
+    retryingPayment: "Ouverture du paiement Pi...",
     shipping: "Expedition",
     statusSummaryTitle: "Statut des commandes",
     updatedLabel: "Mise a jour",
@@ -210,6 +225,9 @@ const copy: Record<SiteLocale, OrderCenterCopy> = {
     paymentFailed: "\u652f\u4ed8\u5931\u8d25",
     pendingPayment: "\u5f85\u652f\u4ed8",
     preparing: "\u5907\u8d27\u4e2d",
+    retryPayment: "\u652f\u4ed8\u6b64\u8ba2\u5355",
+    retryPaymentSuccess: "\u6b64\u8ba2\u5355\u5df2\u5b8c\u6210\u652f\u4ed8\u3002",
+    retryingPayment: "\u6b63\u5728\u6253\u5f00 Pi \u652f\u4ed8...",
     shipping: "\u914d\u9001\u4e2d",
     statusSummaryTitle: "\u8ba2\u5355\u72b6\u6001",
     updatedLabel: "\u66f4\u65b0",
