@@ -566,6 +566,28 @@
   color: #7c6b57;
 }
 
+.passwordInputRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.passwordInputRow input {
+  min-width: 0;
+}
+
+.passwordToggle {
+  border: 1px solid rgba(70, 64, 40, 0.16);
+  border-radius: 999px;
+  background: rgba(95, 123, 53, 0.12);
+  color: #446021;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 0.78rem 0.9rem;
+}
+
 .uploadDropzone {
   position: relative;
   display: grid;

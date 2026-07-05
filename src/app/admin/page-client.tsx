@@ -383,6 +383,7 @@ export function AdminPageClient({
   const [staff, setStaff] = useState<StorefrontStaffMember[]>(initialStaff ?? []);
   const [activeView, setActiveView] = useState<AdminView>("overview");
   const [adminPassword, setAdminPassword] = useState("");
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
   const adminUsername = "admin";
   const [adminPasswordConfirm, setAdminPasswordConfirm] = useState("");
   const [adminPasswordCurrent, setAdminPasswordCurrent] = useState("");
@@ -1575,13 +1576,29 @@ export function AdminPageClient({
             </div>
             <label className={styles.field}>
               <span>{copy.adminLoginPasswordLabel}</span>
-              <input
-                autoComplete="current-password"
-                required
-                type="password"
-                value={adminPassword}
-                onChange={(event) => setAdminPassword(event.target.value)}
-              />
+              <div className={styles.passwordInputRow}>
+                <input
+                  autoComplete="off"
+                  inputMode="numeric"
+                  name="mushroom-admin-passcode"
+                  required
+                  type={showAdminPassword ? "text" : "password"}
+                  value={adminPassword}
+                  onChange={(event) => setAdminPassword(event.target.value)}
+                />
+                <button
+                  aria-label={
+                    showAdminPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                  }
+                  className={styles.passwordToggle}
+                  type="button"
+                  onClick={() =>
+                    setShowAdminPassword((currentValue) => !currentValue)
+                  }
+                >
+                  {showAdminPassword ? "Ẩn" : "Hiện"}
+                </button>
+              </div>
             </label>
 
             <button
