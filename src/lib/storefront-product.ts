@@ -61,13 +61,20 @@ function normalizeStringList(value: string[] | string | null | undefined) {
     .slice(0, 12);
 }
 
+function parseNumericValue(value: number | string | null | undefined) {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return Number(value.trim().replace(/\s+/g, "").replace(",", "."));
+  }
+
+  return NaN;
+}
+
 function normalizeInteger(value: number | string | null | undefined) {
-  const numericValue =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number(value)
-        : NaN;
+  const numericValue = parseNumericValue(value);
 
   if (!Number.isFinite(numericValue)) {
     return 0;
@@ -77,12 +84,7 @@ function normalizeInteger(value: number | string | null | undefined) {
 }
 
 function normalizeDecimal(value: number | string | null | undefined) {
-  const numericValue =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number(value)
-        : NaN;
+  const numericValue = parseNumericValue(value);
 
   if (!Number.isFinite(numericValue)) {
     return 0;
@@ -92,12 +94,7 @@ function normalizeDecimal(value: number | string | null | undefined) {
 }
 
 function normalizeNullableDecimal(value: number | string | null | undefined) {
-  const numericValue =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number(value)
-        : NaN;
+  const numericValue = parseNumericValue(value);
 
   if (!Number.isFinite(numericValue) || numericValue <= 0) {
     return null;
@@ -107,12 +104,7 @@ function normalizeNullableDecimal(value: number | string | null | undefined) {
 }
 
 function normalizeWeightValue(value: number | string | null | undefined) {
-  const numericValue =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number(value)
-        : NaN;
+  const numericValue = parseNumericValue(value);
 
   if (!Number.isFinite(numericValue) || numericValue <= 0) {
     return null;
@@ -122,12 +114,7 @@ function normalizeWeightValue(value: number | string | null | undefined) {
 }
 
 function normalizeLowStockThreshold(value: number | string | null | undefined) {
-  const numericValue =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number(value)
-        : NaN;
+  const numericValue = parseNumericValue(value);
 
   if (!Number.isFinite(numericValue)) {
     return DEFAULT_LOW_STOCK_THRESHOLD;

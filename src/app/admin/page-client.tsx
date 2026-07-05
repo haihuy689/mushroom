@@ -227,7 +227,15 @@ function readFieldValue(
   }
 
   if (target instanceof HTMLInputElement && target.type === "number") {
-    return target.value === "" ? "" : Number(target.value);
+    const normalizedValue = target.value.trim().replace(/\s+/g, "").replace(",", ".");
+
+    if (normalizedValue === "") {
+      return "";
+    }
+
+    const numericValue = Number(normalizedValue);
+
+    return Number.isFinite(numericValue) ? numericValue : target.value;
   }
 
   return target.value;
@@ -1565,7 +1573,11 @@ export function AdminPageClient({
                   {productMode === "idle" ? (
                     <p className={styles.emptyState}>{copy.selectProductPrompt}</p>
                   ) : (
-                    <form className={styles.formStack} onSubmit={handleSaveProduct}>
+                    <form
+                      className={styles.formStack}
+                      noValidate
+                      onSubmit={handleSaveProduct}
+                    >
                       <div className={styles.previewCard}>
                         <ProductThumbnail
                           accent={productEditor.accent}
