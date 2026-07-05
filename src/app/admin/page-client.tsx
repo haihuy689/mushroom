@@ -559,6 +559,23 @@ export function AdminPageClient({
     () => products.filter((product) => product.isActive),
     [products],
   );
+  const productById = useMemo(() => {
+    const map = new Map<string, StorefrontProductRecord>();
+
+    for (const product of products) {
+      map.set(product.id, product);
+
+      if (product.sourceProductId) {
+        map.set(product.sourceProductId, product);
+      }
+
+      if (product.slug) {
+        map.set(product.slug, product);
+      }
+    }
+
+    return map;
+  }, [products]);
   const hiddenProducts = useMemo(
     () => products.filter((product) => !product.isActive),
     [products],
@@ -610,6 +627,53 @@ export function AdminPageClient({
     ready_to_ship: orderCopy.readyToShip,
     shipping: orderCopy.shipping,
   };
+  const orderFulfillmentCopy = useMemo(
+    () =>
+      locale === "vi"
+        ? {
+            deliveryControlTitle: "Cập nhật xử lý",
+            fulfillmentSheetLead:
+              "Kiểm hàng, đóng gói và bàn giao giao hàng theo đúng thông tin dưới đây.",
+            fulfillmentSheetTitle: "Phiếu soạn đơn",
+            gpsCheckLabel: "Kiểm tra GPS",
+            inventoryLeftLabel: "Tồn kho còn",
+            itemCountSuffix: "món",
+            itemsShortage: "Tồn kho có thể thiếu",
+            itemsToPack: "Hàng cần soạn",
+            lineTotalLabel: "Thành tiền",
+            noShippingNote: "Không có ghi chú",
+            orderCreatedAt: "Thời gian đặt",
+            paymentVerified: "Thanh toán đã xác nhận",
+            receiverName: "Người nhận",
+            receiverPhone: "Điện thoại",
+            receiverTitle: "Thông tin nhận hàng",
+            shippingNote: "Ghi chú giao hàng",
+            totalQuantityLabel: "Tổng số lượng",
+            unitPriceLabel: "Đơn giá",
+          }
+        : {
+            deliveryControlTitle: "Fulfillment update",
+            fulfillmentSheetLead:
+              "Pick, pack, and hand off the order using the details below.",
+            fulfillmentSheetTitle: "Packing slip",
+            gpsCheckLabel: "GPS check",
+            inventoryLeftLabel: "Inventory left",
+            itemCountSuffix: "items",
+            itemsShortage: "Inventory may be short",
+            itemsToPack: "Items to pack",
+            lineTotalLabel: "Line total",
+            noShippingNote: "No delivery note",
+            orderCreatedAt: "Placed at",
+            paymentVerified: "Payment verified",
+            receiverName: "Receiver",
+            receiverPhone: "Phone",
+            receiverTitle: "Delivery details",
+            shippingNote: "Delivery note",
+            totalQuantityLabel: "Total quantity",
+            unitPriceLabel: "Unit price",
+          },
+    [locale],
+  );
 
   const productStatusCount = useMemo(
     () => ({
@@ -1632,6 +1696,48 @@ export function AdminPageClient({
 
   const selectedOrder =
     orders.find((order) => order.id === selectedOrderId) ?? null;
+  const selectedOrderLineItems = useMemo(() => {
+    if (!selectedOrder) {
+      return [];
+    }
+
+    const lineItems =
+      selectedOrder.items && selectedOrder.items.length > 0
+        ? selectedOrder.items
+        : [
+            {
+              productId: selectedOrder.productId,
+              productName: selectedOrder.productName,
+              quantity: selectedOrder.quantity,
+              totalPi: selectedOrder.totalPi,
+            },
+          ];
+
+    return lineItems.map((item) => ({
+      item,
+      product: productById.get(item.productId) ?? null,
+    }));
+  }, [productById, selectedOrder]);
+  const selectedOrderQuantity = useMemo(
+    () =>
+      selectedOrderLineItems.reduce(
+        (total, line) => total + line.item.quantity,
+        0,
+      ),
+    [selectedOrderLineItems],
+  );
+  const selectedOrderAddressText = selectedOrder?.shippingAddress
+    ? [
+        selectedOrder.shippingAddress.line1,
+        selectedOrder.shippingAddress.line2,
+        selectedOrder.shippingAddress.ward,
+        selectedOrder.shippingAddress.district,
+        selectedOrder.shippingAddress.city,
+        selectedOrder.shippingAddress.country,
+      ]
+        .filter(Boolean)
+        .join(", ")
+    : "--";
   const currentProductRecord =
     selectedProductId !== null
       ? products.find((product) => product.id === selectedProductId) ?? null
@@ -2723,7 +2829,7 @@ export function AdminPageClient({
                 </button>
               </div>
 
-              <div className={styles.detailGrid}>
+              <div className={`${styles.detailGrid} ${styles.orderDetailGrid}`}>
                 <article className={styles.panel}>
                   <div className={styles.panelHeader}>
                     <div>
@@ -2761,6 +2867,12 @@ export function AdminPageClient({
                               .filter(Boolean)
                               .join(", ")
                           : "--";
+                        const lineCount = order.items?.length ?? 1;
+                        const lineQuantity =
+                          order.items?.reduce(
+                            (total, item) => total + item.quantity,
+                            0,
+                          ) ?? order.quantity;
                         return (
                           <button
                             key={order.id}
@@ -2772,7 +2884,11 @@ export function AdminPageClient({
                             <div className={styles.selectionCopy}>
                               <div className={styles.selectionTitle}>
                                 <strong>#{order.id.slice(-10).toUpperCase()}</strong>
-                                <span>{order.productName}</span>
+                                <span>
+                                  {lineCount > 1
+                                    ? `${lineCount} ${copy.orderItems.toLowerCase()}`
+                                    : order.productName}
+                                </span>
                               </div>
                               <div className={styles.tagRow}>
                                 <span className={styles.statusChip} data-tone={status}>
@@ -2790,6 +2906,10 @@ export function AdminPageClient({
                             </div>
                             <div className={styles.selectionMeta}>
                               <strong>{formatPi(order.totalPi)}</strong>
+                              <span>
+                                {orderFulfillmentCopy.totalQuantityLabel}:{" "}
+                                {lineQuantity} {orderFulfillmentCopy.itemCountSuffix}
+                              </span>
                               <span>{copy.customerLabel}: {customerName}</span>
                               <span>{dateFormatter.format(new Date(order.createdAt))}</span>
                               <span>{copy.orderAddress}: {addressSummary}</span>
@@ -2804,13 +2924,13 @@ export function AdminPageClient({
                   )}
                 </article>
 
-                <article className={styles.panel}>
+                <article className={`${styles.panel} ${styles.orderPanel}`}>
                   <div className={styles.panelHeader}>
                     <div>
                       <p className={styles.sectionEyebrow}>{copy.orderManagerTitle}</p>
                       <h4>
                         {selectedOrder
-                          ? `#${selectedOrder.id}`
+                          ? `#${selectedOrder.id.slice(-12).toUpperCase()}`
                           : copy.orderManagerTitle}
                       </h4>
                     </div>
@@ -2849,8 +2969,148 @@ export function AdminPageClient({
                         </div>
                       </div>
 
+                      <div className={styles.fulfillmentSheet}>
+                        <div className={styles.fulfillmentHero}>
+                          <div>
+                            <strong>{orderFulfillmentCopy.fulfillmentSheetTitle}</strong>
+                            <span>{orderFulfillmentCopy.fulfillmentSheetLead}</span>
+                          </div>
+                          <div className={styles.fulfillmentHeroMeta}>
+                            <span>{orderFulfillmentCopy.paymentVerified}</span>
+                            <strong>{formatPi(selectedOrder.totalPi)}</strong>
+                          </div>
+                        </div>
+
+                        <div className={styles.fulfillmentPrepGrid}>
+                          <section className={styles.fulfillmentPanel}>
+                            <div className={styles.fulfillmentPanelHeader}>
+                              <strong>{orderFulfillmentCopy.itemsToPack}</strong>
+                              <span>
+                                {orderFulfillmentCopy.totalQuantityLabel}:{" "}
+                                {selectedOrderQuantity}{" "}
+                                {orderFulfillmentCopy.itemCountSuffix}
+                              </span>
+                            </div>
+
+                            <ul className={styles.fulfillmentItemList}>
+                              {selectedOrderLineItems.map(({ item, product }) => {
+                                const unitPi =
+                                  item.quantity > 0 ? item.totalPi / item.quantity : item.totalPi;
+                                const isShortStock =
+                                  product !== null &&
+                                  product.inventoryCount < item.quantity;
+
+                                return (
+                                  <li
+                                    key={`${selectedOrder.id}-${item.productId}`}
+                                    className={styles.fulfillmentItem}
+                                    data-short-stock={isShortStock}
+                                  >
+                                    <ProductThumbnail
+                                      accent={product?.accent ?? "#c38a33"}
+                                      compact
+                                      imageUrl={product?.imageUrl}
+                                      name={product?.name ?? item.productName}
+                                      productId={product?.id ?? item.productId}
+                                    />
+                                    <div className={styles.fulfillmentItemBody}>
+                                      <div className={styles.fulfillmentItemTitle}>
+                                        <strong>{product?.name ?? item.productName}</strong>
+                                        {product?.sku ? <span>{product.sku}</span> : null}
+                                      </div>
+                                      <div className={styles.fulfillmentItemMeta}>
+                                        {product?.category ? <span>{product.category}</span> : null}
+                                        {product?.format ? <span>{product.format}</span> : null}
+                                        {product?.packaging ? <span>{product.packaging}</span> : null}
+                                        {product?.weightValue ? (
+                                          <span>
+                                            {product.weightValue} {product.weightUnit ?? ""}
+                                          </span>
+                                        ) : null}
+                                        {product ? (
+                                          <span>
+                                            {orderFulfillmentCopy.inventoryLeftLabel}:{" "}
+                                            {product.inventoryCount}
+                                          </span>
+                                        ) : null}
+                                      </div>
+                                      {isShortStock ? (
+                                        <span className={styles.stockWarning}>
+                                          {orderFulfillmentCopy.itemsShortage}
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                    <div className={styles.fulfillmentQuantity}>
+                                      <strong>x{item.quantity}</strong>
+                                      <span>{formatPi(item.totalPi)}</span>
+                                      <small>
+                                        {orderFulfillmentCopy.unitPriceLabel}:{" "}
+                                        {formatPi(unitPi)}
+                                      </small>
+                                    </div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </section>
+
+                          <section className={styles.fulfillmentPanel}>
+                            <div className={styles.fulfillmentPanelHeader}>
+                              <strong>{orderFulfillmentCopy.receiverTitle}</strong>
+                              <span>{orderFulfillmentCopy.orderCreatedAt}</span>
+                            </div>
+                            <div className={styles.receiverCard}>
+                              <div>
+                                <span>{orderFulfillmentCopy.receiverName}</span>
+                                <strong>
+                                  {selectedOrder.shippingAddress?.fullName ??
+                                    selectedOrder.username ??
+                                    selectedOrder.shopperUid ??
+                                    "--"}
+                                </strong>
+                              </div>
+                              <div>
+                                <span>{orderFulfillmentCopy.receiverPhone}</span>
+                                <strong>{selectedOrder.shippingAddress?.phone ?? "--"}</strong>
+                              </div>
+                            </div>
+                            <div className={styles.addressBlock}>
+                              <span>{copy.orderAddress}</span>
+                              <strong>{selectedOrderAddressText}</strong>
+                            </div>
+                            <div className={styles.addressBlock}>
+                              <span>{orderFulfillmentCopy.shippingNote}</span>
+                              <strong>
+                                {selectedOrder.shippingAddress?.note ||
+                                  orderFulfillmentCopy.noShippingNote}
+                              </strong>
+                            </div>
+                            <div className={styles.addressMetaGrid}>
+                              <span>
+                                {orderFulfillmentCopy.orderCreatedAt}:{" "}
+                                {dateFormatter.format(new Date(selectedOrder.createdAt))}
+                              </span>
+                              <span>
+                                {copy.orderCodeLabel}: {selectedOrder.id}
+                              </span>
+                              {selectedOrder.locationVerification ? (
+                                <span>
+                                  {orderFulfillmentCopy.gpsCheckLabel}:{" "}
+                                  {selectedOrder.locationVerification.status} -{" "}
+                                  {selectedOrder.locationVerification.countryName ??
+                                    "--"}
+                                  {selectedOrder.locationVerification.countryCode
+                                    ? ` (${selectedOrder.locationVerification.countryCode})`
+                                    : ""}
+                                </span>
+                              ) : null}
+                            </div>
+                          </section>
+                        </div>
+                      </div>
+
                       <div className={styles.quickActionPanel}>
-                        <strong>{copy.orderQuickActionsTitle}</strong>
+                        <strong>{orderFulfillmentCopy.deliveryControlTitle}</strong>
                         <div className={styles.quickActionGrid}>
                           {[
                             {
@@ -3009,6 +3269,16 @@ export function AdminPageClient({
                         </label>
                       </div>
 
+                      <div className={styles.formActions}>
+                        <button
+                          type="submit"
+                          className={styles.primaryButton}
+                          disabled={savingOrder}
+                        >
+                          {savingOrder ? copy.savingLabel : copy.saveOrderButton}
+                        </button>
+                      </div>
+
                       <div className={styles.infoBlock}>
                         <strong>{copy.orderPaymentTitle}</strong>
                         <div className={styles.infoGrid}>
@@ -3019,94 +3289,6 @@ export function AdminPageClient({
                             {copy.orderCodeLabel}: {selectedOrder.id}
                           </span>
                         </div>
-                      </div>
-
-                      <div className={styles.infoBlock}>
-                        <strong>{copy.deliveryProgressTitle}</strong>
-                        <div className={styles.infoGrid}>
-                          <span>
-                            {copy.fulfillmentStaffLabel}:{" "}
-                            {selectedOrder.fulfillmentStaff ?? "--"}
-                          </span>
-                          <span>
-                            {copy.shipperNameLabel}: {selectedOrder.shipperName ?? "--"}
-                          </span>
-                          <span>
-                            {copy.shippingCarrierLabel}:{" "}
-                            {selectedOrder.shippingCarrier ?? "--"}
-                          </span>
-                          <span>
-                            {copy.trackingCodeLabel}: {selectedOrder.trackingCode ?? "--"}
-                          </span>
-                          <span>
-                            {copy.deliveredAtLabel}:{" "}
-                            {selectedOrder.deliveredAt
-                              ? dateFormatter.format(new Date(selectedOrder.deliveredAt))
-                              : "--"}
-                          </span>
-                          <span>
-                            {copy.receivedByLabel}: {selectedOrder.receivedBy ?? "--"}
-                          </span>
-                        </div>
-                      </div>
-
-                      {selectedOrder.shippingAddress ? (
-                        <div className={styles.infoBlock}>
-                          <strong>{copy.orderAddress}</strong>
-                          <span>
-                            {selectedOrder.shippingAddress.fullName} |{" "}
-                            {selectedOrder.shippingAddress.phone}
-                          </span>
-                          <span>
-                            {[
-                              selectedOrder.shippingAddress.line1,
-                              selectedOrder.shippingAddress.line2,
-                              selectedOrder.shippingAddress.ward,
-                              selectedOrder.shippingAddress.district,
-                              selectedOrder.shippingAddress.city,
-                              selectedOrder.shippingAddress.country,
-                            ]
-                              .filter(Boolean)
-                              .join(", ")}
-                          </span>
-                          {selectedOrder.locationVerification ? (
-                            <span>
-                              GPS: {selectedOrder.locationVerification.status} |{" "}
-                              {selectedOrder.locationVerification.countryName ??
-                                "--"}
-                              {selectedOrder.locationVerification.countryCode
-                                ? ` (${selectedOrder.locationVerification.countryCode})`
-                                : ""}{" "}
-                              | {selectedOrder.locationVerification.message ?? ""}
-                            </span>
-                          ) : null}
-                        </div>
-                      ) : null}
-
-                      {selectedOrder.items && selectedOrder.items.length > 0 ? (
-                        <div className={styles.infoBlock}>
-                          <strong>{copy.orderItems}</strong>
-                          <ul className={styles.itemList}>
-                            {selectedOrder.items.map((item) => (
-                              <li key={`${selectedOrder.id}-${item.productId}`}>
-                                <span>{item.productName}</span>
-                                <strong>
-                                  {item.quantity} x / {formatPi(item.totalPi)}
-                                </strong>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
-
-                      <div className={styles.formActions}>
-                        <button
-                          type="submit"
-                          className={styles.primaryButton}
-                          disabled={savingOrder}
-                        >
-                          {savingOrder ? copy.savingLabel : copy.saveOrderButton}
-                        </button>
                       </div>
                     </form>
                   )}

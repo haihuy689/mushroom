@@ -260,6 +260,10 @@
   grid-template-columns: minmax(0, 1fr) minmax(22rem, 28rem);
 }
 
+.orderDetailGrid {
+  grid-template-columns: minmax(24rem, 0.9fr) minmax(30rem, 1.1fr);
+}
+
 .panel {
   display: grid;
   gap: 1rem;
@@ -270,6 +274,10 @@
 
 .widePanel {
   grid-column: 1 / -1;
+}
+
+.orderPanel {
+  overflow: visible;
 }
 
 .panelHeader {
@@ -313,7 +321,7 @@
 }
 
 .selectionRow {
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(13rem, auto);
   text-align: left;
 }
 
@@ -518,6 +526,172 @@
 
 .quickActionGrid button[data-active="true"] {
   box-shadow: inset 0 0 0 2px rgba(95, 127, 53, 0.24);
+}
+
+.fulfillmentSheet {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.fulfillmentHero,
+.fulfillmentPanel {
+  border: 1px solid rgba(95, 127, 53, 0.16);
+  border-radius: 1.2rem;
+  background:
+    radial-gradient(circle at top left, rgba(95, 127, 53, 0.12), transparent 32%),
+    #fffdf8;
+}
+
+.fulfillmentHero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.fulfillmentHero strong,
+.fulfillmentPanelHeader strong,
+.fulfillmentItemTitle strong,
+.receiverCard strong,
+.addressBlock strong,
+.fulfillmentQuantity strong {
+  color: #26150c;
+}
+
+.fulfillmentHero span,
+.fulfillmentPanelHeader span,
+.fulfillmentItemTitle span,
+.fulfillmentItemMeta span,
+.receiverCard span,
+.addressBlock span,
+.addressMetaGrid span,
+.fulfillmentQuantity span,
+.fulfillmentQuantity small {
+  color: #6f6254;
+}
+
+.fulfillmentHero > div:first-child,
+.fulfillmentHeroMeta,
+.fulfillmentPanel,
+.fulfillmentItemBody,
+.fulfillmentQuantity,
+.receiverCard > div,
+.addressBlock {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.fulfillmentHeroMeta {
+  justify-items: end;
+  text-align: right;
+  min-width: max-content;
+}
+
+.fulfillmentPrepGrid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+}
+
+.fulfillmentPanel {
+  align-content: start;
+  padding: 1rem;
+}
+
+.fulfillmentPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.fulfillmentItemList {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fulfillmentItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.8rem;
+  border: 1px solid rgba(70, 64, 40, 0.1);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.fulfillmentItem[data-short-stock="true"] {
+  border-color: rgba(191, 77, 68, 0.3);
+  background: linear-gradient(135deg, #fff8f7, #fffdf8);
+}
+
+.fulfillmentItemTitle {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+}
+
+.fulfillmentItemMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+}
+
+.fulfillmentItemMeta span {
+  border-radius: 999px;
+  background: rgba(67, 52, 35, 0.07);
+  font-size: 0.78rem;
+  font-weight: 750;
+  padding: 0.24rem 0.55rem;
+}
+
+.stockWarning {
+  color: #ba4d44;
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.fulfillmentQuantity {
+  justify-items: end;
+  text-align: right;
+}
+
+.fulfillmentQuantity strong {
+  border-radius: 999px;
+  background: #edf9f0;
+  color: #197645;
+  font-size: 1rem;
+  padding: 0.24rem 0.62rem;
+}
+
+.receiverCard {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.receiverCard > div,
+.addressBlock,
+.addressMetaGrid {
+  border: 1px solid rgba(70, 64, 40, 0.1);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 0.72rem 0.78rem;
+}
+
+.addressBlock strong {
+  line-height: 1.45;
+}
+
+.addressMetaGrid {
+  display: grid;
+  gap: 0.45rem;
 }
 
 .previewCard {
@@ -890,9 +1064,11 @@
   }
 
   .metrics,
+  .fulfillmentPrepGrid,
   .formGrid,
   .infoGrid,
   .optionManager,
+  .receiverCard,
   .summaryGrid,
   .permissionGrid {
     grid-template-columns: 1fr;
@@ -927,5 +1103,17 @@
 
   .productTableMeta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fulfillmentHero,
+  .fulfillmentItem {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .fulfillmentHeroMeta,
+  .fulfillmentQuantity {
+    justify-items: flex-start;
+    text-align: left;
   }
 }
