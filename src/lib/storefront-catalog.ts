@@ -61,6 +61,67 @@ async function readStorefrontProductRecordsForCatalog() {
   }
 }
 
+const viPackagingTranslations = new Map([
+  ["12 stick pack", "12 gói thanh"],
+  ["12 stick packs", "12 gói thanh"],
+  ["12 sticks", "12 gói thanh"],
+  ["30 sachet", "30 gói"],
+  ["30 sachets", "30 gói"],
+  ["50 ml tincture", "Lọ chiết xuất 50 ml"],
+  ["recipe box", "Hộp công thức món ăn"],
+  ["tincture 50 ml", "Lọ chiết xuất 50 ml"],
+]);
+
+function normalizePackagingKey(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function localizeStaticPackaging(
+  product: Product,
+  staticProduct: Product,
+  locale: SiteLocale,
+) {
+  const packaging = product.packaging || product.format || staticProduct.format;
+
+  if (locale !== "vi") {
+    return packaging;
+  }
+
+  const normalizedPackaging = normalizePackagingKey(packaging);
+
+  if (!normalizedPackaging || normalizedPackaging === "standard pack") {
+    return staticProduct.format;
+  }
+
+  return viPackagingTranslations.get(normalizedPackaging) ?? packaging;
+}
+
+function withLocalizedStaticCopy(
+  product: Product,
+  staticProduct: Product,
+  locale: SiteLocale,
+) {
+  if (locale === "en") {
+    return product;
+  }
+
+  return {
+    ...product,
+    badge: staticProduct.badge,
+    category: staticProduct.category,
+    description: staticProduct.description,
+    format: staticProduct.format,
+    name: staticProduct.name,
+    packaging: localizeStaticPackaging(product, staticProduct, locale),
+    tagline: staticProduct.tagline,
+  };
+}
+
 export async function getStorefrontProducts(locale: SiteLocale) {
   const staticProducts = getProducts(locale).map(withOperationalDefaults);
   const staticById = new Map(staticProducts.map((product) => [product.id, product]));
@@ -84,24 +145,31 @@ export async function getStorefrontProducts(locale: SiteLocale) {
         continue;
       }
 
-      mergedProducts.set(staticProduct.id, {
-        ...staticProduct,
-        accent: productRecord.accent || staticProduct.accent,
-        badge: productRecord.badge || staticProduct.badge,
-        compareAtPi: productRecord.compareAtPi ?? staticProduct.compareAtPi,
-        costPi: productRecord.costPi ?? staticProduct.costPi,
-        imageUrl: productRecord.imageUrl || staticProduct.imageUrl,
-        inventoryCount: productRecord.inventoryCount,
-        isActive: productRecord.isActive,
-        isFeatured: productRecord.isFeatured,
-        lowStockThreshold: productRecord.lowStockThreshold,
-        packaging: productRecord.packaging || undefined,
-        pricePi: productRecord.pricePi,
-        sourceProductId: productRecord.sourceProductId ?? staticProduct.id,
-        sku: productRecord.sku || staticProduct.sku,
-        weightUnit: productRecord.weightUnit ?? undefined,
-        weightValue: productRecord.weightValue ?? undefined,
-      });
+      mergedProducts.set(
+        staticProduct.id,
+        withLocalizedStaticCopy(
+          {
+            ...staticProduct,
+            accent: productRecord.accent || staticProduct.accent,
+            badge: productRecord.badge || staticProduct.badge,
+            compareAtPi: productRecord.compareAtPi ?? staticProduct.compareAtPi,
+            costPi: productRecord.costPi ?? staticProduct.costPi,
+            imageUrl: productRecord.imageUrl || staticProduct.imageUrl,
+            inventoryCount: productRecord.inventoryCount,
+            isActive: productRecord.isActive,
+            isFeatured: productRecord.isFeatured,
+            lowStockThreshold: productRecord.lowStockThreshold,
+            packaging: productRecord.packaging || undefined,
+            pricePi: productRecord.pricePi,
+            sourceProductId: productRecord.sourceProductId ?? staticProduct.id,
+            sku: productRecord.sku || staticProduct.sku,
+            weightUnit: productRecord.weightUnit ?? undefined,
+            weightValue: productRecord.weightValue ?? undefined,
+          },
+          staticProduct,
+          locale,
+        ),
+      );
       continue;
     }
 

@@ -1109,11 +1109,11 @@ const productCatalog: ProductCatalogEntry[] = [
         badge: "Top seller",
       },
       vi: {
-        name: "Lion's Mane Focus Tonic",
-        tagline: "Công thức dùng hằng ngày cho sự tập trung và nhịp làm việc ổn định.",
+        name: "Nấm bờm sư tử tập trung",
+        tagline: "Công thức dùng hằng ngày giúp tỉnh táo và giữ nhịp làm việc ổn định.",
         description:
-          "Sản phẩm chủ lực dành cho builder, người viết và người làm việc trong hệ Pi muốn có một ritual nấm chức năng rõ ràng.",
-        category: "Wellness chức năng",
+          "Sản phẩm chủ lực dành cho người cần sự tập trung bền hơn trong học tập, làm việc và sáng tạo mỗi ngày.",
+        category: "Sức khỏe chức năng",
         format: "30 gói",
         badge: "Bán chạy",
       },
@@ -1163,13 +1163,13 @@ const productCatalog: ProductCatalogEntry[] = [
         badge: "Bundle pick",
       },
       vi: {
-        name: "Reishi Night Drops",
-        tagline: "Công thức dùng buổi tối với cảm giác chậm, ấm và dịu hơn.",
+        name: "Tinh chất linh chi ban đêm",
+        tagline: "Công thức dùng buổi tối với cảm giác ấm, dịu và thư giãn hơn.",
         description:
-          "Dòng sản phẩm thứ hai theo hướng thư giãn hơn, phù hợp cho bundle, subscription và routine trước khi ngủ.",
+          "Dòng sản phẩm hướng đến thói quen thư giãn trước khi ngủ, phù hợp dùng đều đặn vào cuối ngày.",
         category: "Hỗ trợ thư giãn",
-        format: "Tincture 50 ml",
-        badge: "Hợp với bundle",
+        format: "Lọ chiết xuất 50 ml",
+        badge: "Gợi ý mua kèm",
       },
       es: {
         name: "Reishi Night Drops",
@@ -1217,12 +1217,12 @@ const productCatalog: ProductCatalogEntry[] = [
         badge: "Starter friendly",
       },
       vi: {
-        name: "Cordyceps Trail Pack",
-        tagline: "Gói tăng lực tiện mang theo cho ngày vận động và sức bền nhẹ.",
+        name: "Đông trùng hạ thảo mang theo",
+        tagline: "Gói năng lượng tiện mang theo cho ngày vận động và cần sức bền nhẹ.",
         description:
-          "Một offer năng động hơn, dễ mang theo và giúp storefront có cảm giác rộng hơn một sản phẩm wellness đơn lẻ.",
+          "Sản phẩm nhỏ gọn, dễ dùng khi đi làm, đi học, đi chơi hoặc cần bổ sung năng lượng trong ngày.",
         category: "Năng lượng vận động",
-        format: "12 stick pack",
+        format: "12 gói thanh",
         badge: "Dễ bắt đầu",
       },
       es: {
@@ -1271,12 +1271,12 @@ const productCatalog: ProductCatalogEntry[] = [
         badge: "Seasonal edit",
       },
       vi: {
-        name: "Shiitake Kitchen Box",
-        tagline: "Set ẩm thực cho người nấu ăn muốn có vị, chất và câu chuyện.",
+        name: "Hộp nấm hương bếp nhà",
+        tagline: "Set nấm nấu ăn cho bữa cơm có thêm hương vị, độ dai và câu chuyện.",
         description:
-          "Sản phẩm này neo phần nấm ăn được trong catalog và giúp thương hiệu mở rộng vượt khỏi nhóm supplement.",
+          "Sản phẩm đại diện cho nhóm nấm dùng trong bếp, giúp cửa hàng không chỉ xoay quanh thực phẩm bổ sung.",
         category: "Nấm ẩm thực",
-        format: "Hộp công thức",
+        format: "Hộp công thức món ăn",
         badge: "Theo mùa",
       },
       es: {
