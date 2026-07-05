@@ -232,6 +232,7 @@ function MobileBottomNav({
       <Link
         href="/cart"
         className={styles.bottomCartLink}
+        data-cart-target="mobile"
         data-active={pathname.startsWith("/cart")}
       >
         <BottomCartIcon />
@@ -423,6 +424,7 @@ export function SiteHeaderClient({
                   href="/cart"
                   className={styles.iconButton}
                   aria-label={`${copy.cartAria}: ${visibleCartCount}`}
+                  data-cart-target="header"
                   title={copy.cart}
                 >
                   <CartIcon />

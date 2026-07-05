@@ -352,6 +352,7 @@ export default async function Home() {
                     maxQuantity={product.inventoryCount ?? 0}
                     pricePi={product.pricePi}
                     productId={product.id}
+                    productImageUrl={product.imageUrl}
                     productName={product.name}
                     quantityLabel={storefrontCopy.quantity}
                     title={storefrontCopy.quantityPickerTitle}

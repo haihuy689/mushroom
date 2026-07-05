@@ -472,6 +472,7 @@ export function ShopCatalog({ copy, locale, products }: ShopCatalogProps) {
                   maxQuantity={availableInventory}
                   pricePi={product.pricePi}
                   productId={product.id}
+                  productImageUrl={product.imageUrl}
                   productName={product.name}
                   quantityLabel={copy.quantity}
                   title={copy.quantityPickerTitle}
