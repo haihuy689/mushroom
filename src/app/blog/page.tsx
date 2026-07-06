@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
-import { getBlogPosts } from "@/lib/site-data";
+import { getPublicBlogPosts } from "@/lib/public-blog";
 import styles from "./page.module.css";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
@@ -18,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function BlogPage() {
   const locale = await getRequestLocale();
   const siteCopy = getPublicSiteCopy(locale);
-  const blogPosts = getBlogPosts(locale);
+  const blogPosts = await getPublicBlogPosts(locale);
 
   return (
     <div className={styles.page}>

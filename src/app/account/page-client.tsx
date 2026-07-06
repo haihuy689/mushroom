@@ -37,6 +37,9 @@ export function AccountPageClient({
     dateStyle: "medium",
     timeStyle: "short",
   });
+  const piFormatter = new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 4,
+  });
 
   const statusLabelByKey: Record<OrderStatus, string> = {
     confirmed: orderCopy.confirmed,
@@ -142,8 +145,15 @@ export function AccountPageClient({
         </article>
 
         <article className={styles.card}>
-          <p className={styles.cardLabel}>{orderCopy.latestOrdersTitle}</p>
-          <h2>{hydrated ? orders.length : copy.loading}</h2>
+          <div className={styles.cardHeader}>
+            <div>
+              <p className={styles.cardLabel}>{orderCopy.latestOrdersTitle}</p>
+              <h2>{hydrated ? orders.length : copy.loading}</h2>
+            </div>
+            <Link href="/orders" className={styles.textLink}>
+              {orderCopy.orders}
+            </Link>
+          </div>
 
           {!hydrated ? (
             <p>{copy.loading}</p>
@@ -153,6 +163,9 @@ export function AccountPageClient({
             <ul className={styles.orderList}>
               {orders.map((order) => {
                 const status = resolveOrderStatus(order);
+                const totalQuantity =
+                  order.items?.reduce((total, item) => total + item.quantity, 0) ??
+                  order.quantity;
                 const itemLabel =
                   order.items && order.items.length > 1
                     ? `${order.items.length} ${copy.linesLabel}`
@@ -163,10 +176,13 @@ export function AccountPageClient({
 
                 return (
                   <li key={order.id} className={styles.orderItem}>
-                    <div>
+                    <div className={styles.orderSummary}>
+                      <span className={styles.orderCode}>
+                        #{order.id.slice(-10).toUpperCase()}
+                      </span>
                       <strong>{itemLabel}</strong>
                       <span>
-                        {order.quantity} x / {order.totalPi} Pi
+                        {totalQuantity} x / {piFormatter.format(order.totalPi)} Pi
                       </span>
                       <span>{addressLabel}</span>
                       {status === "pending_payment" ||
@@ -185,6 +201,7 @@ export function AccountPageClient({
                       >
                         {statusLabelByKey[status]}
                       </span>
+                      <strong>{piFormatter.format(order.totalPi)} Pi</strong>
                       <span>{formatter.format(new Date(order.createdAt))}</span>
                     </div>
                   </li>

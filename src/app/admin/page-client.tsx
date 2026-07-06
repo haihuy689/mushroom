@@ -15,7 +15,7 @@ import type {
   StorefrontStaffMember,
 } from "@/lib/admin-access";
 import type { AdminCenterCopy } from "@/lib/admin-center-copy";
-import type { SiteLocale } from "@/lib/i18n";
+import { localeOptions, type SiteLocale } from "@/lib/i18n";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { ADMIN_ORDER_STATUSES, type OrderStatus } from "@/lib/order-status";
 import { getOrderStatusCounts, resolveOrderStatus } from "@/lib/order-tracking";
@@ -31,6 +31,7 @@ import {
   type StorefrontProductInput,
   type StorefrontProductRecord,
 } from "@/lib/storefront-product";
+import type { StorefrontBlogPostRecord } from "@/lib/storefront-blog-types";
 import type { StorefrontOrder } from "@/lib/storefront-state";
 import styles from "./page.module.css";
 
@@ -45,7 +46,13 @@ type AdminPageClientProps = {
   orderCopy: OrderCenterCopy;
 };
 
-type AdminView = "overview" | "products" | "orders" | "staff" | "operations";
+type AdminView =
+  | "overview"
+  | "products"
+  | "orders"
+  | "staff"
+  | "blog"
+  | "operations";
 type ProductMediaUploadKind = "cover" | "gallery" | "video";
 
 type MessageState =
@@ -97,6 +104,20 @@ type ProductMediaUploadResponse = {
   item: {
     url: string;
   };
+};
+
+type BlogEditor = {
+  body: string;
+  category: string;
+  coverNote: string;
+  excerpt: string;
+  id: string;
+  isPublished: boolean;
+  locale: SiteLocale;
+  publishedAt: string;
+  readTime: string;
+  slug: string;
+  title: string;
 };
 
 async function uploadAdminProductMedia(
@@ -199,6 +220,49 @@ function createEmptyProductOptionEditor(): ProductOptionEditor {
     group: "category",
     selectedValue: "",
     value: "",
+  };
+}
+
+function slugifyBlogTitle(value: string) {
+  return value
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 96);
+}
+
+function createEmptyBlogEditor(locale: SiteLocale): BlogEditor {
+  return {
+    body: "",
+    category: locale === "vi" ? "Kiến thức nấm" : "Mushroom knowledge",
+    coverNote: "",
+    excerpt: "",
+    id: "",
+    isPublished: true,
+    locale,
+    publishedAt: new Date().toISOString().slice(0, 10),
+    readTime: locale === "vi" ? "3 phút đọc" : "3 min read",
+    slug: "",
+    title: "",
+  };
+}
+
+function toBlogEditor(post: StorefrontBlogPostRecord): BlogEditor {
+  return {
+    body: post.body.join("\n\n"),
+    category: post.category,
+    coverNote: post.coverNote,
+    excerpt: post.excerpt,
+    id: post.id,
+    isPublished: post.isPublished,
+    locale: post.locale,
+    publishedAt: post.publishedAt,
+    readTime: post.readTime,
+    slug: post.slug,
+    title: post.title,
   };
 }
 
@@ -452,6 +516,16 @@ export function AdminPageClient({
   const [savingProduct, setSavingProduct] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState(false);
   const [refreshingProducts, setRefreshingProducts] = useState(false);
+  const [blogPosts, setBlogPosts] = useState<StorefrontBlogPostRecord[]>([]);
+  const [blogMode, setBlogMode] = useState<"create" | "edit">("create");
+  const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
+  const [blogEditor, setBlogEditor] = useState<BlogEditor>(() =>
+    createEmptyBlogEditor(locale),
+  );
+  const [blogRequested, setBlogRequested] = useState(false);
+  const [savingBlog, setSavingBlog] = useState(false);
+  const [deletingBlog, setDeletingBlog] = useState(false);
+  const [refreshingBlog, setRefreshingBlog] = useState(false);
   const [productOptions, setProductOptions] = useState(
     createProductOptionMap(),
   );
@@ -674,6 +748,52 @@ export function AdminPageClient({
           },
     [locale],
   );
+  const adminBlogCopy = useMemo(
+    () =>
+      locale === "vi"
+        ? {
+            bodyHelp: "Mỗi đoạn cách nhau bằng một dòng trống.",
+            bodyLabel: "Nội dung bài viết",
+            blogTab: "Blog",
+            deleteButton: "Xóa bài",
+            deleteConfirm: "Xóa bài viết này khỏi blog?",
+            empty: "Chưa có bài blog nào trong database.",
+            hidden: "Đang ẩn",
+            lead:
+              "Tạo và chỉnh sửa bài viết hiển thị ở trang Blog của Mushroom.Pi.",
+            listTitle: "Danh sách bài viết",
+            localeLabel: "Ngôn ngữ",
+            newButton: "Bài viết mới",
+            published: "Đang hiển thị",
+            publishedAtLabel: "Ngày hiển thị",
+            readTimeLabel: "Thời gian đọc",
+            saveButton: "Lưu bài viết",
+            saved: "Đã lưu bài viết.",
+            selectPrompt: "Chọn một bài hoặc tạo bài mới để chỉnh nội dung.",
+            title: "Quản lý Blog",
+          }
+        : {
+            bodyHelp: "Separate paragraphs with a blank line.",
+            bodyLabel: "Article content",
+            blogTab: "Blog",
+            deleteButton: "Delete post",
+            deleteConfirm: "Delete this blog post?",
+            empty: "No database blog posts yet.",
+            hidden: "Hidden",
+            lead: "Create and edit posts shown on the Mushroom.Pi blog.",
+            listTitle: "Blog posts",
+            localeLabel: "Language",
+            newButton: "New post",
+            published: "Published",
+            publishedAtLabel: "Display date",
+            readTimeLabel: "Read time",
+            saveButton: "Save post",
+            saved: "Blog post saved.",
+            selectPrompt: "Select a post or create a new one to edit content.",
+            title: "Blog manager",
+          },
+    [locale],
+  );
 
   const productStatusCount = useMemo(
     () => ({
@@ -780,6 +900,12 @@ export function AdminPageClient({
           visible: canManageStaff,
         },
         {
+          count: `${blogPosts.length}`,
+          id: "blog" as const,
+          label: adminBlogCopy.blogTab,
+          visible: canManageProducts,
+        },
+        {
           count: `${lowStockProducts.length}`,
           id: "operations" as const,
           label: copy.operationsTab,
@@ -788,6 +914,8 @@ export function AdminPageClient({
       ].filter((item) => item.visible),
     [
       activeStaff.length,
+      adminBlogCopy.blogTab,
+      blogPosts.length,
       canManageOrders,
       canManageProducts,
       canManageStaff,
@@ -810,6 +938,61 @@ export function AdminPageClient({
 
     setProductOptions(createProductOptionMap(data.items));
   }, []);
+
+  const handleRefreshBlogPosts = useCallback(async () => {
+    setRefreshingBlog(true);
+    setMessage(null);
+
+    try {
+      const data = await readJson<{ items: StorefrontBlogPostRecord[] }>(
+        "/api/admin/blog",
+        {
+          timeoutMs: 20000,
+        },
+      );
+
+      setBlogPosts(data.items);
+      setBlogRequested(true);
+
+      if (selectedBlogId && !data.items.some((post) => post.id === selectedBlogId)) {
+        setSelectedBlogId(null);
+        setBlogMode("create");
+        setBlogEditor(createEmptyBlogEditor(locale));
+      }
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setRefreshingBlog(false);
+    }
+  }, [copy.saveError, locale, selectedBlogId]);
+
+  useEffect(() => {
+    if (
+      activeView !== "blog" ||
+      !canManageProducts ||
+      blogRequested ||
+      refreshingBlog
+    ) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      void handleRefreshBlogPosts();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [
+    activeView,
+    blogRequested,
+    canManageProducts,
+    handleRefreshBlogPosts,
+    refreshingBlog,
+  ]);
 
   useEffect(() => {
     if (navigationItems.some((item) => item.id === activeView)) {
@@ -1153,6 +1336,123 @@ export function AdminPageClient({
       });
     } finally {
       setRefreshingStaff(false);
+    }
+  };
+
+  const handleStartNewBlogPost = () => {
+    setBlogMode("create");
+    setSelectedBlogId(null);
+    setBlogEditor(createEmptyBlogEditor(locale));
+  };
+
+  const handleSelectBlogPost = (post: StorefrontBlogPostRecord) => {
+    setBlogMode("edit");
+    setSelectedBlogId(post.id);
+    setBlogEditor(toBlogEditor(post));
+  };
+
+  const handleBlogEditorChange = (
+    field: keyof BlogEditor,
+    value: boolean | number | string,
+  ) => {
+    setBlogEditor((current) => {
+      const normalizedValue =
+        field === "isPublished" ? Boolean(value) : String(value);
+      const normalizedText =
+        typeof normalizedValue === "string" ? normalizedValue : "";
+      const nextEditor = {
+        ...current,
+        [field]: normalizedValue,
+      } as BlogEditor;
+
+      if (field === "title" && !current.id && !current.slug) {
+        nextEditor.slug = slugifyBlogTitle(normalizedText);
+      }
+
+      if (field === "slug") {
+        nextEditor.slug = slugifyBlogTitle(normalizedText);
+      }
+
+      return nextEditor;
+    });
+  };
+
+  const handleSaveBlogPost = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSavingBlog(true);
+    setMessage(null);
+
+    try {
+      const data = await readJson<{
+        item: StorefrontBlogPostRecord;
+        items: StorefrontBlogPostRecord[];
+      }>("/api/admin/blog", {
+        method: "POST",
+        timeoutMs: 30000,
+        body: JSON.stringify({
+          ...blogEditor,
+          body: blogEditor.body
+            .split(/\n{2,}|\r?\n/)
+            .map((paragraph) => paragraph.trim())
+            .filter(Boolean),
+        }),
+      });
+
+      setBlogPosts(data.items);
+      setBlogMode("edit");
+      setSelectedBlogId(data.item.id);
+      setBlogEditor(toBlogEditor(data.item));
+      setMessage({
+        kind: "success",
+        text: adminBlogCopy.saved,
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setSavingBlog(false);
+    }
+  };
+
+  const handleDeleteBlogPost = async () => {
+    if (!blogEditor.id) {
+      return;
+    }
+
+    if (!window.confirm(adminBlogCopy.deleteConfirm)) {
+      return;
+    }
+
+    setDeletingBlog(true);
+    setMessage(null);
+
+    try {
+      const data = await readJson<{ items: StorefrontBlogPostRecord[] }>(
+        "/api/admin/blog",
+        {
+          method: "DELETE",
+          body: JSON.stringify({
+            id: blogEditor.id,
+            slug: blogEditor.slug,
+          }),
+        },
+      );
+
+      setBlogPosts(data.items);
+      handleStartNewBlogPost();
+      setMessage({
+        kind: "success",
+        text: copy.saveSuccess,
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setDeletingBlog(false);
     }
   };
 
@@ -2804,6 +3104,248 @@ export function AdminPageClient({
                         : copy.productOptionDeleteButton}
                     </button>
                   </div>
+                </article>
+              </div>
+            </section>
+          ) : null}
+
+          {activeView === "blog" && canManageProducts ? (
+            <section className={styles.sectionStack}>
+              <div className={styles.sectionHeader}>
+                <div>
+                  <p className={styles.sectionEyebrow}>{adminBlogCopy.blogTab}</p>
+                  <h3>{adminBlogCopy.title}</h3>
+                  <p className={styles.sectionLead}>{adminBlogCopy.lead}</p>
+                </div>
+                <div className={styles.headerActions}>
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    disabled={refreshingBlog}
+                    onClick={() => {
+                      void handleRefreshBlogPosts();
+                    }}
+                  >
+                    {refreshingBlog ? copy.savingLabel : copy.dashboardRetry}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.primaryButton}
+                    onClick={handleStartNewBlogPost}
+                  >
+                    {adminBlogCopy.newButton}
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.detailGrid}>
+                <article className={styles.panel}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <p className={styles.sectionEyebrow}>{adminBlogCopy.blogTab}</p>
+                      <h4>{adminBlogCopy.listTitle}</h4>
+                    </div>
+                    <div className={styles.inlineMetrics}>
+                      <span>{adminBlogCopy.published}: {blogPosts.filter((post) => post.isPublished).length}</span>
+                      <span>{adminBlogCopy.hidden}: {blogPosts.filter((post) => !post.isPublished).length}</span>
+                    </div>
+                  </div>
+
+                  {blogPosts.length === 0 ? (
+                    <p className={styles.emptyState}>{adminBlogCopy.empty}</p>
+                  ) : (
+                    <div className={styles.selectionList}>
+                      {blogPosts.map((post) => (
+                        <button
+                          key={post.id}
+                          type="button"
+                          className={styles.selectionRow}
+                          data-active={selectedBlogId === post.id}
+                          onClick={() => handleSelectBlogPost(post)}
+                        >
+                          <div className={styles.selectionCopy}>
+                            <div className={styles.selectionTitle}>
+                              <strong>{post.title}</strong>
+                              <span>/{post.slug}</span>
+                            </div>
+                            <div className={styles.tagRow}>
+                              <span
+                                className={styles.statusChip}
+                                data-tone={post.isPublished ? "success" : "muted"}
+                              >
+                                {post.isPublished
+                                  ? adminBlogCopy.published
+                                  : adminBlogCopy.hidden}
+                              </span>
+                              <span className={styles.statusChip} data-tone="accent">
+                                {post.locale.toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className={styles.selectionMeta}>
+                            <strong>{post.category || "Blog"}</strong>
+                            <span>{post.publishedAt || post.updatedAt}</span>
+                            <span>{post.readTime}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </article>
+
+                <article className={styles.panel}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <p className={styles.sectionEyebrow}>
+                        {blogMode === "edit"
+                          ? adminBlogCopy.blogTab
+                          : adminBlogCopy.newButton}
+                      </p>
+                      <h4>{blogEditor.title || adminBlogCopy.selectPrompt}</h4>
+                    </div>
+                  </div>
+
+                  <form className={styles.formStack} onSubmit={handleSaveBlogPost}>
+                    <div className={styles.formGrid}>
+                      <label className={`${styles.field} ${styles.fullField}`}>
+                        <span>{copy.productNameLabel}</span>
+                        <input
+                          value={blogEditor.title}
+                          onChange={(event) =>
+                            handleBlogEditorChange("title", readFieldValue(event))
+                          }
+                        />
+                      </label>
+                      <label className={styles.field}>
+                        <span>Slug</span>
+                        <input
+                          value={blogEditor.slug}
+                          onChange={(event) =>
+                            handleBlogEditorChange("slug", readFieldValue(event))
+                          }
+                        />
+                      </label>
+                      <label className={styles.field}>
+                        <span>{adminBlogCopy.localeLabel}</span>
+                        <select
+                          value={blogEditor.locale}
+                          onChange={(event) =>
+                            handleBlogEditorChange(
+                              "locale",
+                              readFieldValue(event) as SiteLocale,
+                            )
+                          }
+                        >
+                          {localeOptions.map((option) => (
+                            <option key={option.code} value={option.code}>
+                              {option.nativeLabel}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className={styles.field}>
+                        <span>{copy.productCategoryLabel}</span>
+                        <input
+                          value={blogEditor.category}
+                          onChange={(event) =>
+                            handleBlogEditorChange("category", readFieldValue(event))
+                          }
+                        />
+                      </label>
+                      <label className={styles.field}>
+                        <span>{copy.productBadgeLabel}</span>
+                        <input
+                          value={blogEditor.coverNote}
+                          onChange={(event) =>
+                            handleBlogEditorChange("coverNote", readFieldValue(event))
+                          }
+                        />
+                      </label>
+                      <label className={styles.field}>
+                        <span>{adminBlogCopy.publishedAtLabel}</span>
+                        <input
+                          value={blogEditor.publishedAt}
+                          onChange={(event) =>
+                            handleBlogEditorChange("publishedAt", readFieldValue(event))
+                          }
+                        />
+                      </label>
+                      <label className={styles.field}>
+                        <span>{adminBlogCopy.readTimeLabel}</span>
+                        <input
+                          value={blogEditor.readTime}
+                          onChange={(event) =>
+                            handleBlogEditorChange("readTime", readFieldValue(event))
+                          }
+                        />
+                      </label>
+                      <label className={`${styles.field} ${styles.checkboxField}`}>
+                        <span>{adminBlogCopy.published}</span>
+                        <input
+                          checked={blogEditor.isPublished}
+                          type="checkbox"
+                          onChange={(event) =>
+                            handleBlogEditorChange(
+                              "isPublished",
+                              readFieldValue(event),
+                            )
+                          }
+                        />
+                      </label>
+                      <label className={`${styles.field} ${styles.fullField}`}>
+                        <span>{copy.productTaglineLabel}</span>
+                        <textarea
+                          rows={3}
+                          value={blogEditor.excerpt}
+                          onChange={(event) =>
+                            handleBlogEditorChange("excerpt", readFieldValue(event))
+                          }
+                        />
+                      </label>
+                      <label className={`${styles.field} ${styles.fullField}`}>
+                        <span>{adminBlogCopy.bodyLabel}</span>
+                        <textarea
+                          rows={12}
+                          value={blogEditor.body}
+                          onChange={(event) =>
+                            handleBlogEditorChange("body", readFieldValue(event))
+                          }
+                        />
+                        <small>{adminBlogCopy.bodyHelp}</small>
+                      </label>
+                    </div>
+
+                    <div className={styles.formActions}>
+                      <button
+                        type="button"
+                        className={styles.secondaryButton}
+                        onClick={handleStartNewBlogPost}
+                      >
+                        {adminBlogCopy.newButton}
+                      </button>
+                      <button
+                        type="submit"
+                        className={styles.primaryButton}
+                        disabled={savingBlog}
+                      >
+                        {savingBlog ? copy.savingLabel : adminBlogCopy.saveButton}
+                      </button>
+                      {blogEditor.id ? (
+                        <button
+                          type="button"
+                          className={styles.dangerButton}
+                          disabled={deletingBlog}
+                          onClick={() => {
+                            void handleDeleteBlogPost();
+                          }}
+                        >
+                          {deletingBlog
+                            ? copy.savingLabel
+                            : adminBlogCopy.deleteButton}
+                        </button>
+                      ) : null}
+                    </div>
+                  </form>
                 </article>
               </div>
             </section>

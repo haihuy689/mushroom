@@ -6,10 +6,12 @@ import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
 import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import {
-  getBlogPostBySlug,
-  getBlogPosts,
-} from "@/lib/site-data";
+  getPublicBlogPostBySlug,
+  getPublicBlogPosts,
+} from "@/lib/public-blog";
 import styles from "./page.module.css";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(
   props: PageProps<"/blog/[slug]">,
@@ -17,7 +19,7 @@ export async function generateMetadata(
   const { slug } = await props.params;
   const locale = await getRequestLocale();
   const siteCopy = getPublicSiteCopy(locale);
-  const post = getBlogPostBySlug(slug, locale);
+  const post = await getPublicBlogPostBySlug(slug, locale);
 
   if (!post) {
     return {
@@ -31,15 +33,17 @@ export async function generateMetadata(
   };
 }
 
-export function generateStaticParams() {
-  return getBlogPosts(defaultLocale).map((post) => ({ slug: post.slug }));
+export async function generateStaticParams() {
+  return (await getPublicBlogPosts(defaultLocale)).map((post) => ({
+    slug: post.slug,
+  }));
 }
 
 export default async function BlogPostPage(props: PageProps<"/blog/[slug]">) {
   const { slug } = await props.params;
   const locale = await getRequestLocale();
   const siteCopy = getPublicSiteCopy(locale);
-  const post = getBlogPostBySlug(slug, locale);
+  const post = await getPublicBlogPostBySlug(slug, locale);
 
   if (!post) {
     notFound();

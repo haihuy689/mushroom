@@ -1,7 +1,5 @@
-import Link from "next/link";
 import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
-import { getNavigationLinks } from "@/lib/site-data";
 import { BRAND_SLOGAN } from "@/lib/storefront-copy";
 import { BrandMark } from "./brand-mark";
 import styles from "./site-chrome.module.css";
@@ -9,7 +7,6 @@ import styles from "./site-chrome.module.css";
 export async function SiteFooter() {
   const locale = await getRequestLocale();
   const siteCopy = getPublicSiteCopy(locale);
-  const navigationLinks = getNavigationLinks(locale);
 
   return (
     <footer className={styles.footerWrap}>
@@ -20,22 +17,6 @@ export async function SiteFooter() {
               <BrandMark tagline={BRAND_SLOGAN} />
               <p className={styles.footerCopy}>{siteCopy.footerCopy}</p>
             </div>
-
-            <div className={styles.footerMeta}>
-              {siteCopy.footerMeta.map((item) => (
-                <span key={item} className={styles.metaPill}>
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.footerLinks}>
-            {navigationLinks.map((link) => (
-              <Link key={link.href} href={link.href} className={styles.footerLink}>
-                {link.label}
-              </Link>
-            ))}
           </div>
         </div>
       </div>
