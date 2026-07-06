@@ -1,6 +1,5 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
 import type { SiteLocale } from "@/lib/i18n";
 import type { Product } from "@/lib/pi-types";
 import { getSql } from "@/lib/db";
@@ -49,46 +48,37 @@ function mapTranslationRow(row: ProductTranslationRow) {
   } satisfies StorefrontProductTranslation;
 }
 
-const readCachedPublishedProductTranslations = unstable_cache(
-  async (locale: SiteLocale) => {
-    const sql = getSql();
-
-    if (!sql || locale === "vi") {
-      return [] satisfies StorefrontProductTranslation[];
-    }
-
-    try {
-      const rows = await sql<ProductTranslationRow[]>`
-        select
-          product_id,
-          slug,
-          name,
-          tagline,
-          description,
-          category,
-          format,
-          badge,
-          packaging,
-          media_note
-        from storefront_product_translations
-        where locale = ${locale}
-          and is_published = true
-      `;
-
-      return rows.map(mapTranslationRow);
-    } catch {
-      return [] satisfies StorefrontProductTranslation[];
-    }
-  },
-  [STOREFRONT_PRODUCT_TRANSLATIONS_TAG],
-  {
-    revalidate: 90,
-    tags: [STOREFRONT_PRODUCT_TRANSLATIONS_TAG],
-  },
-);
-
 export async function readPublishedProductTranslationMap(locale: SiteLocale) {
-  const translations = await readCachedPublishedProductTranslations(locale);
+  const sql = getSql();
+
+  if (!sql || locale === "vi") {
+    return new Map<string, StorefrontProductTranslation>();
+  }
+
+  let translations: StorefrontProductTranslation[] = [];
+
+  try {
+    const rows = await sql<ProductTranslationRow[]>`
+      select
+        product_id,
+        slug,
+        name,
+        tagline,
+        description,
+        category,
+        format,
+        badge,
+        packaging,
+        media_note
+      from storefront_product_translations
+      where locale = ${locale}
+        and is_published = true
+    `;
+
+    translations = rows.map(mapTranslationRow);
+  } catch {
+    translations = [];
+  }
 
   return new Map(
     translations.map((translation) => [translation.productId, translation]),
