@@ -37,16 +37,64 @@ function normalizeLocale(value: unknown): SiteLocale {
 }
 
 function normalizeBody(value: unknown) {
-  const items = Array.isArray(value)
-    ? value
-    : typeof value === "string"
-      ? value.split(/\n{2,}|\r?\n/)
+  const parsedValue =
+    typeof value === "string" && value.trim().startsWith("[")
+      ? safeParseJsonArray(value)
+      : value;
+  const items = Array.isArray(parsedValue)
+    ? parsedValue
+    : typeof parsedValue === "string"
+      ? parsedValue.split(/\n{2,}|\r?\n/)
       : [];
 
   return items
     .map((item) => normalizeText(item))
     .filter(Boolean)
     .slice(0, 80);
+}
+
+function safeParseJsonArray(value: string) {
+  try {
+    const parsed = JSON.parse(value);
+
+    return Array.isArray(parsed) ? parsed : value;
+  } catch {
+    return value;
+  }
+}
+
+function normalizePublishedAt(value: unknown) {
+  return normalizeText(value) || "July 2026";
+}
+
+function normalizeReadTime(value: unknown, locale: SiteLocale) {
+  return normalizeText(value) || (locale === "vi" ? "3 phút đọc" : "3 min read");
+}
+
+function normalizeCategory(value: unknown, locale: SiteLocale) {
+  return normalizeText(value) || (locale === "vi" ? "Blog" : "Mushroom guide");
+}
+
+function normalizeBlogInput(input: StorefrontBlogPostInput) {
+  const locale = normalizeLocale(input.locale);
+  const title = normalizeText(input.title);
+  const slug = slugify(input.slug) || slugify(title);
+  const body = normalizeBody(input.body);
+
+  return {
+    body,
+    category: normalizeCategory(input.category, locale),
+    coverImageUrl: normalizeText(input.coverImageUrl),
+    coverNote: normalizeText(input.coverNote),
+    excerpt: normalizeText(input.excerpt),
+    id: normalizeText(input.id) || createBlogId(),
+    isPublished: input.isPublished !== false,
+    locale,
+    publishedAt: normalizePublishedAt(input.publishedAt),
+    readTime: normalizeReadTime(input.readTime, locale),
+    slug,
+    title,
+  };
 }
 
 function slugify(value: unknown) {
@@ -262,16 +310,13 @@ export async function saveStorefrontBlogPost(
     throw new Error("Database is not configured.");
   }
 
-  const id = normalizeText(input.id) || createBlogId();
-  const title = normalizeText(input.title);
-  const slug = slugify(input.slug) || slugify(title);
-  const body = normalizeBody(input.body);
+  const blogPost = normalizeBlogInput(input);
 
-  if (!title || !slug) {
+  if (!blogPost.title || !blogPost.slug) {
     throw new Error("Blog title is required.");
   }
 
-  if (body.length === 0) {
+  if (blogPost.body.length === 0) {
     throw new Error("Blog content is required.");
   }
 
@@ -291,18 +336,18 @@ export async function saveStorefrontBlogPost(
       is_published
     )
     values (
-      ${id},
-      ${slug},
-      ${normalizeLocale(input.locale)},
-      ${title},
-      ${normalizeText(input.excerpt)},
-      ${normalizeText(input.category) || "Blog"},
-      ${normalizeText(input.coverImageUrl)},
-      ${normalizeText(input.publishedAt)},
-      ${normalizeText(input.readTime) || "3 phút đọc"},
-      ${normalizeText(input.coverNote)},
-      ${JSON.stringify(body)}::jsonb,
-      ${input.isPublished !== false}
+      ${blogPost.id},
+      ${blogPost.slug},
+      ${blogPost.locale},
+      ${blogPost.title},
+      ${blogPost.excerpt},
+      ${blogPost.category},
+      ${blogPost.coverImageUrl},
+      ${blogPost.publishedAt},
+      ${blogPost.readTime},
+      ${blogPost.coverNote},
+      ${sql.json(blogPost.body)},
+      ${blogPost.isPublished}
     )
     on conflict (id) do update
     set

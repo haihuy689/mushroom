@@ -14,9 +14,15 @@ export type PublicSiteCopy = {
     articleSidebarCta: string;
     articleSidebarLabel: string;
     articleSidebarText: string;
+    emptyBody: string;
+    emptyTitle: string;
+    heroArtLabel: string;
+    heroArtTitle: string;
     heroEyebrow: string;
     heroLead: string;
     heroTitle: string;
+    readMoreLabel: string;
+    recommendationText: string;
     relatedProductsLabel: string;
   };
   brandPillars: Array<{ description: string; title: string }>;
@@ -82,10 +88,18 @@ const copy: Record<SiteLocale, PublicSiteCopy> = {
       articleSidebarLabel: "From knowledge to cart",
       articleSidebarText:
         "Read, compare, and choose the mushroom products that fit your routine.",
+      emptyBody:
+        "When an admin publishes an English article, it will appear here automatically.",
+      emptyTitle: "No articles have been published yet",
+      heroArtLabel: "Clean mushrooms",
+      heroArtTitle: "Everyday knowledge",
       heroEyebrow: "Mushroom journal",
       heroLead:
         "Simple articles about mushroom products, daily use, kitchen ideas, and practical wellness routines.",
       heroTitle: "Learn more before choosing what goes into your cart.",
+      readMoreLabel: "Read article",
+      recommendationText:
+        "Relevant products will be suggested directly in the shop so you can choose faster.",
       relatedProductsLabel: "Related products",
     },
     brandPillars: [
@@ -185,10 +199,18 @@ const copy: Record<SiteLocale, PublicSiteCopy> = {
       articleSidebarLabel: "Từ kiến thức đến giỏ hàng",
       articleSidebarText:
         "Đọc, so sánh và chọn sản phẩm nấm phù hợp với thói quen của bạn.",
+      emptyBody:
+        "Khi admin đăng bài và bật trạng thái hiển thị, bài viết sẽ xuất hiện tại đây.",
+      emptyTitle: "Chưa có bài viết nào được xuất bản",
+      heroArtLabel: "Nấm sạch",
+      heroArtTitle: "Kiến thức mỗi ngày",
       heroEyebrow: "Blog về nấm",
       heroLead:
         "Những bài viết dễ hiểu về sản phẩm nấm, cách dùng hằng ngày, ý tưởng trong bếp và thói quen chăm sóc sức khỏe.",
       heroTitle: "Hiểu rõ hơn trước khi chọn sản phẩm cho giỏ hàng.",
+      readMoreLabel: "Đọc bài viết",
+      recommendationText:
+        "Các sản phẩm phù hợp sẽ được gợi ý trực tiếp trong cửa hàng để bạn chọn nhanh hơn.",
       relatedProductsLabel: "Sản phẩm liên quan",
     },
     brandPillars: [
@@ -273,10 +295,18 @@ const copy: Record<SiteLocale, PublicSiteCopy> = {
       articleSidebarLabel: "Del conocimiento al carrito",
       articleSidebarText:
         "Lee, compara y elige productos de hongos para tu rutina.",
+      emptyBody:
+        "Cuando un administrador publique un articulo, aparecera aqui automaticamente.",
+      emptyTitle: "Aun no hay articulos publicados",
+      heroArtLabel: "Hongos limpios",
+      heroArtTitle: "Conocimiento diario",
       heroEyebrow: "Diario de hongos",
       heroLead:
         "Artículos sencillos sobre productos, uso diario, cocina y bienestar.",
       heroTitle: "Aprende antes de elegir qué va al carrito.",
+      readMoreLabel: "Leer articulo",
+      recommendationText:
+        "Los productos relacionados se sugeriran directamente en la tienda para elegir mas rapido.",
       relatedProductsLabel: "Productos relacionados",
     },
     brandPillars: [
@@ -359,10 +389,18 @@ const copy: Record<SiteLocale, PublicSiteCopy> = {
       articleSidebarLabel: "Du savoir au panier",
       articleSidebarText:
         "Lisez, comparez et choisissez les produits adaptés à votre routine.",
+      emptyBody:
+        "Lorsqu'un administrateur publie un article, il apparaitra automatiquement ici.",
+      emptyTitle: "Aucun article publie pour le moment",
+      heroArtLabel: "Champignons propres",
+      heroArtTitle: "Connaissances du quotidien",
       heroEyebrow: "Journal champignons",
       heroLead:
         "Des articles simples sur les produits, les usages quotidiens, la cuisine et le bien-être.",
       heroTitle: "Apprenez avant de choisir ce qui va dans le panier.",
+      readMoreLabel: "Lire l'article",
+      recommendationText:
+        "Les produits pertinents seront suggeres directement dans la boutique pour choisir plus vite.",
       relatedProductsLabel: "Produits liés",
     },
     brandPillars: [
@@ -444,9 +482,15 @@ const copy: Record<SiteLocale, PublicSiteCopy> = {
       articleSidebarCta: "查看商店",
       articleSidebarLabel: "从知识到购物车",
       articleSidebarText: "阅读、比较，并选择适合你日常习惯的蘑菇产品。",
+      emptyBody: "管理员发布文章后，内容会自动显示在这里。",
+      emptyTitle: "还没有已发布的文章",
+      heroArtLabel: "清洁蘑菇",
+      heroArtTitle: "日常知识",
       heroEyebrow: "蘑菇日志",
       heroLead: "关于蘑菇产品、日常使用、厨房灵感和健康习惯的简单文章。",
       heroTitle: "先了解，再选择放入购物车的产品。",
+      readMoreLabel: "阅读文章",
+      recommendationText: "相关产品会直接在商店中推荐，方便你更快选择。",
       relatedProductsLabel: "相关产品",
     },
     brandPillars: [

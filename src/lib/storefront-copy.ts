@@ -1,6 +1,7 @@
 import type { SiteLocale } from "@/lib/i18n";
 
-export const BRAND_SLOGAN = "\u0103n n\u1ea5m v\u00ec s\u1ee9c kh\u1ecfe";
+export const BRAND_SLOGAN = "Nature, Nutrition, Future";
+export const VIETNAMESE_BRAND_SLOGAN = "\u0103n n\u1ea5m v\u00ec s\u1ee9c kh\u1ecfe";
 
 export type StorefrontCopy = {
   brandSlogan: string;
@@ -213,6 +214,7 @@ const copy: Record<SiteLocale, StorefrontCopy> = {
   en,
   vi: {
     ...en,
+    brandSlogan: VIETNAMESE_BRAND_SLOGAN,
     addToCart: "Th\u00eam v\u00e0o gi\u1ecf",
     addedToCart: "\u0110\u00e3 th\u00eam",
     cart: "Gi\u1ecf h\u00e0ng",

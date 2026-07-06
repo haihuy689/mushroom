@@ -88,11 +88,7 @@ export default async function BlogPostPage(props: PageProps<"/blog/[slug]">) {
           <span className={styles.asideLabel}>
             {siteCopy.blog.relatedProductsLabel}
           </span>
-          <p>
-            {
-              "C\u00e1c s\u1ea3n ph\u1ea9m ph\u00f9 h\u1ee3p s\u1ebd \u0111\u01b0\u1ee3c g\u1ee3i \u00fd tr\u1ef1c ti\u1ebfp trong c\u1eeda h\u00e0ng \u0111\u1ec3 b\u1ea1n ch\u1ecdn nhanh h\u01a1n."
-            }
-          </p>
+          <p>{siteCopy.blog.recommendationText}</p>
           <Link href="/shop" className={styles.cta}>
             {siteCopy.blog.articleSidebarCta}
           </Link>

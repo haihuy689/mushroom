@@ -28,6 +28,7 @@ const labels: Record<
     combo: string;
     dried: string;
     empty: string;
+    favorite: string;
     filter: string;
     fresh: string;
     nutrition: string;
@@ -46,6 +47,7 @@ const labels: Record<
     combo: "Combo",
     dried: "Dried",
     empty: "No matching products yet.",
+    favorite: "Add to favorites",
     filter: "In stock",
     fresh: "Fresh",
     nutrition: "Nutrition",
@@ -63,6 +65,7 @@ const labels: Record<
     combo: "Combo",
     dried: "Nấm khô",
     empty: "Chưa có sản phẩm phù hợp.",
+    favorite: "Yêu thích",
     filter: "Còn hàng",
     fresh: "Nấm tươi",
     nutrition: "Dinh dưỡng",
@@ -80,6 +83,7 @@ const labels: Record<
     combo: "Combo",
     dried: "Secos",
     empty: "No hay productos que coincidan.",
+    favorite: "Agregar a favoritos",
     filter: "En stock",
     fresh: "Frescos",
     nutrition: "Nutrición",
@@ -97,6 +101,7 @@ const labels: Record<
     combo: "Combo",
     dried: "Séchés",
     empty: "Aucun produit correspondant.",
+    favorite: "Ajouter aux favoris",
     filter: "En stock",
     fresh: "Frais",
     nutrition: "Nutrition",
@@ -114,6 +119,7 @@ const labels: Record<
     combo: "组合",
     dried: "干货",
     empty: "没有匹配的商品。",
+    favorite: "加入收藏",
     filter: "有库存",
     fresh: "鲜菇",
     nutrition: "营养",
@@ -430,7 +436,11 @@ export function ShopCatalog({ copy, locale, products }: ShopCatalogProps) {
                 {discountPercent ? (
                   <span className={styles.discountBadge}>-{discountPercent}%</span>
                 ) : null}
-                <button type="button" className={styles.favoriteButton} aria-label="Yêu thích">
+                <button
+                  type="button"
+                  className={styles.favoriteButton}
+                  aria-label={text.favorite}
+                >
                   <HeartIcon />
                 </button>
               </div>
