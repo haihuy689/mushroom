@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Clean mushroom combo basket">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffdf2"/>
+      <stop offset=".52" stop-color="#efe4c2"/>
+      <stop offset="1" stop-color="#567b34"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <circle cx="990" cy="160" r="230" fill="#ffffff" opacity=".2"/>
+  <rect x="245" y="515" width="710" height="150" rx="46" fill="#8b5a28"/>
+  <path d="M300 515c110-120 490-150 600 0" fill="none" stroke="#d9ae68" stroke-width="38" stroke-linecap="round"/>
+  <g>
+    <ellipse cx="430" cy="410" rx="130" ry="70" fill="#ead7b5" transform="rotate(-18 430 410)"/>
+    <ellipse cx="560" cy="350" rx="115" ry="75" fill="#865020"/>
+    <ellipse cx="700" cy="405" rx="150" ry="80" fill="#f2e2c7" transform="rotate(12 700 405)"/>
+    <circle cx="820" cy="348" r="96" fill="#8e4d24"/>
+    <g stroke="#fff1ca" stroke-width="10" stroke-linecap="round">
+      <path d="M528 318h70M560 285v92M785 320l70 60M850 315l-72 70"/>
+    </g>
+    <g stroke="#fff6db" stroke-width="24" stroke-linecap="round">
+      <path d="M430 455v120M700 470v120M815 430v136"/>
+    </g>
+  </g>
+</svg>

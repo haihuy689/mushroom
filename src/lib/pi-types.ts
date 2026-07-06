@@ -94,5 +94,6 @@ export interface BlogPost {
   publishedAt: string;
   readTime: string;
   coverNote: string;
+  coverImageUrl?: string;
   body: string[];
 }

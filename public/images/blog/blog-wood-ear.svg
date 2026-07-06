@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Wood ear mushrooms in a bamboo bowl">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff4df"/>
+      <stop offset=".55" stop-color="#cfb179"/>
+      <stop offset="1" stop-color="#462d1b"/>
+    </linearGradient>
+    <radialGradient id="ear" cx="36%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#9b785d"/>
+      <stop offset=".58" stop-color="#39251f"/>
+      <stop offset="1" stop-color="#130d0b"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <ellipse cx="610" cy="620" rx="390" ry="90" fill="#2f1e12" opacity=".24"/>
+  <path d="M260 570c150 100 540 100 700 0l-70 120c-150 58-420 58-560 0z" fill="#996d38"/>
+  <g fill="url(#ear)" stroke="#b89b75" stroke-width="6">
+    <path d="M350 420c-60-90 40-190 150-122 92 58 28 190-72 190-34 0-60-18-78-68z"/>
+    <path d="M548 336c-26-116 124-170 206-66 76 98-20 204-122 178-52-14-74-48-84-112z"/>
+    <path d="M735 430c-40-98 82-170 168-98 82 70 18 190-82 190-44 0-70-28-86-92z"/>
+    <path d="M470 500c-18-82 78-142 150-82 72 62 18 154-72 154-38 0-64-22-78-72z"/>
+  </g>
+</svg>

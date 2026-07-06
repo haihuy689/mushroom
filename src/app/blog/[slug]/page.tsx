@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { defaultLocale } from "@/lib/i18n";
 import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
 import { getStorefrontProducts } from "@/lib/storefront-catalog";
-import {
-  getPublicBlogPostBySlug,
-  getPublicBlogPosts,
-} from "@/lib/public-blog";
+import { getPublicBlogPostBySlug } from "@/lib/public-blog";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
+
+const fallbackCoverImage = "/images/blog/mushroom-care.svg";
 
 export async function generateMetadata(
   props: PageProps<"/blog/[slug]">,
@@ -33,12 +32,6 @@ export async function generateMetadata(
   };
 }
 
-export async function generateStaticParams() {
-  return (await getPublicBlogPosts(defaultLocale)).map((post) => ({
-    slug: post.slug,
-  }));
-}
-
 export default async function BlogPostPage(props: PageProps<"/blog/[slug]">) {
   const { slug } = await props.params;
   const locale = await getRequestLocale();
@@ -54,10 +47,24 @@ export default async function BlogPostPage(props: PageProps<"/blog/[slug]">) {
   return (
     <div className={styles.page}>
       <article className={styles.article}>
+        <div className={styles.coverFrame}>
+          <Image
+            src={post.coverImageUrl || fallbackCoverImage}
+            alt={post.title}
+            width={1120}
+            height={720}
+            className={styles.coverImage}
+            priority
+            unoptimized
+          />
+        </div>
         <div className={styles.articleHead}>
-          <p className={styles.meta}>
-            {post.category} / {post.publishedAt} / {post.readTime}
-          </p>
+          <div className={styles.meta}>
+            <span>{post.category}</span>
+            <span>{post.publishedAt}</span>
+            <span>{post.readTime}</span>
+          </div>
+          <p className={styles.coverNote}>{post.coverNote}</p>
           <h1>{post.title}</h1>
           <p className={styles.excerpt}>{post.excerpt}</p>
         </div>

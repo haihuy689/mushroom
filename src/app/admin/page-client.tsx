@@ -109,6 +109,7 @@ type ProductMediaUploadResponse = {
 type BlogEditor = {
   body: string;
   category: string;
+  coverImageUrl: string;
   coverNote: string;
   excerpt: string;
   id: string;
@@ -238,6 +239,7 @@ function createEmptyBlogEditor(locale: SiteLocale): BlogEditor {
   return {
     body: "",
     category: locale === "vi" ? "Kiến thức nấm" : "Mushroom knowledge",
+    coverImageUrl: "",
     coverNote: "",
     excerpt: "",
     id: "",
@@ -254,6 +256,7 @@ function toBlogEditor(post: StorefrontBlogPostRecord): BlogEditor {
   return {
     body: post.body.join("\n\n"),
     category: post.category,
+    coverImageUrl: post.coverImageUrl,
     coverNote: post.coverNote,
     excerpt: post.excerpt,
     id: post.id,
@@ -755,6 +758,9 @@ export function AdminPageClient({
             bodyHelp: "Mỗi đoạn cách nhau bằng một dòng trống.",
             bodyLabel: "Nội dung bài viết",
             blogTab: "Blog",
+            coverImageHelp:
+              "Ảnh bìa bài viết. Nên dùng tỉ lệ 3:2 hoặc 16:9, dung lượng nhẹ.",
+            coverImageLabel: "Ảnh bìa",
             deleteButton: "Xóa bài",
             deleteConfirm: "Xóa bài viết này khỏi blog?",
             empty: "Chưa có bài blog nào trong database.",
@@ -767,15 +773,20 @@ export function AdminPageClient({
             published: "Đang hiển thị",
             publishedAtLabel: "Ngày hiển thị",
             readTimeLabel: "Thời gian đọc",
+            removeCoverImageButton: "Bỏ ảnh",
             saveButton: "Lưu bài viết",
             saved: "Đã lưu bài viết.",
             selectPrompt: "Chọn một bài hoặc tạo bài mới để chỉnh nội dung.",
             title: "Quản lý Blog",
+            uploadCoverImageLabel: "Chọn ảnh bìa",
           }
         : {
             bodyHelp: "Separate paragraphs with a blank line.",
             bodyLabel: "Article content",
             blogTab: "Blog",
+            coverImageHelp:
+              "Article cover image. Use a 3:2 or 16:9 lightweight image.",
+            coverImageLabel: "Cover image",
             deleteButton: "Delete post",
             deleteConfirm: "Delete this blog post?",
             empty: "No database blog posts yet.",
@@ -787,10 +798,12 @@ export function AdminPageClient({
             published: "Published",
             publishedAtLabel: "Display date",
             readTimeLabel: "Read time",
+            removeCoverImageButton: "Remove image",
             saveButton: "Save post",
             saved: "Blog post saved.",
             selectPrompt: "Select a post or create a new one to edit content.",
             title: "Blog manager",
+            uploadCoverImageLabel: "Choose cover image",
           },
     [locale],
   );
@@ -1518,6 +1531,37 @@ export function AdminPageClient({
           ).slice(0, 12),
         };
       });
+      setMessage({
+        kind: "success",
+        text: copy.mediaUploadSuccess,
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setUploadingMediaKind(null);
+    }
+  };
+
+  const handleBlogCoverUpload = async (files: File[]) => {
+    const [file] = files;
+
+    if (!file) {
+      return;
+    }
+
+    setUploadingMediaKind("cover");
+    setMessage(null);
+
+    try {
+      const uploadedUrl = await uploadAdminProductMedia(file, "cover");
+
+      setBlogEditor((current) => ({
+        ...current,
+        coverImageUrl: uploadedUrl,
+      }));
       setMessage({
         kind: "success",
         text: copy.mediaUploadSuccess,
@@ -3261,6 +3305,42 @@ export function AdminPageClient({
                           }
                         />
                       </label>
+                      <div className={`${styles.field} ${styles.fullField}`}>
+                        <span>{adminBlogCopy.coverImageLabel}</span>
+                        <label className={styles.uploadDropzone}>
+                          <input
+                            accept="image/jpeg,image/png,image/webp"
+                            disabled={uploadingMediaKind !== null}
+                            type="file"
+                            onChange={(event) => {
+                              const files = Array.from(
+                                event.currentTarget.files ?? [],
+                              );
+                              event.currentTarget.value = "";
+                              void handleBlogCoverUpload(files);
+                            }}
+                          />
+                          <strong>
+                            {uploadingMediaKind === "cover"
+                              ? copy.mediaUploadingLabel
+                              : adminBlogCopy.uploadCoverImageLabel}
+                          </strong>
+                          <small>{adminBlogCopy.coverImageHelp}</small>
+                        </label>
+                        {blogEditor.coverImageUrl ? (
+                          <div className={styles.mediaFileRow}>
+                            <span>{getMediaFileName(blogEditor.coverImageUrl)}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleBlogEditorChange("coverImageUrl", "")
+                              }
+                            >
+                              {adminBlogCopy.removeCoverImageButton}
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
                       <label className={styles.field}>
                         <span>{adminBlogCopy.publishedAtLabel}</span>
                         <input

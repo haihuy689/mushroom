@@ -13,6 +13,7 @@ export const STOREFRONT_BLOG_POSTS_TAG = "storefront-blog-posts";
 type BlogPostRow = {
   body_json: unknown;
   category: string;
+  cover_image_url: string;
   cover_note: string;
   created_at: string;
   excerpt: string;
@@ -72,6 +73,7 @@ function mapBlogRow(row: BlogPostRow): StorefrontBlogPostRecord {
   return {
     body: normalizeBody(row.body_json),
     category: row.category,
+    coverImageUrl: row.cover_image_url,
     coverNote: row.cover_note,
     createdAt: row.created_at,
     excerpt: row.excerpt,
@@ -90,6 +92,7 @@ function toBlogPost(record: StorefrontBlogPostRecord): BlogPost {
   return {
     body: record.body,
     category: record.category,
+    coverImageUrl: record.coverImageUrl || undefined,
     coverNote: record.coverNote,
     excerpt: record.excerpt,
     publishedAt: record.publishedAt,
@@ -114,6 +117,7 @@ async function ensureBlogSchema() {
       title text not null,
       excerpt text not null default '',
       category text not null default '',
+      cover_image_url text not null default '',
       published_at text not null default '',
       read_time text not null default '',
       cover_note text not null default '',
@@ -126,6 +130,10 @@ async function ensureBlogSchema() {
   await sql`
     create index if not exists storefront_blog_posts_public_idx
     on storefront_blog_posts (is_published, locale, updated_at desc)
+  `;
+  await sql`
+    alter table storefront_blog_posts
+    add column if not exists cover_image_url text not null default ''
   `;
 
   return true;
@@ -146,6 +154,7 @@ export async function listAdminBlogPosts() {
     select
       body_json,
       category,
+      cover_image_url,
       cover_note,
       created_at::text,
       excerpt,
@@ -179,6 +188,7 @@ export async function listPublishedBlogPosts(locale: SiteLocale) {
     select
       body_json,
       category,
+      cover_image_url,
       cover_note,
       created_at::text,
       excerpt,
@@ -217,6 +227,7 @@ export async function getPublishedBlogPostBySlug(
     select
       body_json,
       category,
+      cover_image_url,
       cover_note,
       created_at::text,
       excerpt,
@@ -272,6 +283,7 @@ export async function saveStorefrontBlogPost(
       title,
       excerpt,
       category,
+      cover_image_url,
       published_at,
       read_time,
       cover_note,
@@ -285,6 +297,7 @@ export async function saveStorefrontBlogPost(
       ${title},
       ${normalizeText(input.excerpt)},
       ${normalizeText(input.category) || "Blog"},
+      ${normalizeText(input.coverImageUrl)},
       ${normalizeText(input.publishedAt)},
       ${normalizeText(input.readTime) || "3 phút đọc"},
       ${normalizeText(input.coverNote)},
@@ -298,6 +311,7 @@ export async function saveStorefrontBlogPost(
       title = excluded.title,
       excerpt = excluded.excerpt,
       category = excluded.category,
+      cover_image_url = excluded.cover_image_url,
       published_at = excluded.published_at,
       read_time = excluded.read_time,
       cover_note = excluded.cover_note,
@@ -307,6 +321,7 @@ export async function saveStorefrontBlogPost(
     returning
       body_json,
       category,
+      cover_image_url,
       cover_note,
       created_at::text,
       excerpt,

@@ -2,6 +2,7 @@ import type { SiteLocale } from "@/lib/i18n";
 
 export type StorefrontBlogPostRecord = {
   body: string[];
+  coverImageUrl: string;
   category: string;
   coverNote: string;
   createdAt: string;

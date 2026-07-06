@@ -1,142 +1,271 @@
 .page {
   width: 100%;
-  max-width: 980px;
+  max-width: 1060px;
   margin: 0 auto;
   padding: 14px 14px 44px;
   display: grid;
   gap: 16px;
 }
 
-.hero,
-.listSection {
+.hero {
   position: relative;
   overflow: clip;
-  padding: 22px;
-  border-radius: 24px;
-  border: 1px solid var(--line-soft);
+  min-height: 270px;
+  padding: clamp(22px, 4vw, 40px);
+  border: 1px solid rgba(73, 54, 25, 0.14);
+  border-radius: 30px;
   background:
-    linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(248, 243, 232, 0.9));
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(14px);
+    linear-gradient(90deg, rgba(255, 252, 244, 0.96) 0%, rgba(255, 252, 244, 0.82) 46%, rgba(255, 252, 244, 0.16) 100%),
+    url("/images/mushroom-pi/hero-market.webp") center right / cover no-repeat;
+  box-shadow: 0 26px 70px rgba(62, 42, 18, 0.16);
 }
 
-.hero::before,
-.listSection::before {
+.hero::after {
   content: "";
   position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at top right, rgba(109, 25, 142, 0.08), transparent 28%),
-    radial-gradient(circle at 10% 10%, rgba(95, 127, 53, 0.12), transparent 24%);
+  inset: auto -10% -28% 46%;
+  height: 74%;
+  background: radial-gradient(circle, rgba(92, 121, 45, 0.34), transparent 62%);
   pointer-events: none;
 }
 
-.hero > *,
-.listSection > * {
+.heroCopy {
   position: relative;
   z-index: 1;
+  max-width: 620px;
 }
 
 .eyebrow {
-  font-size: 0.78rem;
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 900;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #5f7b35;
-  font-weight: 900;
+  color: #4e7026;
 }
 
 .hero h1 {
-  margin: 10px 0 0;
+  margin: 12px 0 0;
+  max-width: 12ch;
   font-family: var(--font-display);
-  font-size: clamp(2.9rem, 7vw, 4.9rem);
-  line-height: 0.92;
-  letter-spacing: -0.04em;
-  max-width: 13ch;
+  font-size: clamp(2.7rem, 8vw, 5.4rem);
+  line-height: 0.9;
+  letter-spacing: -0.055em;
   color: #2b160d;
 }
 
-.lead,
-.postCard p {
-  color: var(--text-soft);
+.lead {
+  max-width: 54ch;
+  margin: 16px 0 0;
+  color: #5d4c3f;
+  font-size: clamp(1rem, 2vw, 1.12rem);
   line-height: 1.72;
-  font-size: 1rem;
 }
 
-.lead {
-  max-width: 58ch;
+.heroArt {
+  position: absolute;
+  right: 26px;
+  bottom: 24px;
+  z-index: 1;
+  display: grid;
+  gap: 4px;
+  min-width: 190px;
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: 22px;
+  background: rgba(255, 252, 244, 0.82);
+  box-shadow: 0 18px 40px rgba(41, 26, 10, 0.16);
+  backdrop-filter: blur(14px);
+}
+
+.heroArt span {
+  color: #6b4a14;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.heroArt strong {
+  color: #2f4f1d;
+  font-size: 1.02rem;
 }
 
 .listSection {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
-.postCard {
+.postCard,
+.emptyCard {
   position: relative;
   overflow: clip;
-  display: grid;
-  gap: 12px;
-  padding: 22px;
-  border-radius: 20px;
+  min-width: 0;
+  border: 1px solid rgba(73, 54, 25, 0.13);
+  border-radius: 26px;
   background: #fffdf8;
-  border: 1px solid rgba(70, 64, 40, 0.12);
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease;
+  box-shadow: 0 18px 46px rgba(62, 42, 18, 0.08);
 }
 
-.postCard::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto auto 0;
+.postCard {
+  display: grid;
+  color: inherit;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.postCard[data-featured="true"] {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+  min-height: 360px;
+}
+
+.coverFrame {
+  position: relative;
+  overflow: hidden;
+  min-height: 210px;
+  background: #efe4ce;
+}
+
+.postCard[data-featured="true"] .coverFrame {
+  min-height: 360px;
+}
+
+.coverImage {
   width: 100%;
-  height: 0.3rem;
-  background: linear-gradient(90deg, var(--accent-pi), var(--accent-forest));
+  height: 100%;
+  min-height: inherit;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.01);
+  transition: transform 240ms ease;
+}
+
+.postBody {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 18px;
+}
+
+.postCard[data-featured="true"] .postBody {
+  padding: clamp(24px, 4vw, 36px);
 }
 
 .postMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  color: #5f7b35;
-  font-size: 0.84rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  gap: 8px;
+}
+
+.postMeta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(81, 118, 38, 0.1);
+  color: #45651f;
+  font-size: 0.72rem;
+  font-weight: 850;
 }
 
 .coverNote {
-  font-size: 0.98rem;
-  color: #4d3323;
+  color: #8a5a17;
+  font-size: 0.88rem;
+  font-weight: 850;
 }
 
-.postCard h2 {
+.postCard h2,
+.emptyCard h2 {
   margin: 0;
-  font-size: 1.45rem;
+  color: #2b160d;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 3.5vw, 2.65rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.postCard p,
+.emptyCard p {
+  margin: 0;
+  color: #665346;
+  line-height: 1.68;
+}
+
+.readMore {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  margin-top: 4px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #3f6823;
+  color: #fffdf8;
+  font-weight: 850;
+  font-size: 0.92rem;
+}
+
+.emptyCard {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  padding: 28px;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .postCard:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 38px rgba(71, 44, 22, 0.12);
+    transform: translateY(-3px);
+    border-color: rgba(63, 104, 35, 0.28);
+    box-shadow: 0 26px 60px rgba(62, 42, 18, 0.14);
+  }
+
+  .postCard:hover .coverImage {
+    transform: scale(1.045);
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .page {
     padding: 0 10px 34px;
     gap: 12px;
   }
 
-  .hero,
-  .listSection,
-  .postCard {
-    padding: 18px;
-    border-radius: 24px;
+  .hero {
+    min-height: 440px;
+    padding: 22px;
+    border-radius: 26px;
+    background:
+      linear-gradient(180deg, rgba(255, 252, 244, 0.98) 0%, rgba(255, 252, 244, 0.86) 42%, rgba(255, 252, 244, 0.08) 100%),
+      url("/images/mushroom-pi/hero-market.webp") center bottom / cover no-repeat;
   }
 
   .hero h1 {
-    font-size: clamp(2.4rem, 13vw, 3.9rem);
-    max-width: 100%;
+    max-width: 10.5ch;
+  }
+
+  .heroArt {
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
+    min-width: 0;
+  }
+
+  .listSection,
+  .postCard[data-featured="true"] {
+    grid-template-columns: 1fr;
+  }
+
+  .postCard[data-featured="true"] .coverFrame,
+  .coverFrame {
+    min-height: 205px;
+  }
+
+  .postBody,
+  .postCard[data-featured="true"] .postBody,
+  .emptyCard {
+    padding: 16px;
   }
 }

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Dried shiitake mushrooms in a basket">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff8e8"/>
+      <stop offset="0.55" stop-color="#ead5ad"/>
+      <stop offset="1" stop-color="#6f431e"/>
+    </linearGradient>
+    <radialGradient id="cap" cx="42%" cy="34%" r="70%">
+      <stop offset="0" stop-color="#f1d49a"/>
+      <stop offset="0.42" stop-color="#9a5b24"/>
+      <stop offset="1" stop-color="#4a260f"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <circle cx="1000" cy="130" r="250" fill="#ffffff" opacity=".18"/>
+  <ellipse cx="620" cy="590" rx="420" ry="96" fill="#3b210f" opacity=".22"/>
+  <path d="M240 560c140 86 610 86 750 0l-82 140c-146 65-437 65-586 0z" fill="#8b5a28"/>
+  <path d="M260 550c150 76 580 76 710 0" fill="none" stroke="#d9ab61" stroke-width="36" stroke-linecap="round"/>
+  <g fill="url(#cap)" stroke="#f8e5bc" stroke-width="8">
+    <circle cx="390" cy="385" r="112"/>
+    <circle cx="540" cy="320" r="126"/>
+    <circle cx="700" cy="390" r="116"/>
+    <circle cx="820" cy="300" r="118"/>
+    <circle cx="920" cy="430" r="98"/>
+  </g>
+  <g stroke="#fff1c9" stroke-width="12" stroke-linecap="round" opacity=".82">
+    <path d="M348 350l80 74M430 348l-78 80M540 250v140M472 320h138M676 344l72 92M762 338l-108 74M785 292h86M820 238v104"/>
+  </g>
+</svg>

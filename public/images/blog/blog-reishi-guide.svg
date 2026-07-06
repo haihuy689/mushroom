@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Reishi mushrooms in forest moss">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f7ecd5"/>
+      <stop offset=".48" stop-color="#8e6a42"/>
+      <stop offset="1" stop-color="#18351e"/>
+    </linearGradient>
+    <radialGradient id="reishi" cx="34%" cy="30%" r="72%">
+      <stop offset="0" stop-color="#f5bb62"/>
+      <stop offset=".42" stop-color="#ad4d22"/>
+      <stop offset="1" stop-color="#491a12"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <path d="M0 620c230-110 520-126 1200-22v202H0z" fill="#1f4a25"/>
+  <g fill="url(#reishi)" stroke="#f4d38f" stroke-width="7">
+    <ellipse cx="440" cy="420" rx="200" ry="96" transform="rotate(-12 440 420)"/>
+    <ellipse cx="610" cy="348" rx="230" ry="105" transform="rotate(7 610 348)"/>
+    <ellipse cx="760" cy="438" rx="180" ry="86" transform="rotate(20 760 438)"/>
+  </g>
+  <g fill="none" stroke="#ffd983" stroke-width="10" opacity=".78">
+    <path d="M292 432c102-82 218-104 342-66"/>
+    <path d="M426 360c116-74 250-80 392 5"/>
+    <path d="M636 430c86-44 168-42 250 12"/>
+  </g>
+  <g stroke="#d1bc84" stroke-width="24" stroke-linecap="round">
+    <path d="M510 490v150"/>
+    <path d="M690 492v138"/>
+  </g>
+</svg>

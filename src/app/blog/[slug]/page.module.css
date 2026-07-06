@@ -1,10 +1,10 @@
 .page {
   width: 100%;
-  max-width: 980px;
+  max-width: 1060px;
   margin: 0 auto;
   padding: 14px 14px 44px;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.72fr);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.36fr);
   gap: 16px;
 }
 
@@ -13,74 +13,122 @@
 .recommendations {
   position: relative;
   overflow: clip;
-  padding: 22px;
-  border-radius: 24px;
-  border: 1px solid var(--line-soft);
-  background:
-    linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(248, 243, 232, 0.9));
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(14px);
+  border: 1px solid rgba(73, 54, 25, 0.13);
+  border-radius: 28px;
+  background: #fffdf8;
+  box-shadow: 0 22px 58px rgba(62, 42, 18, 0.1);
 }
 
-.article::before,
-.asideCard::before,
-.recommendations::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at top right, rgba(109, 25, 142, 0.08), transparent 28%),
-    radial-gradient(circle at 10% 10%, rgba(95, 127, 53, 0.12), transparent 24%);
-  pointer-events: none;
+.article {
+  padding: 0 0 30px;
 }
 
-.article > *,
-.asideCard > *,
-.recommendations > * {
+.coverFrame {
   position: relative;
-  z-index: 1;
+  overflow: hidden;
+  min-height: 360px;
+  border-radius: 28px 28px 0 0;
+  background: #efe4ce;
+}
+
+.coverImage {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  object-fit: cover;
+  display: block;
+}
+
+.articleHead,
+.body {
+  width: min(100% - 36px, 760px);
+  margin-inline: auto;
 }
 
 .articleHead {
   display: grid;
   gap: 14px;
+  padding-top: 28px;
 }
 
-.meta,
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.meta span,
 .asideLabel {
-  font-size: 0.78rem;
-  letter-spacing: 0.18em;
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border-radius: 999px;
+  color: #45651f;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+}
+
+.meta span {
+  padding: 0 11px;
+  background: rgba(81, 118, 38, 0.1);
+}
+
+.asideLabel {
   text-transform: uppercase;
-  color: #5f7b35;
+}
+
+.coverNote {
+  margin: 0;
+  color: #8a5a17;
+  font-size: 0.92rem;
   font-weight: 900;
 }
 
 .article h1 {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(2.8rem, 6vw, 4.8rem);
-  line-height: 0.92;
-  letter-spacing: -0.04em;
   color: #2b160d;
+  font-family: var(--font-display);
+  font-size: clamp(2.35rem, 6vw, 4.6rem);
+  line-height: 0.94;
+  letter-spacing: -0.05em;
 }
 
 .excerpt,
 .body p,
 .asideCard p {
-  color: var(--text-soft);
-  line-height: 1.8;
+  color: #665346;
   font-size: 1rem;
+  line-height: 1.82;
+}
+
+.excerpt {
+  margin: 0;
+  font-size: clamp(1.04rem, 2vw, 1.18rem);
 }
 
 .body {
-  margin-top: 22px;
   display: grid;
   gap: 18px;
+  margin-top: 26px;
+}
+
+.body p {
+  margin: 0;
+}
+
+.body p:first-child::first-letter {
+  float: left;
+  margin: 0.08em 0.12em 0 0;
+  color: #4d6f28;
+  font-family: var(--font-display);
+  font-size: 4rem;
+  line-height: 0.82;
 }
 
 .aside {
   display: grid;
-  gap: 18px;
+  gap: 16px;
   align-content: start;
   min-width: 0;
 }
@@ -89,28 +137,33 @@
 .recommendations {
   display: grid;
   gap: 14px;
+  padding: 20px;
 }
 
 .cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
+  min-height: 46px;
   padding: 0 18px;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent-pi), #8c2ab0);
+  background: linear-gradient(135deg, #51207d, #8c2ab0);
   color: white;
-  font-weight: 700;
+  font-weight: 850;
 }
 
 .productCard {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px;
+  display: grid;
+  gap: 6px;
+  padding: 15px;
+  border: 1px solid rgba(73, 54, 25, 0.12);
   border-radius: 18px;
-  background: #fffdf8;
-  border: 1px solid rgba(70, 64, 40, 0.12);
+  background: rgba(255, 252, 244, 0.72);
+}
+
+.productCard span {
+  color: #4d6f28;
+  font-weight: 900;
 }
 
 @media (max-width: 900px) {
@@ -128,16 +181,24 @@
   .article,
   .asideCard,
   .recommendations {
-    padding: 18px;
     border-radius: 24px;
   }
 
-  .article h1 {
-    font-size: clamp(2.35rem, 12vw, 3.9rem);
+  .coverFrame {
+    min-height: 235px;
+    border-radius: 24px 24px 0 0;
   }
 
-  .productCard {
-    align-items: flex-start;
-    flex-direction: column;
+  .articleHead,
+  .body {
+    width: calc(100% - 30px);
+  }
+
+  .articleHead {
+    padding-top: 20px;
+  }
+
+  .article {
+    padding-bottom: 22px;
   }
 }

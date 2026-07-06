@@ -226,14 +226,14 @@ const copy: Record<SiteLocale, SiteCopy> = {
       ],
     },
     blog: {
-      heroEyebrow: "Editorial layer",
+      heroEyebrow: "Mushroom journal",
       heroTitle:
-        "The blog gives Mushroom.Pi more trust, depth, and repeat reasons to visit.",
+        "Practical mushroom knowledge for clean meals and mindful shopping.",
       heroLead:
-        "The store may carry most of the business weight, but the journal is what stops the brand from feeling like a generic supplement shelf. It turns products, routines, and Pi-commerce decisions into a clear point of view.",
-      articleSidebarLabel: "Editorial to commerce",
+        "Guides on choosing, preparing, storing, and using mushrooms safely at home, with helpful notes for buying through Mushroom.Pi.",
+      articleSidebarLabel: "From knowledge to cart",
       articleSidebarText:
-        "Mushroom.Pi treats content as a support system for the storefront, not as a disconnected side project.",
+        "If a guide makes you ready to cook or restock, the shop is one tap away.",
       articleSidebarCta: "Explore the shop",
       relatedProductsLabel: "Related products",
     },
@@ -420,14 +420,14 @@ const copy: Record<SiteLocale, SiteCopy> = {
       ],
     },
     blog: {
-      heroEyebrow: "Lớp nội dung",
+      heroEyebrow: "Nhật ký nấm sạch",
       heroTitle:
-        "Blog giúp Mushroom.Pi đáng tin hơn, có chiều sâu hơn và khiến người dùng có lý do quay lại.",
+        "Kiến thức về nấm cho bữa ăn sạch và lựa chọn an toàn.",
       heroLead:
-        "Store có thể gánh phần lớn doanh thu, nhưng journal là thứ ngăn thương hiệu trở thành một kệ supplement vô danh. Nó biến sản phẩm, thói quen dùng nấm và quyết định Pi-commerce thành một góc nhìn rõ ràng.",
-      articleSidebarLabel: "Từ editorial sang commerce",
+        "Hướng dẫn chọn, sơ chế, bảo quản và sử dụng nấm trong bếp gia đình, kèm gợi ý mua hàng trên Mushroom.Pi.",
+      articleSidebarLabel: "Từ kiến thức đến giỏ hàng",
       articleSidebarText:
-        "Mushroom.Pi xem content như hệ hỗ trợ cho storefront, chứ không phải một nhánh tách rời.",
+        "Khi đã hiểu rõ loại nấm phù hợp, bạn có thể quay lại cửa hàng để chọn sản phẩm nhanh hơn.",
       articleSidebarCta: "Khám phá cửa hàng",
       relatedProductsLabel: "Sản phẩm liên quan",
     },
@@ -613,14 +613,14 @@ const copy: Record<SiteLocale, SiteCopy> = {
       ],
     },
     blog: {
-      heroEyebrow: "Capa editorial",
+      heroEyebrow: "Diario de hongos",
       heroTitle:
-        "El blog hace que Mushroom.Pi inspire más confianza, profundidad y regreso.",
+        "Conocimiento práctico sobre hongos para comer mejor y comprar con seguridad.",
       heroLead:
-        "La tienda puede cargar la mayor parte del negocio, pero el journal evita que la marca se sienta como una simple estantería de suplementos. Convierte productos, rutinas y decisiones de comercio Pi en una visión definida.",
-      articleSidebarLabel: "De editorial a comercio",
+        "Guías para elegir, preparar, conservar y usar hongos en casa, con notas útiles para comprar en Mushroom.Pi.",
+      articleSidebarLabel: "Del conocimiento al carrito",
       articleSidebarText:
-        "Mushroom.Pi trata el contenido como un sistema de apoyo para la tienda, no como una rama separada.",
+        "Cuando una guía te ayude a decidir, la tienda está a un toque.",
       articleSidebarCta: "Explorar la tienda",
       relatedProductsLabel: "Productos relacionados",
     },
@@ -807,14 +807,14 @@ const copy: Record<SiteLocale, SiteCopy> = {
       ],
     },
     blog: {
-      heroEyebrow: "Couche éditoriale",
+      heroEyebrow: "Journal champignons",
       heroTitle:
-        "Le blog donne à Mushroom.Pi plus de confiance, plus de profondeur et plus de raisons de revenir.",
+        "Des conseils pratiques sur les champignons pour mieux cuisiner et acheter.",
       heroLead:
-        "La boutique peut porter l'essentiel du business, mais le journal évite à la marque de ressembler à une simple étagère de compléments. Il transforme les produits, les routines et les choix de commerce Pi en une vision claire.",
-      articleSidebarLabel: "De l'éditorial au commerce",
+        "Des guides pour choisir, préparer, conserver et utiliser les champignons à la maison, avec des repères pour acheter sur Mushroom.Pi.",
+      articleSidebarLabel: "Du conseil au panier",
       articleSidebarText:
-        "Mushroom.Pi considère le contenu comme un système de soutien pour la boutique, et non comme une branche séparée.",
+        "Quand un guide vous aide à choisir, la boutique reste accessible en un geste.",
       articleSidebarCta: "Découvrir la boutique",
       relatedProductsLabel: "Produits liés",
     },
@@ -991,13 +991,13 @@ const copy: Record<SiteLocale, SiteCopy> = {
       ],
     },
     blog: {
-      heroEyebrow: "内容层",
-      heroTitle: "博客让 Mushroom.Pi 更值得信任、更有深度，也更值得回访。",
+      heroEyebrow: "蘑菇知识",
+      heroTitle: "关于蘑菇选择、保存与日常烹调的实用指南。",
       heroLead:
-        "商店可以承担大部分业务，但 journal 才是避免品牌看起来像普通补剂货架的关键。它把产品、蘑菇习惯和 Pi 商业决策转化为明确的品牌观点。",
-      articleSidebarLabel: "从内容到商业",
+        "帮助你在家中更安全地选择、处理、保存和使用蘑菇，也了解如何在 Mushroom.Pi 购买。",
+      articleSidebarLabel: "从知识到购物车",
       articleSidebarText:
-        "Mushroom.Pi 把内容看作 storefront 的支持系统，而不是一个分离的侧项目。",
+        "当一篇指南帮你做出选择时，可以直接回到商店继续购买。",
       articleSidebarCta: "查看商店",
       relatedProductsLabel: "相关产品",
     },
