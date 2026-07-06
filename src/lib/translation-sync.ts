@@ -2,9 +2,11 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 import { getSql } from "@/lib/db";
+import type { SiteLocale } from "@/lib/i18n";
 
 export const TRANSLATION_SOURCE_LOCALE = "vi";
-export const TRANSLATION_TARGET_LOCALE = "en";
+export const TRANSLATION_TARGET_LOCALES = ["en", "es", "fr", "zh"] as const;
+export type TranslationTargetLocale = (typeof TRANSLATION_TARGET_LOCALES)[number];
 
 type ProductSourceRow = {
   badge: string;
@@ -47,6 +49,7 @@ export type TranslationAuditStatus = "current" | "missing" | "stale";
 
 export type TranslationAuditItem = {
   id: string;
+  locale: TranslationTargetLocale;
   sourceFingerprint: string;
   sourceUpdatedAt: string;
   status: TranslationAuditStatus;
@@ -56,6 +59,12 @@ export type TranslationAuditItem = {
 
 function normalizeText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+export function isTranslationTargetLocale(
+  value: string | null | undefined,
+): value is TranslationTargetLocale {
+  return TRANSLATION_TARGET_LOCALES.includes(value as TranslationTargetLocale);
 }
 
 function normalizeBody(value: unknown) {
@@ -248,7 +257,9 @@ function getAuditStatus(
   return translationFingerprint === sourceFingerprint ? "current" : "stale";
 }
 
-export async function readEnglishTranslationAudit() {
+export async function readTranslationAuditForLocale(
+  targetLocale: TranslationTargetLocale,
+) {
   const sql = getSql();
 
   if (!sql || !(await ensureTranslationTrackingSchema())) {
@@ -276,7 +287,7 @@ export async function readEnglishTranslationAudit() {
       from storefront_products product
       left join storefront_product_translations translation
         on translation.product_id = product.id
-        and translation.locale = ${TRANSLATION_TARGET_LOCALE}
+        and translation.locale = ${targetLocale}
       where product.source_product_id is null
       order by product.updated_at desc, product.name asc
     `,
@@ -298,7 +309,7 @@ export async function readEnglishTranslationAudit() {
       from storefront_blog_posts source
       left join storefront_blog_posts translation
         on translation.source_post_id = source.id
-        and translation.locale = ${TRANSLATION_TARGET_LOCALE}
+        and translation.locale = ${targetLocale}
       where source.locale = ${TRANSLATION_SOURCE_LOCALE}
       order by source.updated_at desc, source.title asc
     `,
@@ -309,6 +320,7 @@ export async function readEnglishTranslationAudit() {
 
     return {
       id: row.id,
+      locale: targetLocale,
       sourceFingerprint,
       sourceUpdatedAt: row.updated_at,
       status: getAuditStatus(sourceFingerprint, row.translation_fingerprint),
@@ -322,6 +334,7 @@ export async function readEnglishTranslationAudit() {
 
     return {
       id: row.id,
+      locale: targetLocale,
       sourceFingerprint,
       sourceUpdatedAt: row.updated_at,
       status: getAuditStatus(sourceFingerprint, row.translation_fingerprint),
@@ -331,4 +344,26 @@ export async function readEnglishTranslationAudit() {
   });
 
   return { blogPosts, products };
+}
+
+export async function readAllTranslationAudits() {
+  const entries = await Promise.all(
+    TRANSLATION_TARGET_LOCALES.map(async (locale) => [
+      locale,
+      await readTranslationAuditForLocale(locale),
+    ] as const),
+  );
+
+  return Object.fromEntries(entries) as Record<
+    TranslationTargetLocale,
+    Awaited<ReturnType<typeof readTranslationAuditForLocale>>
+  >;
+}
+
+export async function readEnglishTranslationAudit() {
+  return readTranslationAuditForLocale("en");
+}
+
+export function isPublicTranslationLocale(locale: SiteLocale) {
+  return locale !== TRANSLATION_SOURCE_LOCALE;
 }

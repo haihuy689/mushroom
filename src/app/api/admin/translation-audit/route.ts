@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getStorefrontAdminContext } from "@/lib/storefront-admin-server";
-import { readEnglishTranslationAudit } from "@/lib/translation-sync";
+import {
+  isTranslationTargetLocale,
+  readAllTranslationAudits,
+  readTranslationAuditForLocale,
+} from "@/lib/translation-sync";
 
 export const preferredRegion = "sin1";
 
@@ -14,7 +18,19 @@ function countByStatus<T extends { status: string }>(items: T[]) {
   );
 }
 
-export async function GET() {
+function createAuditResponse<T extends { blogPosts: unknown[]; products: unknown[] }>(
+  audit: T,
+) {
+  return {
+    ...audit,
+    summary: {
+      blogPosts: countByStatus(audit.blogPosts as Array<{ status: string }>),
+      products: countByStatus(audit.products as Array<{ status: string }>),
+    },
+  };
+}
+
+export async function GET(request: Request) {
   const { access } = await getStorefrontAdminContext();
 
   if (!access.canAccessAdmin) {
@@ -26,14 +42,22 @@ export async function GET() {
     );
   }
 
-  const audit = await readEnglishTranslationAudit();
+  const locale = new URL(request.url).searchParams.get("locale");
+
+  if (isTranslationTargetLocale(locale)) {
+    return NextResponse.json(
+      createAuditResponse(await readTranslationAuditForLocale(locale)),
+    );
+  }
+
+  const audits = await readAllTranslationAudits();
 
   return NextResponse.json({
-    blogPosts: audit.blogPosts,
-    products: audit.products,
-    summary: {
-      blogPosts: countByStatus(audit.blogPosts),
-      products: countByStatus(audit.products),
-    },
+    locales: Object.fromEntries(
+      Object.entries(audits).map(([localeKey, audit]) => [
+        localeKey,
+        createAuditResponse(audit),
+      ]),
+    ),
   });
 }
