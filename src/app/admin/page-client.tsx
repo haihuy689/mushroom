@@ -16,6 +16,7 @@ import type {
 } from "@/lib/admin-access";
 import type { AdminCenterCopy } from "@/lib/admin-center-copy";
 import { localeOptions, type SiteLocale } from "@/lib/i18n";
+import { getMessageCenterCopy } from "@/lib/message-center-copy";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { ADMIN_ORDER_STATUSES, type OrderStatus } from "@/lib/order-status";
 import { getOrderStatusCounts, resolveOrderStatus } from "@/lib/order-tracking";
@@ -32,6 +33,7 @@ import {
   type StorefrontProductRecord,
 } from "@/lib/storefront-product";
 import type { StorefrontBlogPostRecord } from "@/lib/storefront-blog-types";
+import type { StorefrontMessage } from "@/lib/storefront-message-types";
 import type { StorefrontOrder } from "@/lib/storefront-state";
 import styles from "./page.module.css";
 
@@ -52,6 +54,7 @@ type AdminView =
   | "orders"
   | "staff"
   | "blog"
+  | "messages"
   | "operations";
 type ProductMediaUploadKind = "cover" | "gallery" | "video";
 
@@ -64,6 +67,15 @@ type DashboardSnapshot = {
   orders: StorefrontOrder[];
   products: StorefrontProductRecord[];
   staff: StorefrontStaffMember[];
+};
+
+type AdminMessageThread = {
+  key: string;
+  latest: StorefrontMessage;
+  messages: StorefrontMessage[];
+  orderId: string | null;
+  piUid: string;
+  username: string | null;
 };
 
 type RequestInitWithTimeout = RequestInit & {
@@ -541,6 +553,14 @@ export function AdminPageClient({
   const [orderEditor, setOrderEditor] = useState<OrderEditor | null>(null);
   const [savingOrder, setSavingOrder] = useState(false);
   const [refreshingOrders, setRefreshingOrders] = useState(false);
+  const [adminMessages, setAdminMessages] = useState<StorefrontMessage[]>([]);
+  const [selectedMessageThreadKey, setSelectedMessageThreadKey] = useState<
+    string | null
+  >(null);
+  const [messageReply, setMessageReply] = useState("");
+  const [refreshingMessages, setRefreshingMessages] = useState(false);
+  const [sendingAdminMessage, setSendingAdminMessage] = useState(false);
+  const [messagesRequested, setMessagesRequested] = useState(false);
   const [selectedStaffIdentityKey, setSelectedStaffIdentityKey] = useState<
     string | null
   >(null);
@@ -610,6 +630,7 @@ export function AdminPageClient({
     (value: number) => `${piFormatter.format(Number(value.toFixed(4)))} Pi`,
     [piFormatter],
   );
+  const messageCopy = useMemo(() => getMessageCenterCopy(locale), [locale]);
 
   const adminOrders = useMemo(
     () => orders.filter(isAdminVisibleOrder),
@@ -632,6 +653,63 @@ export function AdminPageClient({
       }),
     [adminOrders],
   );
+  const messageThreads = useMemo(() => {
+    const threadMap = new Map<string, AdminMessageThread>();
+
+    for (const nextMessage of adminMessages) {
+      const key = `${nextMessage.piUid}:${nextMessage.orderId ?? "general"}`;
+      const currentThread = threadMap.get(key);
+
+      if (currentThread) {
+        currentThread.messages.push(nextMessage);
+
+        if (
+          Date.parse(nextMessage.createdAt) >
+          Date.parse(currentThread.latest.createdAt)
+        ) {
+          currentThread.latest = nextMessage;
+        }
+
+        continue;
+      }
+
+      threadMap.set(key, {
+        key,
+        latest: nextMessage,
+        messages: [nextMessage],
+        orderId: nextMessage.orderId ?? null,
+        piUid: nextMessage.piUid,
+        username: nextMessage.username ?? null,
+      });
+    }
+
+    return Array.from(threadMap.values())
+      .map((thread) => ({
+        ...thread,
+        messages: [...thread.messages].sort(
+          (leftMessage, rightMessage) =>
+            Date.parse(leftMessage.createdAt) -
+            Date.parse(rightMessage.createdAt),
+        ),
+      }))
+      .sort(
+        (leftThread, rightThread) =>
+          Date.parse(rightThread.latest.createdAt) -
+          Date.parse(leftThread.latest.createdAt),
+      );
+  }, [adminMessages]);
+  const unreadMessageCount = useMemo(
+    () =>
+      adminMessages.filter(
+        (nextMessage) =>
+          nextMessage.senderType === "user" && !nextMessage.isReadByShop,
+      ).length,
+    [adminMessages],
+  );
+  const selectedMessageThread =
+    messageThreads.find((thread) => thread.key === selectedMessageThreadKey) ??
+    messageThreads[0] ??
+    null;
   const activeProducts = useMemo(
     () => products.filter((product) => product.isActive),
     [products],
@@ -907,6 +985,12 @@ export function AdminPageClient({
           visible: canManageOrders,
         },
         {
+          count: `${unreadMessageCount || messageThreads.length}`,
+          id: "messages" as const,
+          label: messageCopy.messages,
+          visible: canManageOrders,
+        },
+        {
           count: `${activeStaff.length}`,
           id: "staff" as const,
           label: copy.staffTab,
@@ -938,9 +1022,12 @@ export function AdminPageClient({
       copy.productsTab,
       copy.staffTab,
       lowStockProducts.length,
+      messageCopy.messages,
+      messageThreads.length,
       openOrders,
       adminOrders.length,
       products.length,
+      unreadMessageCount,
     ],
   );
 
@@ -982,6 +1069,30 @@ export function AdminPageClient({
     }
   }, [copy.saveError, locale, selectedBlogId]);
 
+  const handleRefreshMessages = useCallback(async () => {
+    setRefreshingMessages(true);
+    setMessagesRequested(true);
+    setMessage(null);
+
+    try {
+      const data = await readJson<{ items: StorefrontMessage[] }>(
+        "/api/admin/messages",
+        {
+          timeoutMs: 20000,
+        },
+      );
+
+      setAdminMessages(data.items);
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : copy.saveError,
+      });
+    } finally {
+      setRefreshingMessages(false);
+    }
+  }, [copy.saveError]);
+
   useEffect(() => {
     if (
       activeView !== "blog" ||
@@ -1006,6 +1117,48 @@ export function AdminPageClient({
     handleRefreshBlogPosts,
     refreshingBlog,
   ]);
+
+  useEffect(() => {
+    if (
+      activeView !== "messages" ||
+      !canManageOrders ||
+      messagesRequested ||
+      refreshingMessages
+    ) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      void handleRefreshMessages();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [
+    activeView,
+    canManageOrders,
+    handleRefreshMessages,
+    messagesRequested,
+    refreshingMessages,
+  ]);
+
+  useEffect(() => {
+    if (
+      selectedMessageThreadKey &&
+      messageThreads.some((thread) => thread.key === selectedMessageThreadKey)
+    ) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setSelectedMessageThreadKey(messageThreads[0]?.key ?? null);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [messageThreads, selectedMessageThreadKey]);
 
   useEffect(() => {
     if (navigationItems.some((item) => item.id === activeView)) {
@@ -1330,6 +1483,49 @@ export function AdminPageClient({
       });
     } finally {
       setRefreshingOrders(false);
+    }
+  };
+
+  const handleSendAdminMessage = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!selectedMessageThread || !messageReply.trim()) {
+      return;
+    }
+
+    setSendingAdminMessage(true);
+    setMessage(null);
+
+    try {
+      const data = await readJson<{ item: StorefrontMessage }>(
+        "/api/admin/messages",
+        {
+          body: JSON.stringify({
+            body: messageReply,
+            orderId: selectedMessageThread.orderId ?? undefined,
+            piUid: selectedMessageThread.piUid,
+          }),
+          method: "POST",
+          timeoutMs: 20000,
+        },
+      );
+
+      setAdminMessages((currentMessages) => [...currentMessages, data.item]);
+      setSelectedMessageThreadKey(
+        `${data.item.piUid}:${data.item.orderId ?? "general"}`,
+      );
+      setMessageReply("");
+      setMessage({
+        kind: "success",
+        text: messageCopy.sendSuccess,
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : messageCopy.sendFailed,
+      });
+    } finally {
+      setSendingAdminMessage(false);
     }
   };
 
@@ -3913,6 +4109,177 @@ export function AdminPageClient({
                         </div>
                       </div>
                     </form>
+                  )}
+                </article>
+              </div>
+            </section>
+          ) : null}
+
+          {activeView === "messages" && canManageOrders ? (
+            <section className={styles.sectionStack}>
+              <div className={styles.sectionHeader}>
+                <div>
+                  <p className={styles.sectionEyebrow}>{messageCopy.messages}</p>
+                  <h3>{messageCopy.adminTitle}</h3>
+                  <p className={styles.sectionLead}>{messageCopy.adminLead}</p>
+                </div>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  disabled={refreshingMessages}
+                  onClick={() => {
+                    void handleRefreshMessages();
+                  }}
+                >
+                  {refreshingMessages ? messageCopy.loading : messageCopy.refresh}
+                </button>
+              </div>
+
+              <div className={`${styles.detailGrid} ${styles.messageDetailGrid}`}>
+                <article className={styles.panel}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <p className={styles.sectionEyebrow}>{messageCopy.thread}</p>
+                      <h4>{messageThreads.length}</h4>
+                    </div>
+                    <div className={styles.inlineMetrics}>
+                      <span>{messageCopy.allMessages}: {adminMessages.length}</span>
+                      <span>{messageCopy.customer}: {unreadMessageCount}</span>
+                    </div>
+                  </div>
+
+                  {refreshingMessages && messageThreads.length === 0 ? (
+                    <p className={styles.emptyState}>{messageCopy.loading}</p>
+                  ) : messageThreads.length === 0 ? (
+                    <p className={styles.emptyState}>{messageCopy.adminEmpty}</p>
+                  ) : (
+                    <div className={styles.selectionList}>
+                      {messageThreads.map((thread) => (
+                        <button
+                          key={thread.key}
+                          type="button"
+                          className={styles.selectionRow}
+                          data-active={selectedMessageThread?.key === thread.key}
+                          onClick={() => setSelectedMessageThreadKey(thread.key)}
+                        >
+                          <div className={styles.selectionCopy}>
+                            <div className={styles.selectionTitle}>
+                              <strong>
+                                {thread.username ?? thread.latest.senderLabel}
+                              </strong>
+                              <span>{thread.piUid}</span>
+                            </div>
+                            <div className={styles.tagRow}>
+                              <span className={styles.statusChip} data-tone="neutral">
+                                {thread.orderId
+                                  ? `#${thread.orderId.slice(-10).toUpperCase()}`
+                                  : messageCopy.noLinkedOrder}
+                              </span>
+                              {thread.latest.senderType === "user" &&
+                              !thread.latest.isReadByShop ? (
+                                <span className={styles.statusChip} data-tone="issue">
+                                  {messageCopy.user}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className={styles.selectionMeta}>
+                            <span>{thread.latest.body}</span>
+                            <strong>
+                              {dateFormatter.format(new Date(thread.latest.createdAt))}
+                            </strong>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </article>
+
+                <article className={`${styles.panel} ${styles.messagePanel}`}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <p className={styles.sectionEyebrow}>{messageCopy.thread}</p>
+                      <h4>
+                        {selectedMessageThread
+                          ? selectedMessageThread.username ??
+                            selectedMessageThread.piUid
+                          : messageCopy.adminTitle}
+                      </h4>
+                    </div>
+                  </div>
+
+                  {!selectedMessageThread ? (
+                    <p className={styles.emptyState}>{messageCopy.adminEmpty}</p>
+                  ) : (
+                    <div className={styles.formStack}>
+                      <div className={styles.summaryGrid}>
+                        <div className={styles.summaryCard}>
+                          <span>{messageCopy.customer}</span>
+                          <strong>
+                            {selectedMessageThread.username ??
+                              selectedMessageThread.piUid}
+                          </strong>
+                        </div>
+                        <div className={styles.summaryCard}>
+                          <span>{messageCopy.linkedOrder}</span>
+                          <strong>
+                            {selectedMessageThread.orderId
+                              ? `#${selectedMessageThread.orderId
+                                  .slice(-10)
+                                  .toUpperCase()}`
+                              : messageCopy.noLinkedOrder}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div className={styles.adminMessageList}>
+                        {selectedMessageThread.messages.map((nextMessage) => (
+                          <article
+                            key={nextMessage.id}
+                            className={styles.adminMessageBubble}
+                            data-sender={nextMessage.senderType}
+                          >
+                            <div className={styles.messageMetaRow}>
+                              <strong>
+                                {nextMessage.senderType === "user"
+                                  ? messageCopy.customer
+                                  : nextMessage.senderType === "shop"
+                                    ? messageCopy.shop
+                                    : messageCopy.system}
+                              </strong>
+                              <span>
+                                {dateFormatter.format(
+                                  new Date(nextMessage.createdAt),
+                                )}
+                              </span>
+                            </div>
+                            <p>{nextMessage.body}</p>
+                          </article>
+                        ))}
+                      </div>
+
+                      <form
+                        className={styles.messageComposer}
+                        onSubmit={handleSendAdminMessage}
+                      >
+                        <label className={`${styles.field} ${styles.fullField}`}>
+                          <span>{messageCopy.messageBodyLabel}</span>
+                          <textarea
+                            rows={4}
+                            value={messageReply}
+                            placeholder={messageCopy.adminReplyPlaceholder}
+                            onChange={(event) => setMessageReply(event.target.value)}
+                          />
+                        </label>
+                        <button
+                          type="submit"
+                          className={styles.primaryButton}
+                          disabled={sendingAdminMessage || !messageReply.trim()}
+                        >
+                          {sendingAdminMessage ? messageCopy.sending : messageCopy.send}
+                        </button>
+                      </form>
+                    </div>
                   )}
                 </article>
               </div>

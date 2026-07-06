@@ -1,5 +1,6 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
 import postgres, { type TransactionSql } from "postgres";
 import {
   buildStorefrontAdminAccess,
@@ -25,6 +26,10 @@ import {
   type StorefrontProductRecord,
 } from "@/lib/storefront-product";
 import { getDatabaseUrl, getSql, isDatabaseConfigured } from "@/lib/db";
+import type {
+  StorefrontMessage,
+  StorefrontMessageSender,
+} from "@/lib/storefront-message-types";
 import {
   emptyStorefrontState,
   mergeStorefrontState,
@@ -102,6 +107,20 @@ type OrderItemRow = {
   product_name: string;
   quantity: number;
   total_pi: string | number;
+};
+
+type MessageRow = {
+  body: string;
+  created_at: string;
+  event_type: string;
+  id: string;
+  is_read_by_shop: boolean;
+  is_read_by_user: boolean;
+  order_id: string | null;
+  pi_uid: string;
+  sender_label: string;
+  sender_type: StorefrontMessageSender;
+  username: string | null;
 };
 
 type StaffRow = {
@@ -183,6 +202,7 @@ const STOREFRONT_REQUIRED_TABLES = [
   "storefront_addresses",
   "storefront_orders",
   "storefront_order_items",
+  "storefront_messages",
   "storefront_staff_members",
   "storefront_products",
   "storefront_product_options",
@@ -208,6 +228,14 @@ const STOREFRONT_REQUIRED_COLUMNS = [
   { table: "storefront_orders", column: "location_longitude" },
   { table: "storefront_orders", column: "location_accuracy_meters" },
   { table: "storefront_orders", column: "location_message" },
+  { table: "storefront_messages", column: "username" },
+  { table: "storefront_messages", column: "order_id" },
+  { table: "storefront_messages", column: "sender_type" },
+  { table: "storefront_messages", column: "sender_label" },
+  { table: "storefront_messages", column: "body" },
+  { table: "storefront_messages", column: "event_type" },
+  { table: "storefront_messages", column: "is_read_by_user" },
+  { table: "storefront_messages", column: "is_read_by_shop" },
   { table: "storefront_staff_members", column: "updated_at" },
   { table: "storefront_staff_members", column: "is_active" },
   { table: "storefront_staff_members", column: "role" },
@@ -469,6 +497,61 @@ export async function ensureStorefrontSchema() {
           await transaction`
             create index if not exists storefront_orders_pi_uid_created_at_idx
             on storefront_orders (pi_uid, created_at desc)
+          `;
+          await transaction`
+            create table if not exists storefront_messages (
+              id text primary key,
+              pi_uid text not null references storefront_users (pi_uid) on delete cascade,
+              username text,
+              order_id text references storefront_orders (id) on delete set null,
+              sender_type text not null,
+              sender_label text not null default '',
+              body text not null,
+              event_type text not null default 'manual',
+              is_read_by_user boolean not null default false,
+              is_read_by_shop boolean not null default false,
+              created_at timestamptz not null default now()
+            )
+          `;
+          await transaction`
+            alter table storefront_messages
+            add column if not exists username text
+          `;
+          await transaction`
+            alter table storefront_messages
+            add column if not exists order_id text references storefront_orders (id) on delete set null
+          `;
+          await transaction`
+            alter table storefront_messages
+            add column if not exists sender_type text not null default 'system'
+          `;
+          await transaction`
+            alter table storefront_messages
+            add column if not exists sender_label text not null default ''
+          `;
+          await transaction`
+            alter table storefront_messages
+            add column if not exists body text not null default ''
+          `;
+          await transaction`
+            alter table storefront_messages
+            add column if not exists event_type text not null default 'manual'
+          `;
+          await transaction`
+            alter table storefront_messages
+            add column if not exists is_read_by_user boolean not null default false
+          `;
+          await transaction`
+            alter table storefront_messages
+            add column if not exists is_read_by_shop boolean not null default false
+          `;
+          await transaction`
+            create index if not exists storefront_messages_pi_uid_created_at_idx
+            on storefront_messages (pi_uid, created_at desc)
+          `;
+          await transaction`
+            create index if not exists storefront_messages_order_created_at_idx
+            on storefront_messages (order_id, created_at desc)
           `;
           await transaction`
             create table if not exists storefront_staff_members (
@@ -1029,12 +1112,192 @@ async function replaceAddresses(
   });
 }
 
+type StorefrontSqlClient = NonNullable<ReturnType<typeof getSql>> | TransactionSql;
+
+type StorefrontMessageInput = {
+  body: string;
+  eventType?: string;
+  isReadByShop?: boolean;
+  isReadByUser?: boolean;
+  orderId?: string | null;
+  piUid: string;
+  senderLabel: string;
+  senderType: StorefrontMessageSender;
+  username?: string | null;
+};
+
+function normalizeMessageBody(value: unknown) {
+  return String(value ?? "").trim().slice(0, 2000);
+}
+
+function mapMessageRow(row: MessageRow): StorefrontMessage {
+  return {
+    body: row.body,
+    createdAt: row.created_at,
+    eventType: row.event_type,
+    id: row.id,
+    isReadByShop: row.is_read_by_shop,
+    isReadByUser: row.is_read_by_user,
+    orderId: row.order_id ?? undefined,
+    piUid: row.pi_uid,
+    senderLabel: row.sender_label,
+    senderType: row.sender_type,
+    username: row.username ?? undefined,
+  };
+}
+
+function getOrderShortCode(orderId: string) {
+  return `#${orderId.slice(-10).toUpperCase()}`;
+}
+
+function getStatusMessageBody(orderId: string, status: OrderStatus) {
+  const code = getOrderShortCode(orderId);
+
+  switch (status) {
+    case "pending_payment":
+      return `Đơn hàng ${code} đang chờ thanh toán Pi. Nếu thanh toán chưa hoàn tất, bạn có thể mở lại đơn hàng để thanh toán tiếp.`;
+    case "payment_failed":
+      return `Thanh toán đơn hàng ${code} chưa hoàn tất. Bạn có thể quay lại đơn hàng để thanh toán lại khi sẵn sàng.`;
+    case "paid":
+      return `Mushroom.Pi đã ghi nhận thanh toán cho đơn hàng ${code}. Cảm ơn bạn, shop sẽ kiểm tra và xác nhận đơn sớm.`;
+    case "confirmed":
+      return `Shop đã xác nhận đơn hàng ${code}. Đơn hàng sẽ được chuyển sang bước chuẩn bị hàng.`;
+    case "preparing":
+      return `Người bán đang chuẩn bị hàng cho đơn ${code}. Shop sẽ cập nhật tiếp khi đơn đã soạn xong.`;
+    case "ready_to_ship":
+      return `Đơn ${code} đã được soạn xong và đang chờ bàn giao cho đơn vị giao hàng.`;
+    case "shipping":
+      return `Đơn ${code} đang được giao. Bạn có thể theo dõi thông tin vận chuyển trong trang đơn hàng.`;
+    case "delivered":
+      return `Đơn ${code} đã giao thành công. Cảm ơn bạn đã ủng hộ Mushroom.Pi.`;
+    case "delivery_issue":
+      return `Đơn ${code} đang cần xử lý thêm trong khâu giao hàng. Shop sẽ liên hệ và cập nhật tại đây.`;
+  }
+}
+
+async function insertStorefrontMessageRecord(
+  sql: StorefrontSqlClient,
+  input: StorefrontMessageInput,
+  options?: { dedupe?: boolean },
+) {
+  const body = normalizeMessageBody(input.body);
+
+  if (!body) {
+    return null;
+  }
+
+  const orderId = input.orderId?.trim() || null;
+  const eventType = input.eventType?.trim() || "manual";
+
+  if (options?.dedupe) {
+    const existingRows = orderId
+      ? await sql<Array<{ id: string }>>`
+          select id
+          from storefront_messages
+          where pi_uid = ${input.piUid}
+            and order_id = ${orderId}
+            and event_type = ${eventType}
+          limit 1
+        `
+      : await sql<Array<{ id: string }>>`
+          select id
+          from storefront_messages
+          where pi_uid = ${input.piUid}
+            and order_id is null
+            and event_type = ${eventType}
+          limit 1
+        `;
+
+    if (existingRows.length > 0) {
+      return null;
+    }
+  }
+
+  const rows = await sql<MessageRow[]>`
+    insert into storefront_messages (
+      id,
+      pi_uid,
+      username,
+      order_id,
+      sender_type,
+      sender_label,
+      body,
+      event_type,
+      is_read_by_user,
+      is_read_by_shop,
+      created_at
+    )
+    values (
+      ${`msg-${randomUUID()}`},
+      ${input.piUid},
+      ${input.username?.trim() || null},
+      ${orderId},
+      ${input.senderType},
+      ${input.senderLabel.trim() || "Mushroom.Pi"},
+      ${body},
+      ${eventType},
+      ${Boolean(input.isReadByUser)},
+      ${Boolean(input.isReadByShop)},
+      now()
+    )
+    returning
+      id,
+      pi_uid,
+      username,
+      order_id,
+      sender_type,
+      sender_label,
+      body,
+      event_type,
+      is_read_by_user,
+      is_read_by_shop,
+      created_at::text
+  `;
+
+  return rows[0] ? mapMessageRow(rows[0]) : null;
+}
+
+async function recordAutomaticOrderMessage(
+  order: StorefrontOrder,
+  eventType: string,
+  body: string,
+) {
+  const sql = getSql();
+
+  if (!sql || !order.shopperUid) {
+    return;
+  }
+
+  try {
+    await insertStorefrontMessageRecord(
+      sql,
+      {
+        body,
+        eventType,
+        isReadByShop: true,
+        isReadByUser: false,
+        orderId: order.id,
+        piUid: order.shopperUid,
+        senderLabel: "Mushroom.Pi",
+        senderType: "system",
+        username: order.username,
+      },
+      { dedupe: true },
+    );
+  } catch {
+    // Messaging should not block checkout or fulfillment updates.
+  }
+}
+
 async function upsertOrder(piUid: string, order: StorefrontOrder) {
   const sql = getSql();
 
   if (!sql) {
     return;
   }
+
+  let shouldCreateOrderMessage = false;
+  let statusToAnnounce: OrderStatus | null = null;
 
   await sql.begin(async (transaction) => {
     const existingRows = await transaction<
@@ -1051,8 +1314,12 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
           STOCK_CONFIRMED_ORDER_STATUSES.has(row.fulfillment_status)) ||
         Boolean(row.txid),
     );
+    const existingStatus = existingRows[0]?.fulfillment_status;
     const shouldIncrementSoldCount =
       !wasStockConfirmed && isStockConfirmedOrder(order);
+    shouldCreateOrderMessage = existingRows.length === 0;
+    statusToAnnounce =
+      order.status && order.status !== existingStatus ? order.status : null;
 
     await transaction`
       insert into storefront_orders (
@@ -1296,6 +1563,29 @@ async function upsertOrder(piUid: string, order: StorefrontOrder) {
       }
     }
   });
+
+  const orderForMessage = {
+    ...order,
+    shopperUid: piUid,
+  };
+
+  if (shouldCreateOrderMessage) {
+    await recordAutomaticOrderMessage(
+      orderForMessage,
+      "order_created",
+      `Mushroom.Pi đã nhận thông tin đơn hàng ${getOrderShortCode(
+        order.id,
+      )}. Shop sẽ cập nhật trạng thái đơn hàng tại đây.`,
+    );
+  }
+
+  if (statusToAnnounce) {
+    await recordAutomaticOrderMessage(
+      orderForMessage,
+      `order_status_${statusToAnnounce}`,
+      getStatusMessageBody(order.id, statusToAnnounce),
+    );
+  }
 }
 
 function mapOrderRows(
@@ -2070,6 +2360,260 @@ export async function listStorefrontOrdersForAdmin() {
   return readAllStorefrontOrders();
 }
 
+export async function listStorefrontMessagesForUser(user: PiVerifiedUser) {
+  if (!(await ensureStorefrontSchema())) {
+    return {
+      databaseConfigured: false,
+      items: [] as StorefrontMessage[],
+    };
+  }
+
+  await upsertStorefrontUser(user);
+
+  const sql = getSql();
+
+  if (!sql) {
+    return {
+      databaseConfigured: false,
+      items: [] as StorefrontMessage[],
+    };
+  }
+
+  const rows = await sql<MessageRow[]>`
+    select
+      id,
+      pi_uid,
+      username,
+      order_id,
+      sender_type,
+      sender_label,
+      body,
+      event_type,
+      is_read_by_user,
+      is_read_by_shop,
+      created_at::text
+    from storefront_messages
+    where pi_uid = ${user.uid}
+    order by created_at asc
+    limit 300
+  `;
+
+  await sql`
+    update storefront_messages
+    set is_read_by_user = true
+    where pi_uid = ${user.uid}
+      and sender_type in ('shop', 'system')
+      and is_read_by_user = false
+  `;
+
+  return {
+    databaseConfigured: true,
+    items: rows.map((row) => {
+      const message = mapMessageRow(row);
+
+      return message.senderType === "shop" || message.senderType === "system"
+        ? {
+            ...message,
+            isReadByUser: true,
+          }
+        : message;
+    }),
+  };
+}
+
+export async function createStorefrontUserMessage(
+  user: PiVerifiedUser,
+  input: { body?: unknown; orderId?: unknown },
+) {
+  if (!(await ensureStorefrontSchema())) {
+    throw new Error("Database is not configured.");
+  }
+
+  const body = normalizeMessageBody(input.body);
+
+  if (!body) {
+    throw new Error("Message is required.");
+  }
+
+  await upsertStorefrontUser(user);
+
+  const sql = getSql();
+
+  if (!sql) {
+    throw new Error("Database is not configured.");
+  }
+
+  const orderId =
+    typeof input.orderId === "string" && input.orderId.trim()
+      ? input.orderId.trim()
+      : null;
+
+  if (orderId) {
+    const orderRows = await sql<Array<{ id: string }>>`
+      select id
+      from storefront_orders
+      where id = ${orderId}
+        and pi_uid = ${user.uid}
+      limit 1
+    `;
+
+    if (orderRows.length === 0) {
+      throw new Error("Order not found for this account.");
+    }
+  }
+
+  const message = await insertStorefrontMessageRecord(sql, {
+    body,
+    eventType: "manual",
+    isReadByShop: false,
+    isReadByUser: true,
+    orderId,
+    piUid: user.uid,
+    senderLabel: user.username ?? user.uid,
+    senderType: "user",
+    username: user.username,
+  });
+
+  if (!message) {
+    throw new Error("Unable to send message.");
+  }
+
+  return message;
+}
+
+export async function listStorefrontMessagesForAdmin() {
+  if (!(await ensureStorefrontSchema())) {
+    throw new Error("Database is not configured.");
+  }
+
+  const sql = getSql();
+
+  if (!sql) {
+    throw new Error("Database is not configured.");
+  }
+
+  const rows = await sql<MessageRow[]>`
+    select
+      message.id,
+      message.pi_uid,
+      coalesce(message.username, storefront_users.username) as username,
+      message.order_id,
+      message.sender_type,
+      message.sender_label,
+      message.body,
+      message.event_type,
+      message.is_read_by_user,
+      message.is_read_by_shop,
+      message.created_at::text
+    from storefront_messages message
+    left join storefront_users on storefront_users.pi_uid = message.pi_uid
+    order by message.created_at desc
+    limit 500
+  `;
+
+  await sql`
+    update storefront_messages
+    set is_read_by_shop = true
+    where sender_type = 'user'
+      and is_read_by_shop = false
+  `;
+
+  return rows.map((row) => {
+    const message = mapMessageRow(row);
+
+    return message.senderType === "user"
+      ? {
+          ...message,
+          isReadByShop: true,
+        }
+      : message;
+  });
+}
+
+export async function createStorefrontAdminMessage(input: {
+  actorUsername: string;
+  body?: unknown;
+  orderId?: unknown;
+  piUid?: unknown;
+}) {
+  if (!(await ensureStorefrontSchema())) {
+    throw new Error("Database is not configured.");
+  }
+
+  const body = normalizeMessageBody(input.body);
+
+  if (!body) {
+    throw new Error("Message is required.");
+  }
+
+  const sql = getSql();
+
+  if (!sql) {
+    throw new Error("Database is not configured.");
+  }
+
+  const orderId =
+    typeof input.orderId === "string" && input.orderId.trim()
+      ? input.orderId.trim()
+      : null;
+  let piUid =
+    typeof input.piUid === "string" && input.piUid.trim()
+      ? input.piUid.trim()
+      : "";
+  let username: string | null = null;
+
+  if (orderId) {
+    const orderRows = await sql<Array<{ pi_uid: string; username: string | null }>>`
+      select pi_uid, username
+      from storefront_orders
+      where id = ${orderId}
+      limit 1
+    `;
+
+    if (orderRows.length === 0) {
+      throw new Error("Order not found.");
+    }
+
+    if (piUid && piUid !== orderRows[0].pi_uid) {
+      throw new Error("Order does not belong to the selected customer.");
+    }
+
+    piUid = orderRows[0].pi_uid;
+    username = orderRows[0].username;
+  }
+
+  if (!piUid) {
+    throw new Error("Customer Pi UID is required.");
+  }
+
+  const userRows = await sql<StorefrontUserRow[]>`
+    select username
+    from storefront_users
+    where pi_uid = ${piUid}
+    limit 1
+  `;
+
+  username = username ?? userRows[0]?.username ?? null;
+
+  const message = await insertStorefrontMessageRecord(sql, {
+    body,
+    eventType: "manual",
+    isReadByShop: true,
+    isReadByUser: false,
+    orderId,
+    piUid,
+    senderLabel: input.actorUsername || "Mushroom.Pi",
+    senderType: "shop",
+    username,
+  });
+
+  if (!message) {
+    throw new Error("Unable to send message.");
+  }
+
+  return message;
+}
+
 type StorefrontOrderAdminUpdate = {
   adminNote?: string | null;
   deliveredAt?: string | null;
@@ -2208,7 +2752,17 @@ export async function updateStorefrontOrderRecord(
     };
   });
 
-  return mapOrderRows(updatedRows, itemRows, 1)[0];
+  const updatedOrder = mapOrderRows(updatedRows, itemRows, 1)[0];
+
+  if (updatedOrder && update.status) {
+    await recordAutomaticOrderMessage(
+      updatedOrder,
+      `order_status_${update.status}`,
+      getStatusMessageBody(updatedOrder.id, update.status),
+    );
+  }
+
+  return updatedOrder;
 }
 
 export async function syncStorefrontSession(

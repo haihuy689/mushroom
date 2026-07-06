@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import type { SiteLocale } from "@/lib/i18n";
+import { getMessageCenterCopy } from "@/lib/message-center-copy";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { getOrderStatusCounts, resolveOrderStatus } from "@/lib/order-tracking";
 import type { OrderStatus } from "@/lib/order-status";
@@ -32,6 +33,7 @@ export function AccountPageClient({
   const refreshInFlightRef = useRef(false);
   const viewerUid = viewer?.uid ?? null;
   const statusCounts = hydrated ? getOrderStatusCounts(orders) : null;
+  const messageCopy = getMessageCenterCopy(locale);
 
   const formatter = new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
@@ -117,6 +119,9 @@ export function AccountPageClient({
           </Link>
           <Link href="/orders" className={styles.secondaryLink}>
             {orderCopy.orders}
+          </Link>
+          <Link href="/messages" className={styles.secondaryLink}>
+            {messageCopy.messages}
           </Link>
           <Link href="/shop" className={styles.secondaryLink}>
             {copy.browseShop}

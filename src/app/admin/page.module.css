@@ -489,6 +489,7 @@
 }
 
 .statusChip[data-tone="danger"],
+.statusChip[data-tone="issue"],
 .statusChip[data-tone="payment_failed"],
 .statusChip[data-tone="delivery_issue"] {
   background: #fff0ef;
@@ -516,6 +517,73 @@
 
 .quickActionPanel > strong {
   color: #28150c;
+}
+
+.messageDetailGrid {
+  grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.15fr);
+}
+
+.messagePanel {
+  min-height: 34rem;
+}
+
+.adminMessageList {
+  display: grid;
+  gap: 0.75rem;
+  max-height: 28rem;
+  overflow: auto;
+  padding: 0.25rem;
+}
+
+.adminMessageBubble {
+  width: min(82%, 42rem);
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(70, 64, 40, 0.12);
+  background: #fffdf8;
+}
+
+.adminMessageBubble[data-sender="user"] {
+  justify-self: end;
+  background: linear-gradient(135deg, #6d198e, #9d2db9);
+  color: white;
+}
+
+.adminMessageBubble[data-sender="system"] {
+  background: linear-gradient(135deg, #f7fff0, #fffdf8);
+  border-color: rgba(95, 127, 53, 0.18);
+}
+
+.adminMessageBubble p {
+  margin: 0;
+  color: inherit;
+  line-height: 1.58;
+}
+
+.messageMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.messageMetaRow span {
+  color: rgba(67, 41, 24, 0.58);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.adminMessageBubble[data-sender="user"] .messageMetaRow span {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.messageComposer {
+  display: grid;
+  gap: 0.85rem;
+  padding-top: 0.95rem;
+  border-top: 1px solid rgba(70, 64, 40, 0.1);
 }
 
 .quickActionGrid {
@@ -1115,5 +1183,9 @@
   .fulfillmentQuantity {
     justify-items: flex-start;
     text-align: left;
+  }
+
+  .adminMessageBubble {
+    width: min(94%, 42rem);
   }
 }

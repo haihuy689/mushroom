@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SiteLocale } from "@/lib/i18n";
+import { getMessageCenterCopy } from "@/lib/message-center-copy";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import type { PiAuthResult, PiVerifiedUser } from "@/lib/pi-types";
 import type { PiCheckoutCopy } from "@/lib/public-site-copy";
@@ -136,6 +137,7 @@ export function OrdersPageClient({
     timeStyle: "short",
   });
 
+  const messageCopy = getMessageCenterCopy(locale);
   const statusCounts = hydrated ? getOrderStatusCounts(orders, nowMs) : null;
   const visibleOrders =
     activeFilter === "all"
@@ -819,6 +821,17 @@ export function OrdersPageClient({
                             {copy.deliveryAddressLabel}: {addressLine}
                           </p>
                         ) : null}
+                      </section>
+
+                      <section className={styles.detailSection}>
+                        <strong>{messageCopy.messages}</strong>
+                        <p className={styles.addressLine}>{messageCopy.userLead}</p>
+                        <Link
+                          href={`/messages?orderId=${encodeURIComponent(order.id)}`}
+                          className={styles.secondaryLink}
+                        >
+                          {messageCopy.send}
+                        </Link>
                       </section>
                     </div>
                   ) : null}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
 import type { SiteLocale } from "@/lib/i18n";
+import { getMessageCenterCopy } from "@/lib/message-center-copy";
 import type { OrderCenterCopy } from "@/lib/order-center-copy";
 import { getOrderStatusCounts } from "@/lib/order-tracking";
 import type { PiVerifiedUser } from "@/lib/pi-types";
@@ -58,6 +59,7 @@ type AccountMenuProps = {
   cartCount: number;
   copy: HeaderCopy;
   hydrated: boolean;
+  locale: SiteLocale;
   orderCount: number;
   orders: Array<{ id: string; createdAt: string }>;
   viewer: PiVerifiedUser | null;
@@ -241,7 +243,14 @@ function MobileBottomNav({
         ) : null}
         <span>{copy.cart}</span>
       </Link>
-      <Link href="/account" data-active={pathname.startsWith("/account")}>
+      <Link
+        href="/account"
+        data-active={
+          pathname.startsWith("/account") ||
+          pathname.startsWith("/messages") ||
+          pathname.startsWith("/orders")
+        }
+      >
         <AccountIcon />
         <span>{copy.account}</span>
       </Link>
@@ -254,6 +263,7 @@ function AccountMenu({
   cartCount,
   copy,
   hydrated,
+  locale,
   orderCount,
   orders,
   viewer,
@@ -277,6 +287,7 @@ function AccountMenu({
       };
   const avatarLabel = viewerName?.trim().slice(0, 1).toUpperCase() || "Pi";
   const statusHint = isSignedIn ? copy.menuSignedInHint : copy.menuGuestHint;
+  const messageCopy = getMessageCenterCopy(locale);
 
   const closeMenu = () => {
     detailsRef.current?.removeAttribute("open");
@@ -343,6 +354,14 @@ function AccountMenu({
             >
               <span>{copy.orders}</span>
               <span className={styles.accountLinkMeta}>{orderCount}</span>
+            </Link>
+            <Link
+              href="/messages"
+              className={styles.accountLinkRow}
+              onClick={closeMenu}
+            >
+              <span>{messageCopy.messages}</span>
+              <span className={styles.accountLinkMeta}>{messageCopy.shop}</span>
             </Link>
             <Link
               href="/cart"
@@ -448,6 +467,7 @@ export function SiteHeaderClient({
                   cartCount={visibleCartCount}
                   copy={copy}
                   hydrated={hydrated}
+                  locale={locale}
                   orderCount={visibleOrderCount}
                   orders={orders}
                   viewer={viewer}
