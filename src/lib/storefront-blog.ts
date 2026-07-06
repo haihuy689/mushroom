@@ -140,113 +140,113 @@ async function ensureBlogSchema() {
 }
 
 export async function listAdminBlogPosts() {
-  if (!(await ensureBlogSchema())) {
-    return [] satisfies StorefrontBlogPostRecord[];
-  }
-
   const sql = getSql();
 
   if (!sql) {
     return [] satisfies StorefrontBlogPostRecord[];
   }
 
-  const rows = await sql<BlogPostRow[]>`
-    select
-      body_json,
-      category,
-      cover_image_url,
-      cover_note,
-      created_at::text,
-      excerpt,
-      id,
-      is_published,
-      locale,
-      published_at,
-      read_time,
-      slug,
-      title,
-      updated_at::text
-    from storefront_blog_posts
-    order by updated_at desc, created_at desc
-  `;
+  try {
+    const rows = await sql<BlogPostRow[]>`
+      select
+        body_json,
+        category,
+        cover_image_url,
+        cover_note,
+        created_at::text,
+        excerpt,
+        id,
+        is_published,
+        locale,
+        published_at,
+        read_time,
+        slug,
+        title,
+        updated_at::text
+      from storefront_blog_posts
+      order by updated_at desc, created_at desc
+    `;
 
-  return rows.map(mapBlogRow);
+    return rows.map(mapBlogRow);
+  } catch {
+    return [] satisfies StorefrontBlogPostRecord[];
+  }
 }
 
 export async function listPublishedBlogPosts(locale: SiteLocale) {
-  if (!(await ensureBlogSchema())) {
-    return [] satisfies BlogPost[];
-  }
-
   const sql = getSql();
 
   if (!sql) {
     return [] satisfies BlogPost[];
   }
 
-  const rows = await sql<BlogPostRow[]>`
-    select
-      body_json,
-      category,
-      cover_image_url,
-      cover_note,
-      created_at::text,
-      excerpt,
-      id,
-      is_published,
-      locale,
-      published_at,
-      read_time,
-      slug,
-      title,
-      updated_at::text
-    from storefront_blog_posts
-    where is_published = true
-      and locale = ${locale}
-    order by updated_at desc, created_at desc
-  `;
+  try {
+    const rows = await sql<BlogPostRow[]>`
+      select
+        body_json,
+        category,
+        cover_image_url,
+        cover_note,
+        created_at::text,
+        excerpt,
+        id,
+        is_published,
+        locale,
+        published_at,
+        read_time,
+        slug,
+        title,
+        updated_at::text
+      from storefront_blog_posts
+      where is_published = true
+        and locale = ${locale}
+      order by updated_at desc, created_at desc
+    `;
 
-  return rows.map(mapBlogRow).map(toBlogPost);
+    return rows.map(mapBlogRow).map(toBlogPost);
+  } catch {
+    return [] satisfies BlogPost[];
+  }
 }
 
 export async function getPublishedBlogPostBySlug(
   slug: string,
   locale: SiteLocale,
 ) {
-  if (!(await ensureBlogSchema())) {
-    return undefined;
-  }
-
   const sql = getSql();
 
   if (!sql) {
     return undefined;
   }
 
-  const rows = await sql<BlogPostRow[]>`
-    select
-      body_json,
-      category,
-      cover_image_url,
-      cover_note,
-      created_at::text,
-      excerpt,
-      id,
-      is_published,
-      locale,
-      published_at,
-      read_time,
-      slug,
-      title,
-      updated_at::text
-    from storefront_blog_posts
-    where is_published = true
-      and slug = ${slug}
-      and locale = ${locale}
-    limit 1
-  `;
+  try {
+    const rows = await sql<BlogPostRow[]>`
+      select
+        body_json,
+        category,
+        cover_image_url,
+        cover_note,
+        created_at::text,
+        excerpt,
+        id,
+        is_published,
+        locale,
+        published_at,
+        read_time,
+        slug,
+        title,
+        updated_at::text
+      from storefront_blog_posts
+      where is_published = true
+        and slug = ${slug}
+        and locale = ${locale}
+      limit 1
+    `;
 
-  return rows[0] ? toBlogPost(mapBlogRow(rows[0])) : undefined;
+    return rows[0] ? toBlogPost(mapBlogRow(rows[0])) : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function saveStorefrontBlogPost(
