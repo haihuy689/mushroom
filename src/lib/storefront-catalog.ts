@@ -5,6 +5,10 @@ import type { SiteLocale } from "@/lib/i18n";
 import type { Product } from "@/lib/pi-types";
 import { readStorefrontProductRecordsDirect } from "@/lib/storefront-db";
 import {
+  applyProductTranslation,
+  readPublishedProductTranslationMap,
+} from "@/lib/storefront-product-translations";
+import {
   mapProductRecordToProduct,
   type StorefrontProductRecord,
 } from "@/lib/storefront-product";
@@ -69,17 +73,23 @@ async function readStorefrontProductRecordsForCatalog() {
   }
 }
 
-export async function getStorefrontProducts(_locale: SiteLocale) {
-  void _locale;
-
+export async function getStorefrontProducts(locale: SiteLocale) {
   const dbProducts = await readStorefrontProductRecordsForCatalog();
+  const translations = await readPublishedProductTranslationMap(locale);
 
   return dbProducts
     .filter(
       (productRecord) =>
         productRecord.isActive && !productRecord.sourceProductId,
     )
-    .map((productRecord) =>
-      withOperationalDefaults(mapProductRecordToProduct(productRecord)),
-    );
+    .map((productRecord) => {
+      const product = withOperationalDefaults(
+        mapProductRecordToProduct(productRecord),
+      );
+
+      return applyProductTranslation(
+        product,
+        translations.get(productRecord.id),
+      );
+    });
 }
