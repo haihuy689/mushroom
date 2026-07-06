@@ -4,7 +4,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicSiteCopy } from "@/lib/public-site-copy";
 import { getRequestLocale } from "@/lib/request-locale";
-import { getStorefrontProducts } from "@/lib/storefront-catalog";
 import { getPublicBlogPostBySlug } from "@/lib/public-blog";
 import styles from "./page.module.css";
 
@@ -41,8 +40,6 @@ export default async function BlogPostPage(props: PageProps<"/blog/[slug]">) {
   if (!post) {
     notFound();
   }
-
-  const recommendedProducts = (await getStorefrontProducts(locale)).slice(0, 2);
 
   return (
     <div className={styles.page}>
@@ -91,12 +88,14 @@ export default async function BlogPostPage(props: PageProps<"/blog/[slug]">) {
           <span className={styles.asideLabel}>
             {siteCopy.blog.relatedProductsLabel}
           </span>
-          {recommendedProducts.map((product) => (
-            <div key={product.id} className={styles.productCard}>
-              <strong>{product.name}</strong>
-              <span>{product.pricePi} Pi</span>
-            </div>
-          ))}
+          <p>
+            {
+              "C\u00e1c s\u1ea3n ph\u1ea9m ph\u00f9 h\u1ee3p s\u1ebd \u0111\u01b0\u1ee3c g\u1ee3i \u00fd tr\u1ef1c ti\u1ebfp trong c\u1eeda h\u00e0ng \u0111\u1ec3 b\u1ea1n ch\u1ecdn nhanh h\u01a1n."
+            }
+          </p>
+          <Link href="/shop" className={styles.cta}>
+            {siteCopy.blog.articleSidebarCta}
+          </Link>
         </div>
       </aside>
     </div>
