@@ -9,7 +9,7 @@ import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
-const fallbackCoverImage = "/images/blog/mushroom-care.svg";
+const fallbackCoverImage = "/images/mushroom-pi/hero-market.webp";
 
 export async function generateMetadata(
   props: PageProps<"/blog/[slug]">,
